@@ -1,0 +1,28 @@
+[project]
+name = "prototome-we-ui"
+version = "0.1.0"
+description = "Webpage for monitoring mouse watering metrics"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mypy>=1.15.0",
+    "nicegui>=2.15.0",
+    "plotly>=6.0.1",
+    "plotly-stubs>=0.0.5",
+    "pytest>=8.3.5",
+    "ruff>=0.11.6",
+    "tox>=4.25.0",
+    "tox-uv>=1.25.0",
+    "zmq"
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

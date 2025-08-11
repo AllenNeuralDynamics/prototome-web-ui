@@ -1,0 +1,34 @@
+{
+  "host": "http://localhost:8000",
+  "web_camera": {
+    "type": "camera",
+    "host": "http://localhost:8000",
+    "exposure_specs": {
+        "min": -13,
+        "max": 0,
+        "step": 1
+      },
+    "gain_specs": {
+        "min": 0,
+        "max": 1,
+        "range": 0.1
+      }
+    
+  },
+  "fake_coarse_stage": {
+    "host": "http://localhost:8000",
+    "axes": [
+        "y",
+        "z"
+      ],
+    "type": "stage"
+  },
+  "fake_fine_stage": {
+    "host": "http://localhost:8000",
+    "axes": [
+        "piezo"
+      ]
+    ,
+    "type": "stage"
+  }
+}

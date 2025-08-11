@@ -1,0 +1,38 @@
+{
+  "host": "http://localhost:8000",
+  "web_camera": {
+    "type": "camera",
+    "kwds": {
+      "index": 0,
+      "exposure_range": {
+        "min": -13,
+        "max": 0,
+        "step": 1
+      },
+      "gain_range": {
+        "min": 0,
+        "max": 1,
+        "range": 0.1
+      }
+    }
+  },
+  "fake_coarse_stage": {
+    "host": "http://localhost:8000",
+    "kwds": {
+      "axes": [
+        "y",
+        "z"
+      ]
+    },
+    "type": "stage"
+  },
+  "fake_fine_stage": {
+    "host": "http://localhost:8000",
+    "kwds": {
+      "axes": [
+        "piezo"
+      ]
+    },
+    "type": "stage"
+  }
+}
