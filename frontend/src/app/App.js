@@ -3,11 +3,12 @@ import CameraWidget from "../features/camera/components/CameraWidget.tsx";
 import StageWidget from "../features/stage/components/StageWidget.tsx";
 import { Group, Stack } from "@mantine/core";
 import "@mantine/core/styles.css";
-import Form from "@rjsf/bootstrap-4";
 import validator from "@rjsf/validator-ajv8";
+import Form from "@rjsf/bootstrap-4";
 import "bootstrap/dist/css/bootstrap.min.css";
 import {FilePathWidget} from "../components/FilePathWidget.tsx"
 import { prototomeSchema, uiPrototomeSchema } from "../types/prototomeConfigTypes.tsx";
+import '../assets/rjsf-spacing.css';
 
 function App() {
   const [config, setConfig] = useState(null);
@@ -46,19 +47,6 @@ function App() {
             }
             return null;
           })}
-          <Form
-            uiSchema={uiPrototomeSchema}
-            schema={prototomeSchema}
-            validator={validator}
-            widgets={{FilePathWidget}}
-            formData={config.prototome_config}
-            onChange={({ formData }) =>
-              setConfig((prev) => ({ ...prev, ["prototome_config"]: formData }))
-            }
-            onSubmit={({ formData }) =>
-              setConfig((prev) => ({ ...prev, ["prototome_config"]: formData }))
-            }
-          />
         </Stack>
         <Stack>
           {Object.entries(config).map(([key, value]) => {
@@ -75,6 +63,21 @@ function App() {
             return null;
           })}
         </Stack>
+        <div className="rjsf-form">
+        <Form
+            uiSchema={uiPrototomeSchema}
+            schema={prototomeSchema}
+            validator={validator}
+            widgets={{FilePathWidget}}
+            formData={config.prototome_config}
+            onChange={({ formData }) =>
+              setConfig((prev) => ({ ...prev, ["prototome_config"]: formData }))
+            }
+            onSubmit={({ formData }) =>
+              setConfig((prev) => ({ ...prev, ["prototome_config"]: formData }))
+            }
+          />
+          </div>
       </Group>
     </div>
   );

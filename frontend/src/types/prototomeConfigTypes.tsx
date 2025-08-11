@@ -1,5 +1,4 @@
 export const prototomeSchema = {
-  "title": "Prototome Config",
   "type": "object",
   "properties": {
     "active": {
