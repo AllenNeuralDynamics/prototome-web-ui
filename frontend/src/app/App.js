@@ -4,8 +4,9 @@ import StageWidget from "../features/stage/components/StageWidget.tsx";
 import { Group, Stack } from "@mantine/core";
 import "@mantine/core/styles.css";
 import validator from "@rjsf/validator-ajv8";
-import Form from "@rjsf/bootstrap-4";
-import "bootstrap/dist/css/bootstrap.min.css";
+// import Form from "@rjsf/bootstrap-4";
+// import "bootstrap/dist/css/bootstrap.min.css";
+import Form from '@rjsf/mui';
 import {FilePathWidget} from "../components/FilePathWidget.tsx"
 import { prototomeSchema, uiPrototomeSchema } from "../types/prototomeConfigTypes.tsx";
 import '../assets/rjsf-spacing.css';
@@ -63,7 +64,7 @@ function App() {
             return null;
           })}
         </Stack>
-        <div className="rjsf-form">
+        <div className="prototome-config-form">
         <Form
             uiSchema={uiPrototomeSchema}
             schema={prototomeSchema}

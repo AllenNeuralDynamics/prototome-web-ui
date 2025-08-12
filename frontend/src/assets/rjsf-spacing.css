@@ -1,70 +1,47 @@
+ 
+  .prototome-config-form input[id^="root"],
+  .prototome-config-form select[id^="root"],
+  .prototome-config-form textarea[id^="root"] {
+    font-size: 0.75rem !important;     
+    padding: 0.2rem !important;        
+    margin: 0.1rem 0 !important;       
+    width: 80% !important;             
+    transition: transform 0.2s ease;   
+    display: block;                   
+  }
 
-  .rjsf-form .col,
-  .rjsf-form .column,
-  .rjsf-form [class*="col-"] {
+  .prototome-config-form [class^="Mui"],
+  .prototome-config-form [class$="-root"] {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
   }
-
-  .rjsf-form label {
-    font-size: 0.85rem !important; /* smaller font size */
-    font-weight: 600; /* optional: make labels a bit bolder */
-    margin-bottom: 0.2rem; /* space between label and input */
-    display: block; /* ensure labels behave like block elements */
+  .prototome-config-form {
+    display: inline-block;      
+    max-width: 300px;          
+    width: auto;                
+    height: auto;               
+    padding: 0; 
+    margin: 0;                   
   }
-
-  .rjsf-form .btn {
-    padding: 0.25rem 0.5rem !important;  /* smaller padding */
-    font-size: 0.75rem !important;       /* smaller font size */
-    margin: 0 !important;                 /* remove extra margin */
-    line-height: 1 !important;            /* tighter line height */
-    min-width: auto !important;           /* allow smaller width */
-  }
-
-  .rjsf-form h5 {
-    font-size: 1rem !important;     /* smaller font size (default h5 is about 1.25rem) */
-    margin-top: 0.25rem !important; /* less space above */
-    margin-bottom: 0.25rem !important; /* less space below */
-    font-weight: 600;               /* optional: adjust weight */
+  .prototome-config-form .MuiBox-root {
+    padding-top: 0 !important; 
+    padding-left: 0 !important; 
+    padding-bottom: 0 !important;
+    margin: 0 !important;           
   }
   
-  .rjsf-form input[id^="root"],
-  .rjsf-form select[id^="root"],
-  .rjsf-form textarea[id^="root"] {
-    font-size: 0.75rem !important;     /* smaller font size */
-    padding: 0.2rem !important;        /* reduced padding */
-    margin: 0.1rem 0 !important;       /* tighter vertical margin */
-    width: 80% !important;             /* narrower width */
-    transition: transform 0.2s ease;   /* smooth transition on hover */
-    display: block;                    /* block layout */
+ .prototome-config-form .MuiTypography-root {
+    font-size: 0.75rem !important;   
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin: 0 !important;       
   }
-  
-  .rjsf-form input[id^="root"]:hover,
-  .rjsf-form select[id^="root"]:hover,
-  .rjsf-form textarea[id^="root"]:hover {
-    transform: scale(0.95);            /* subtle scale on hover */
+  .prototome-config-form .MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation2 {
+    box-shadow: none !important;
   }
 
-  .rjsf-form input[type="checkbox"] {
-    /* Keep the box visually smaller */
-    width: 1rem !important;
-    height: 1rem !important;
-    
-    /* Remove default padding/margin */
-    padding: 0 !important;
-    margin: 0 0.25rem 0 0 !important;
-    
-    /* Optional: scale to slightly smaller */
-    transform: scale(0.9);
-    transform-origin: center;
-  
-    /* Keep a minimum clickable area by using padding on the label */
-    cursor: pointer;
-  }
-
-  .rjsf-form .form-check-label {
-    /* Hide the label text but keep the checkbox visible */
-    color: transparent !important;
-    user-select: none;
-    pointer-events: none;
+  .prototome-config-form .MuiGrid-root.MuiGrid-item {
+    padding-top: 0.7rem !important; 
+    padding-bottom: 0 !important;
+    margin: 0 !important;           
   }

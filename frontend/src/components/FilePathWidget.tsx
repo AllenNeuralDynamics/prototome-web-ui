@@ -1,23 +1,29 @@
 import React from "react";
-import { FileButton, Button, TextInput, Group } from "@mantine/core";
+import { FileButton, Button, Group } from "@mantine/core";
+import{ TextField } from "@mui/material"
 
-export function FilePathWidget({ value, onChange }) {
+export function FilePathWidget({ id, label, value, onChange }) {
     return (
       <Group gap="sm" grow>
-        <TextInput
+        <TextField
+          id={id}
+          label={label}
           value={value || ""}
           placeholder="No file selected"
-          readOnly
+          variant="outlined"
+          size="small"
+          onChange={(e) => onChange(e.target.value)}
         />
         <FileButton
-        onChange={(file) => {
-          if (file) {
-            onChange(file.name); // update with selected file name
-          }
-        }}
-        accept="*">
-         {(props) => <Button {...props}>Browse Files</Button>}
-      </FileButton>
+          onChange={(file) => {
+            if (file) {
+              onChange(file.name);
+            }
+          }}
+          accept="*"
+        >
+          {(props) => <Button {...props}>Browse Files</Button>}
+        </FileButton>
       </Group>
     );
   }
