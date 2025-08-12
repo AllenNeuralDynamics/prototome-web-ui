@@ -9,7 +9,6 @@
     "@mantine/hooks": "^8.2.4",
     "@mui/icons-material": "^6.5.0",
     "@mui/material": "^6.5.0",
-    "@rjsf/bootstrap-4": "^5.24.12",
     "@rjsf/core": "^5.24.12",
     "@rjsf/mui": "^5.24.12",
     "@rjsf/semantic-ui": "^5.24.12",
