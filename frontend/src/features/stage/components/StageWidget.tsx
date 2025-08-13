@@ -27,9 +27,9 @@ export default function StageWidget({
   stageId,
   axes,
   host,
+  positions,
   unit = "um",
 }: StageWidgetProps) {
-  const [positions, setPositions] = useState<Record<string, number>>({});
   const [posMins, setMinPositions] = useState<Record<string, number>>({});
   const [posMaxes, setMaxPositions] = useState<Record<string, number>>({});
   const [velocity, setVelocity] = useState<Record<string, number>>({});
@@ -37,23 +37,6 @@ export default function StageWidget({
   const [stepSizeInput, setStepSizeInput] = useState<Record<string, number>>(
     {},
   );
-
-  useEffect(() => {
-    async function fetchPositions() {
-      try {
-        const newPositions: Record<string, number> = {};
-        for (const axis of axes) {
-          const pos = await getPosition(host, stageId, axis);
-          newPositions[axis] = pos;
-        }
-        setPositions(newPositions);
-      } catch (error) {
-        console.error("Error fetching positions:", error);
-      }
-    }
-    fetchPositions();
-    setInterval(fetchPositions, 1000);
-  }, [stageId, axes, host]);
 
   useEffect(() => {
     async function fetchMinPositions() {
@@ -65,7 +48,7 @@ export default function StageWidget({
         }
         setMinPositions(newMins);
       } catch (error) {
-        console.error("Error fetching positions:", error);
+        console.error("Error fetching minimum positions:", error);
       }
     }
     fetchMinPositions();
@@ -81,7 +64,7 @@ export default function StageWidget({
         }
         setMaxPositions(newMaxes);
       } catch (error) {
-        console.error("Error fetching positions:", error);
+        console.error("Error fetching maximum positions:", error);
       }
     }
     fetchMaxPositions();
@@ -97,7 +80,7 @@ export default function StageWidget({
         }
         setVelocity(newVelocities);
       } catch (error) {
-        console.error("Error fetching positions:", error);
+        console.error("Error fetching velocities:", error);
       }
     }
     fetchVelocity();

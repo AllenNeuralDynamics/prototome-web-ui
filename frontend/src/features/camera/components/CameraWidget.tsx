@@ -4,7 +4,12 @@ import "@mantine/core/styles.css";
 import { getFrame, postExposure, postGain } from "../api/cameraApi.tsx";
 import { CameraWidgetProps } from "../types/cameraTypes.tsx";
 
-export default function CameraWidget({ cameraId, host, exposureSpecs, gainSpecs }: CameraWidgetProps) {
+export default function CameraWidget({
+  cameraId,
+  host,
+  exposureSpecs,
+  gainSpecs,
+}: CameraWidgetProps) {
   const [exposure, setExposure] = useState(-9);
   const [gain, setGain] = useState(1);
   const [frameUrl, setFrameUrl] = useState("");

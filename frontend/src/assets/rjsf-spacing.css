@@ -1,54 +1,52 @@
- 
-  .prototome-config-form input[id^="root"],
-  .prototome-config-form select[id^="root"],
-  .prototome-config-form textarea[id^="root"] {
-    font-size: 0.75rem !important;     
-    padding: 0.2rem !important;        
-    margin: 0.1rem 0 !important;       
-    width: 80% !important;             
-    transition: transform 0.2s ease;   
-    display: block;                   
-  }
+.prototome-config-form input[id^="root"],
+.prototome-config-form select[id^="root"],
+.prototome-config-form textarea[id^="root"] {
+  font-size: 0.75rem !important;
+  padding: 0.2rem !important;
+  margin: 0.1rem 0 !important;
+  width: 80% !important;
+  transition: transform 0.2s ease;
+  display: block;
+}
 
-  .prototome-config-form [class^="Mui"],
-  .prototome-config-form [class$="-root"] {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-  }
-  .prototome-config-form {
-    display: inline-block;      
-    max-width: 300px;          
-    width: auto;                
-    height: auto;               
-    padding: 0; 
-    margin: 0;                   
-  }
-  .prototome-config-form .MuiBox-root {
-    padding-top: 0 !important; 
-    padding-left: 0 !important; 
-    padding-bottom: 0 !important;
-    margin: 0 !important;           
-  }
-  
- .prototome-config-form .MuiTypography-root {
-    font-size: 0.75rem !important;   
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    margin: 0 !important;       
-  }
-  .prototome-config-form .MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation2 {
-    box-shadow: none !important;
-  }
+.prototome-config-form [class^="Mui"],
+.prototome-config-form [class$="-root"] {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+.prototome-config-form {
+  display: inline-block;
+  max-width: 300px;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+}
+.prototome-config-form .MuiBox-root {
+  padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+}
 
-  .prototome-config-form .MuiGrid-root.MuiGrid-item {
-    padding-top: 0.7rem !important; 
-    padding-bottom: 0 !important;
-    margin: 0 !important;           
-  }
+.prototome-config-form .MuiTypography-root {
+  font-size: 0.75rem !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+}
+.prototome-config-form .MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation2 {
+  box-shadow: none !important;
+}
 
-  .prototome-config-form .MuiInputLabel-root:not(.MuiInputLabel-shrink) {
-    font-size: 0.75rem !important;
-    transform: translate(14px, 8px) scale(1) !important; /* move label up */
-    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms !important;
-  }
-  
+.prototome-config-form .MuiGrid-root.MuiGrid-item {
+  padding-top: 0.7rem !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+}
+
+.prototome-config-form .MuiInputLabel-root:not(.MuiInputLabel-shrink) {
+  font-size: 0.75rem !important;
+  transform: translate(14px, 8px) scale(1) !important; /* move label up */
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms !important;
+}
