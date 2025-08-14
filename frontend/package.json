@@ -5,6 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@mantine/charts": "^8.2.4",
     "@mantine/core": "^8.2.4",
     "@mantine/hooks": "^8.2.4",
     "@mui/icons-material": "^6.5.0",

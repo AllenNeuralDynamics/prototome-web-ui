@@ -5,6 +5,8 @@ export type StageControlProps = {
   unit: string;
 };
 
+export type StagePosVisProps = {};
+
 type InstrumentStages = {
   [stageId: string]: string[];
 };

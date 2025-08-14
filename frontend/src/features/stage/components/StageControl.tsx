@@ -23,6 +23,7 @@ import {
 } from "../api/stageApi.tsx";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../stores/store.tsx";
+import { getAxisColor } from "../utils/colorGrabber.tsx";
 
 export default function StageControl({
   stageId,
@@ -128,17 +129,9 @@ export default function StageControl({
     postPosition(host, stageId, axis, val);
   };
 
-  const getAxisColor = (axis: string) => {
-    const colors = {
-      piezo: "blue",
-      y: "green",
-      z: "red",
-    };
-    return colors[axis.toLowerCase()] || "gray";
-  };
-  
   const stagePositions = positions[stageId] ?? {};
-  if (!axes.every(axis => axis in stagePositions)) return <div> Cannot find positions to {stageId} </div>
+  if (!axes.every((axis) => axis in stagePositions))
+    return <div> Cannot find positions to {stageId} </div>;
 
   return (
     <div>
