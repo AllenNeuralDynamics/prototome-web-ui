@@ -11,7 +11,7 @@ import {
   Stack,
 } from "@mantine/core";
 import "@mantine/core/styles.css";
-import { StageWidgetProps } from "../types/stageTypes.tsx";
+import { StageControlProps } from "../types/stageTypes.tsx";
 import {
   postPosition,
   getMinimumPosition,
@@ -24,12 +24,12 @@ import {
 import { useSelector } from "react-redux";
 import { RootState } from "../../../stores/store.tsx";
 
-export default function StageWidget({
+export default function StageControl({
   stageId,
   axes,
   host,
   unit = "um",
-}: StageWidgetProps) {
+}: StageControlProps) {
   const positions = useSelector((state: RootState) => state.positions.data);
   const [posMins, setMinPositions] = useState<Record<string, number>>({});
   const [posMaxes, setMaxPositions] = useState<Record<string, number>>({});

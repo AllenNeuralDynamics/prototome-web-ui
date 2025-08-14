@@ -1,4 +1,4 @@
-export type StageWidgetProps = {
+export type StageControlProps = {
   stageId: string;
   axes: string[];
   host: string;

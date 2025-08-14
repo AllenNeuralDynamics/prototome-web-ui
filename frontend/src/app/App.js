@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import CameraWidget from "../features/camera/index.js";
-import { StageWidget } from "../features/stage/index.js";
+import { StageControl } from "../features/stage/index.js";
 import { Group, Stack, Card } from "@mantine/core";
 import "@mantine/core/styles.css";
 import validator from "@rjsf/validator-ajv8";
 import Form from "@rjsf/mui";
 import { FilePathWidget } from "../components/FilePathWidget.tsx";
-import { prototomeSchema, uiPrototomeSchema } from "C:/Users/micah.woodard/Documents/GitHub/prototome-web-ui/frontend/src/types/prototomeConfigTypes.tsx";
+import { prototomeSchema, uiPrototomeSchema } from "../types/prototomeConfigTypes.tsx";
 import "../assets/rjsf-spacing.css";
 import { useStagePositions } from "../features/stage/index.js";
 
@@ -67,7 +67,7 @@ function App() {
           {Object.entries(config).map(([key, value]) => {
             if (value?.type === "stage") {
               return (
-                <StageWidget
+                <StageControl
                   key={key}
                   stageId={key}
                   axes={value.axes}
