@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from "react";
-import CameraWidget from "../features/camera";;
-import { StageWidget } from "../features/stage";
+import CameraWidget from "../features/camera/index.js";
+import { StageWidget } from "../features/stage/index.js";
 import { Group, Stack, Card } from "@mantine/core";
 import "@mantine/core/styles.css";
 import validator from "@rjsf/validator-ajv8";
 import Form from "@rjsf/mui";
-export { FilePathWidget } from "../components/FilePathWidget.tsx";
-export {
-  prototomeSchema,
-  uiPrototomeSchema,
-} from "../types/prototomeConfigTypes.tsx";
+import { FilePathWidget } from "../components/FilePathWidget.tsx";
+import { prototomeSchema, uiPrototomeSchema } from "C:/Users/micah.woodard/Documents/GitHub/prototome-web-ui/frontend/src/types/prototomeConfigTypes.tsx";
 import "../assets/rjsf-spacing.css";
+import { useStagePositions } from "../features/stage/index.js";
 
 function App() {
   const [config, setConfig] = useState(null);
-  const [stagePositions, setStagePositions] = {}
+
   useEffect(() => {
     async function fetchConfig() {
       try {
@@ -31,9 +29,17 @@ function App() {
     fetchConfig();
   }, []);
 
+
+  const instrumentStages = Object.fromEntries(
+    Object.entries(config ?? {})
+      .filter(([_, value]) => value?.type === "stage")
+      .map(([key, value]) => [key, value.axes])
+  );
+
+  useStagePositions({ host: config?.host ?? "", instrumentStages:instrumentStages});
+
   if (!config) return <div>Loading configuration...</div>;
-
-
+  
   return (
     <div>
       <Group
