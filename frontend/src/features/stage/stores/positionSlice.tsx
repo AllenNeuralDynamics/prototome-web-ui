@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { getPosition } from "../api/stageApi.tsx";
-import { UseStagePositionsProps } from "../types/stageTypes.tsx";
+import { UseStageProps } from "../types/stageTypes.tsx";
 
 type StagePositions = {
   [axes: string]: number;
@@ -24,7 +24,7 @@ const initialState: PositionsState = {
 
 export const fetchPositions = createAsyncThunk(
   "positions/fetchPositons",
-  async ({ host, instrumentStages }: UseStagePositionsProps) => {
+  async ({ host, instrumentStages }: UseStageProps) => {
     const instrumentStagePositions: InstrumentStagePositions = {};
     for (const [stageId, axes] of Object.entries(instrumentStages)) {
       instrumentStagePositions[stageId] = {};

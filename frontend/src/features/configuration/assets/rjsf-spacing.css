@@ -16,11 +16,11 @@
 }
 .prototome-config-form {
   display: inline-block;
-  max-width: 300px;
+  max-width: 400px;
   width: auto;
   height: auto;
   padding: 0;
-  margin: 0;
+  margin: "0 auto";
 }
 .prototome-config-form .MuiBox-root {
   padding-top: 0 !important;

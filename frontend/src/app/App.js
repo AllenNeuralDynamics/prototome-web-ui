@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../stores/store.tsx";
 import CameraWidget from "../features/camera/index.js";
 import { StageControl, StagePosVis } from "../features/stage/index.js";
-import { Group, Stack, Card, Tabs } from "@mantine/core";
-import "@mantine/core/styles.css";
-import validator from "@rjsf/validator-ajv8";
-import Form from "@rjsf/mui";
-import { FilePathWidget } from "../components/FilePathWidget.tsx";
 import {
-  prototomeSchema,
-  uiPrototomeSchema,
-} from "../types/prototomeConfigTypes.tsx";
-import "../assets/rjsf-spacing.css";
+  PrototomeConfig,
+  StateControl,
+} from "../features/configuration/index.js";
+import { Group, Stack, Tabs } from "@mantine/core";
+import "@mantine/core/styles.css";
 import { useStagePositions } from "../features/stage/index.js";
+import { initializeRanges } from "../features/stage/stores/rangeSlice.tsx";
 
 function App() {
   const [config, setConfig] = useState(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     async function fetchConfig() {
@@ -38,6 +38,10 @@ function App() {
       .map(([key, value]) => [key, value.axes]),
   );
 
+  useEffect(() => {   // initialize the stage range stores
+    dispatch(initializeRanges({ host: config?.host, instrumentStages })); 
+  }, [dispatch, config?.host, instrumentStages]);
+
   useStagePositions({
     host: config?.host ?? "",
     instrumentStages: instrumentStages,
@@ -48,16 +52,24 @@ function App() {
   const defaultTab = Object.entries(config).find(
     ([key, value]) => value?.type === "stage",
   )?.[0];
-  console.log(defaultTab);
   return (
-    <div>
+    <div
+      style={{
+        minHeight: "100vh", 
+        display: "flex",
+        flexDirection: "column", 
+      }}
+    >
       <Group
         spacing="xl"
         style={{ gap: "2rem", justifyContent: "center", width: "100%" }}
-        align="flex-start"
+        align="center"
       >
-        <Group>
-          <Stack>
+        <Stack spacing="xl" align="stretch">
+          <PrototomeConfig config={config} setConfig={setConfig} />
+          <StateControl />
+        </Stack>
+        <Stack spacing="xl" align="stretch">
           {Object.entries(config).map(([key, value]) => {
             if (value?.type === "camera") {
               return (
@@ -100,38 +112,8 @@ function App() {
               return null;
             })}
           </Tabs>
-          </Stack>
-          <Card
-            shadow="xs"
-            padding="md"
-            radius="md"
-            withBorder
-            className="bg-gray-50"
-          >
-            <div className="prototome-config-form">
-              <Form
-                uiSchema={uiPrototomeSchema}
-                schema={prototomeSchema}
-                validator={validator}
-                widgets={{ FilePathWidget }}
-                formData={config.prototome_config}
-                onChange={({ formData }) =>
-                  setConfig((prev) => ({
-                    ...prev,
-                    ["prototome_config"]: formData,
-                  }))
-                }
-                onSubmit={({ formData }) =>
-                  setConfig((prev) => ({
-                    ...prev,
-                    ["prototome_config"]: formData,
-                  }))
-                }
-              />
-            </div>
-          </Card>
-        </Group>
-        <Stack spacing="xl" align="flex-start" position="center">
+        </Stack>
+        <Stack Stack spacing="xl" align="stretch">
           {Object.entries(config).map(([key, value]) => {
             if (value?.type === "stage") {
               return (

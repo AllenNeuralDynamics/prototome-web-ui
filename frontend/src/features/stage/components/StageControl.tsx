@@ -14,16 +14,16 @@ import "@mantine/core/styles.css";
 import { StageControlProps } from "../types/stageTypes.tsx";
 import {
   postPosition,
-  getMinimumPosition,
-  getMaximumPosition,
-  postMinimumPosition,
-  postMaximumPosition,
   getVelocity,
   postVelocity,
 } from "../api/stageApi.tsx";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../stores/store.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../../stores/store.tsx";
+import { postMinPos, postMaxPos } from "../stores/rangeSlice.tsx";
+
 
 export default function StageControl({
   stageId,
@@ -32,45 +32,13 @@ export default function StageControl({
   unit = "um",
 }: StageControlProps) {
   const positions = useSelector((state: RootState) => state.positions.data);
-  const [posMins, setMinPositions] = useState<Record<string, number>>({});
-  const [posMaxes, setMaxPositions] = useState<Record<string, number>>({});
+  const ranges = useSelector((state: RootState) => state.range.data);
+  const dispatch = useDispatch<AppDispatch>();
   const [velocity, setVelocity] = useState<Record<string, number>>({});
   const [posInput, setPosInput] = useState<Record<string, number>>({});
   const [stepSizeInput, setStepSizeInput] = useState<Record<string, number>>(
     {},
   );
-
-  useEffect(() => {
-    async function fetchMinPositions() {
-      try {
-        const newMins: Record<string, number> = {};
-        for (const axis of axes) {
-          const min = await getMinimumPosition(host, stageId, axis);
-          newMins[axis] = min;
-        }
-        setMinPositions(newMins);
-      } catch (error) {
-        console.error("Error fetching minimum positions:", error);
-      }
-    }
-    fetchMinPositions();
-  }, [stageId, axes, host]);
-
-  useEffect(() => {
-    async function fetchMaxPositions() {
-      try {
-        const newMaxes: Record<string, number> = {};
-        for (const axis of axes) {
-          const min = await getMaximumPosition(host, stageId, axis);
-          newMaxes[axis] = min;
-        }
-        setMaxPositions(newMaxes);
-      } catch (error) {
-        console.error("Error fetching maximum positions:", error);
-      }
-    }
-    fetchMaxPositions();
-  }, [stageId, axes, host]);
 
   useEffect(() => {
     async function fetchVelocity() {
@@ -95,12 +63,9 @@ export default function StageControl({
     const clampedMin = Math.min(Math.max(range[0], 0), position);
     const clampedMax = Math.max(Math.min(range[1], 100), position);
 
-    if (clampedMin !== posMins[axis] || clampedMax !== posMaxes[axis]) {
-      setMinPositions((prev) => ({ ...prev, [axis]: clampedMin }));
-      postMinimumPosition(host, stageId, axis, clampedMin);
-
-      setMaxPositions((prev) => ({ ...prev, [axis]: clampedMax }));
-      postMaximumPosition(host, stageId, axis, clampedMax);
+    if (clampedMin !== ranges[stageId][axis].min || clampedMax !== ranges[stageId][axis].max) {
+      dispatch(postMinPos({host, stageId, axis, value: clampedMin}));
+      dispatch(postMaxPos({host, stageId, axis, value: clampedMax}));
     }
   };
   const onVelocityChange = (vel: number, axis: string) => {
@@ -109,11 +74,11 @@ export default function StageControl({
   };
 
   const onMoveLowerClick = (axis: string) => {
-    postPosition(host, stageId, axis, posMins[axis]);
+    postPosition(host, stageId, axis, ranges[stageId][axis].min);
   };
 
   const onMoveUpperClick = (axis: string) => {
-    postPosition(host, stageId, axis, posMaxes[axis]);
+    postPosition(host, stageId, axis, ranges[stageId][axis].max);
   };
 
   const onMoveMiddleClick = (axis: string) => {
@@ -121,17 +86,20 @@ export default function StageControl({
       host,
       stageId,
       axis,
-      Math.round((posMins[axis] + posMaxes[axis]) / 2),
+      Math.round((ranges[stageId][axis].min + ranges[stageId][axis].max) / 2),
     );
   };
   const onMoveClick = (val: number, axis: string) => {
-    console.log(val);
     postPosition(host, stageId, axis, val);
   };
 
   const stagePositions = positions[stageId] ?? {};
   if (!axes.every((axis) => axis in stagePositions))
     return <div> Cannot find positions to {stageId} </div>;
+
+  const stageRanges = ranges[stageId] ?? {};
+  if (!axes.every((axis) => axis in stageRanges))
+    return <div> Cannot find ranges to {stageId} </div>;
 
   return (
     <div>
@@ -166,11 +134,11 @@ export default function StageControl({
             labelAlwaysOn
             marks={[
               {
-                value: posMins[axis] ?? 0,
+                value: ranges[stageId][axis].min ?? 0,
                 label: "",
               },
               {
-                value: posMaxes[axis] ?? 100,
+                value: ranges[stageId][axis].max ?? 100,
                 label: "",
               },
             ]}
@@ -186,16 +154,16 @@ export default function StageControl({
             <Text size="sm">Bounds</Text>
             <Group>
               <Text size="sm" c="dimmed">
-                Min: {posMins[axis]?.toFixed(2) || 0} {unit}
+                Min: {ranges[stageId][axis].min?.toFixed(2) || 0} {unit}
               </Text>
               <Text size="sm" c="dimmed">
-                Max: {posMaxes[axis]?.toFixed(2) || 100} {unit}
+                Max: {ranges[stageId][axis].max?.toFixed(2) || 100} {unit}
               </Text>
             </Group>
           </Group>
           <RangeSlider
             color={getAxisColor(axis)}
-            value={[posMins[axis] ?? 0, posMaxes[axis] ?? 100]}
+            value={[ranges[stageId][axis].min ?? 0, ranges[stageId][axis].max ?? 100]}
             minRange={0}
             onChange={(val) => onPosRangeChange(val, axis)}
           />
@@ -233,8 +201,8 @@ export default function StageControl({
             </Button>
             <Stack>
               <NumberInput
-                min={posMins[axis]}
-                max={posMaxes[axis]}
+                min={ranges[stageId][axis].min}
+                max={ranges[stageId][axis].max}
                 value={posInput[axis]}
                 placeholder="position"
                 hideControls
