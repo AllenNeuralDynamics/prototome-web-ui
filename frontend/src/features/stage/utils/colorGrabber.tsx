@@ -2,7 +2,7 @@
 
 export function getAxisColor(axis: string) {
   const colors = {
-    piezo: "blue",
+    piezo: "violet",
     y: "green",
     z: "red",
   };

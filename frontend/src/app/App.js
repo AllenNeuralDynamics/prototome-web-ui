@@ -44,19 +44,20 @@ function App() {
   });
 
   if (!config) return <div>Loading configuration...</div>;
-  
+
   const defaultTab = Object.entries(config).find(
-    ([key, value]) => value?.type === "stage"
-  )?.[0]; 
-  console.log(defaultTab)
+    ([key, value]) => value?.type === "stage",
+  )?.[0];
+  console.log(defaultTab);
   return (
     <div>
       <Group
         spacing="xl"
-        style={{ flexWrap: "wrap", gap: "2rem" }}
+        style={{ gap: "2rem", justifyContent: "center", width: "100%" }}
         align="flex-start"
       >
-        <Stack>
+        <Group>
+          <Stack>
           {Object.entries(config).map(([key, value]) => {
             if (value?.type === "camera") {
               return (
@@ -99,8 +100,38 @@ function App() {
               return null;
             })}
           </Tabs>
-        </Stack>
-        <Stack>
+          </Stack>
+          <Card
+            shadow="xs"
+            padding="md"
+            radius="md"
+            withBorder
+            className="bg-gray-50"
+          >
+            <div className="prototome-config-form">
+              <Form
+                uiSchema={uiPrototomeSchema}
+                schema={prototomeSchema}
+                validator={validator}
+                widgets={{ FilePathWidget }}
+                formData={config.prototome_config}
+                onChange={({ formData }) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    ["prototome_config"]: formData,
+                  }))
+                }
+                onSubmit={({ formData }) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    ["prototome_config"]: formData,
+                  }))
+                }
+              />
+            </div>
+          </Card>
+        </Group>
+        <Stack spacing="xl" align="flex-start" position="center">
           {Object.entries(config).map(([key, value]) => {
             if (value?.type === "stage") {
               return (
@@ -116,35 +147,6 @@ function App() {
             return null;
           })}
         </Stack>
-        <Card
-          shadow="xs"
-          padding="md"
-          radius="md"
-          withBorder
-          className="bg-gray-50"
-        >
-          <div className="prototome-config-form">
-            <Form
-              uiSchema={uiPrototomeSchema}
-              schema={prototomeSchema}
-              validator={validator}
-              widgets={{ FilePathWidget }}
-              formData={config.prototome_config}
-              onChange={({ formData }) =>
-                setConfig((prev) => ({
-                  ...prev,
-                  ["prototome_config"]: formData,
-                }))
-              }
-              onSubmit={({ formData }) =>
-                setConfig((prev) => ({
-                  ...prev,
-                  ["prototome_config"]: formData,
-                }))
-              }
-            />
-          </div>
-        </Card>
       </Group>
     </div>
   );

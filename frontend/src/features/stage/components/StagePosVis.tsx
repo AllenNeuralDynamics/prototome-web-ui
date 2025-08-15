@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { LineChart } from "@mantine/charts";
-import { Card, Paper, Text } from "@mantine/core";
+import { Card, Paper, Text, Title } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { StageControlProps } from "../types/stageTypes.tsx";
 import { useSelector } from "react-redux";
@@ -64,19 +64,27 @@ export default function StagePosVis({
     <Card
       key={stageId}
       shadow="xs"
-      padding="md"
+      padding="sm"
       radius="md"
       withBorder
       className="bg-gray-50"
     >
+      <Title order={5} align="center" mb="sm" font="8rm">
+        {stageId
+          .split("_")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ") + " Positions"}
+      </Title>
       <LineChart
         h={300}
         data={posSeries}
         dataKey="time"
-        xAxisLabel="Time"
-        yAxisLabel="Position"
         xAxisProps={{ hide: true }}
-        yAxisProps={{padding: { top: 30, bottom: 30 }}}
+        yAxisProps={{
+          padding: { top: 30, bottom: 30 },
+          tickMargin: 0,
+          width: 30,
+        }}
         tooltipProps={{
           content: ({ payload }) => <ChartTooltip payload={payload} />,
         }}
@@ -85,7 +93,6 @@ export default function StagePosVis({
         series={axes.map((axis) => ({
           name: axis,
           color: getAxisColor(axis),
-
         }))}
         dotProps={{ r: 0 }}
       />

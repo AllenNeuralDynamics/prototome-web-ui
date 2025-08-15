@@ -139,7 +139,7 @@ export default function StageControl({
         <Card
           key={axis}
           shadow="xs"
-          padding="md"
+          padding="xs"
           radius="md"
           withBorder
           className="bg-gray-50"
