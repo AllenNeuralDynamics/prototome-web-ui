@@ -15,20 +15,20 @@
       }
     
   },
-  "fake_coarse_stage": {
-    "host": "http://localhost:8000",
-    "axes": [
-        "y",
-        "z"
-      ],
-    "type": "stage"
-  },
   "fake_fine_stage": {
     "host": "http://localhost:8000",
     "axes": [
         "piezo"
       ]
     ,
+    "type": "stage"
+  },
+  "fake_coarse_stage": {
+    "host": "http://localhost:8000",
+    "axes": [
+        "y",
+        "z"
+      ],
     "type": "stage"
   },
   "prototome_config":{

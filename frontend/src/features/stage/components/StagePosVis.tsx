@@ -80,6 +80,7 @@ export default function StagePosVis({
         tooltipProps={{
           content: ({ payload }) => <ChartTooltip payload={payload} />,
         }}
+        legendProps={{ layout: "vertical" }}
         strokeWidth={4}
         series={axes.map((axis) => ({
           name: axis,

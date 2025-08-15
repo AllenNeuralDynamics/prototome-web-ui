@@ -44,7 +44,11 @@ function App() {
   });
 
   if (!config) return <div>Loading configuration...</div>;
-
+  
+  const defaultTab = Object.entries(config).find(
+    ([key, value]) => value?.type === "stage"
+  )?.[0]; 
+  console.log(defaultTab)
   return (
     <div>
       <Group
@@ -67,13 +71,13 @@ function App() {
             }
             return null;
           })}
-          <Tabs>
+          <Tabs defaultValue={defaultTab + " positions"}>
             <Tabs.List>
               {Object.entries(config).map(([key, value]) => {
                 if (value?.type === "stage") {
                   return (
-                    <Tabs.Tab value={key + "positions"}>
-                      {key + "positions"}
+                    <Tabs.Tab value={key + " positions"}>
+                      {key + " positions"}
                     </Tabs.Tab>
                   );
                 }
@@ -83,7 +87,7 @@ function App() {
             {Object.entries(config).map(([key, value]) => {
               if (value?.type === "stage") {
                 return (
-                  <Tabs.Panel value={key + "positions"}>
+                  <Tabs.Panel value={key + " positions"}>
                     <StagePosVis
                       stageId={key}
                       axes={value.axes}
