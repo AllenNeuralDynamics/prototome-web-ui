@@ -4,10 +4,7 @@ import { fetchPositions } from "../stores/positionSlice.tsx";
 import { UseStageProps } from "../types/stageTypes.tsx";
 import { AppDispatch } from "../../../stores/store.tsx";
 
-export function useStagePositions({
-  host,
-  instrumentStages,
-}: UseStageProps) {
+export function useStagePositions({ host, instrumentStages }: UseStageProps) {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {

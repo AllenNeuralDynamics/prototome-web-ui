@@ -38,13 +38,11 @@ export const prototomeSchema = {
     retract_time_ok_count: {
       type: "integer",
     },
-    safe_pause_range: {
-      type: "array",
-      items: {
-        type: "number",
-      },
-      minItems: 2,
-      maxItems: 2,
+    safe_bottom_position_mm: {
+      type: "number",
+    },
+    safe_top_position_mm: {
+      type: "number",
     },
     section_thickness: {
       type: "number",
@@ -67,7 +65,8 @@ export const prototomeSchema = {
     "retract_piezo_distance",
     "retract_speed",
     "retract_time_ok_count",
-    "safe_pause_range",
+    "safe_bottom_position_mm",
+    "safe_top_position_mm",
     "section_thickness",
     "state_machine",
     "top_position_mm",
@@ -121,15 +120,17 @@ export const uiPrototomeSchema = {
     "ui:widget": "updown",
     "ui:title": "Retract Time OK Count",
   },
-  safe_pause_range: {
-    items: {
-      "ui:widget": "updown",
-    },
-    "ui:title": "Safe Pause Range",
-  },
   section_thickness: {
     "ui:widget": "updown",
     "ui:title": "Section Thickness",
+  },
+  safe_bottom_position_mm: {
+    "ui:widget": "updown",
+    "ui:title": "Safe Pause Bottom Position (mm)",
+  },
+  safe_top_position_mm: {
+    "ui:widget": "updown",
+    "ui:title": "Safe Pause Top Position (mm)",
   },
   state_machine: {
     "ui:widget": "FilePathWidget",
@@ -140,3 +141,27 @@ export const uiPrototomeSchema = {
     "ui:title": "Top Position (mm)",
   },
 };
+
+
+export const axisVariablesMapping = {
+
+  pt_stage_fine: {
+    axis1:[
+      "retract_piezo_distance"
+    ]
+  },
+  pt_stage_coarse: {
+    axis1: [
+      "bottom_position_mm",
+      "ep_cut_bottom",
+      "ep_cut_top",
+      "safe_bottom_position_mm",
+      "safe_top_position_mm",
+      "top_position_mm"
+    ],
+    axis2: [
+      "retract_distance"
+    ]
+  }
+
+}

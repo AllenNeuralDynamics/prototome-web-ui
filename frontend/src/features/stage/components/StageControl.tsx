@@ -12,18 +12,13 @@ import {
 } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { StageControlProps } from "../types/stageTypes.tsx";
-import {
-  postPosition,
-  getVelocity,
-  postVelocity,
-} from "../api/stageApi.tsx";
+import { postPosition, getVelocity, postVelocity } from "../api/stageApi.tsx";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../stores/store.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../../../stores/store.tsx";
 import { postMinPos, postMaxPos } from "../stores/rangeSlice.tsx";
-
 
 export default function StageControl({
   stageId,
@@ -63,9 +58,12 @@ export default function StageControl({
     const clampedMin = Math.min(Math.max(range[0], 0), position);
     const clampedMax = Math.max(Math.min(range[1], 100), position);
 
-    if (clampedMin !== ranges[stageId][axis].min || clampedMax !== ranges[stageId][axis].max) {
-      dispatch(postMinPos({host, stageId, axis, value: clampedMin}));
-      dispatch(postMaxPos({host, stageId, axis, value: clampedMax}));
+    if (
+      clampedMin !== ranges[stageId][axis].min ||
+      clampedMax !== ranges[stageId][axis].max
+    ) {
+      dispatch(postMinPos({ host, stageId, axis, value: clampedMin }));
+      dispatch(postMaxPos({ host, stageId, axis, value: clampedMax }));
     }
   };
   const onVelocityChange = (vel: number, axis: string) => {
@@ -163,7 +161,10 @@ export default function StageControl({
           </Group>
           <RangeSlider
             color={getAxisColor(axis)}
-            value={[ranges[stageId][axis].min ?? 0, ranges[stageId][axis].max ?? 100]}
+            value={[
+              ranges[stageId][axis].min ?? 0,
+              ranges[stageId][axis].max ?? 100,
+            ]}
             minRange={0}
             onChange={(val) => onPosRangeChange(val, axis)}
           />

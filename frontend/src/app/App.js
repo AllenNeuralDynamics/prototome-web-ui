@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../stores/store.tsx";
 import CameraWidget from "../features/camera/index.js";
@@ -6,6 +6,8 @@ import { StageControl, StagePosVis } from "../features/stage/index.js";
 import {
   PrototomeConfig,
   StateControl,
+  axisVariablesMapping
+  
 } from "../features/configuration/index.js";
 import { Group, Stack, Tabs } from "@mantine/core";
 import "@mantine/core/styles.css";
@@ -38,14 +40,19 @@ function App() {
       .map(([key, value]) => [key, value.axes]),
   );
 
-  useEffect(() => {   // initialize the stage range stores
-    dispatch(initializeRanges({ host: config?.host, instrumentStages })); 
+  useEffect(() => {
+    // initialize the stage range stores
+    dispatch(initializeRanges({ host: config?.host, instrumentStages }));
   }, [dispatch, config?.host, instrumentStages]);
 
   useStagePositions({
     host: config?.host ?? "",
     instrumentStages: instrumentStages,
   });
+
+   useEffect(() => {
+      console.log("Current form state:", config);
+    }, [config]);
 
   if (!config) return <div>Loading configuration...</div>;
 
@@ -55,9 +62,9 @@ function App() {
   return (
     <div
       style={{
-        minHeight: "100vh", 
+        minHeight: "100vh",
         display: "flex",
-        flexDirection: "column", 
+        flexDirection: "column",
       }}
     >
       <Group
@@ -84,34 +91,28 @@ function App() {
             }
             return null;
           })}
-          <Tabs defaultValue={defaultTab + " positions"}>
-            <Tabs.List>
-              {Object.entries(config).map(([key, value]) => {
-                if (value?.type === "stage") {
-                  return (
-                    <Tabs.Tab value={key + " positions"}>
-                      {key + " positions"}
-                    </Tabs.Tab>
-                  );
+          {Object.entries(config).map(([key, value]) => {
+            if (value?.type === "stage") {
+              
+              const visConfig = {}
+              for (const axis of value.axes){
+                visConfig[axis] = {}
+                const [ptStage, ptAxis] = config.prototome_config.axis_map[axis].split(".");
+                for (const cfgKey of axisVariablesMapping[ptStage][ptAxis]){
+                  visConfig[axis][cfgKey] = config.prototome_config[cfgKey]
                 }
-                return null;
-              })}
-            </Tabs.List>
-            {Object.entries(config).map(([key, value]) => {
-              if (value?.type === "stage") {
-                return (
-                  <Tabs.Panel value={key + " positions"}>
-                    <StagePosVis
-                      stageId={key}
-                      axes={value.axes}
-                      host={value.host}
-                    />
-                  </Tabs.Panel>
-                );
               }
-              return null;
-            })}
-          </Tabs>
+
+              return (
+                <StagePosVis
+                  stageId={key}
+                  axes={value.axes}
+                  config={visConfig}
+                />
+              );
+            }
+            return null;
+          })}
         </Stack>
         <Stack Stack spacing="xl" align="stretch">
           {Object.entries(config).map(([key, value]) => {

@@ -1,11 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
-import {positionsReducer, rangesReducer} from "../features/stage/index.js";
-
+import { positionsReducer, rangesReducer } from "../features/stage/index.js";
 
 export const store = configureStore({
   reducer: {
     positions: positionsReducer,
-    range: rangesReducer
+    range: rangesReducer,
   },
 });
 

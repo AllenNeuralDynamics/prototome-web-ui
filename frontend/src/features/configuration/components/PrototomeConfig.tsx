@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
+
 import {
   prototomeSchema,
   uiPrototomeSchema,
-} from "../../../types/PrototomeConfigTypes.tsx";
+} from "../types/PrototomeConfigTypes.tsx";
 import validator from "@rjsf/validator-ajv8";
 import Form from "@rjsf/mui";
 import { FilePathWidget } from "./FilePathWidget.tsx";
@@ -13,8 +14,14 @@ type PrototomeConfigProps = {
   config: any;
   setConfig: (newConfig: any) => void;
 };
-
-export default function PrototomeConfig({ config, setConfig }: PrototomeConfigProps) {
+export default function PrototomeConfig({
+  config,
+  setConfig,
+}: PrototomeConfigProps) {
+  
+  useEffect(() => {
+    console.log("Current form state:", config);
+  }, [config]);
   return (
     <Card
       shadow="xs"

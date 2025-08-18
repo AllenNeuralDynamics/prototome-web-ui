@@ -1,16 +1,20 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { getMinimumPosition, getMaximumPosition, postMaximumPosition, postMinimumPosition } from "../api/stageApi.tsx";
+import {
+  getMinimumPosition,
+  getMaximumPosition,
+  postMaximumPosition,
+  postMinimumPosition,
+} from "../api/stageApi.tsx";
 import { UseStageProps, PostApiArgs } from "../types/stageTypes.tsx";
 
 type AxesRange = {
-  "min": number;
-  "max": number;
+  min: number;
+  max: number;
 };
 
 type StangeRange = {
-    [axes: string]: AxesRange
-  };
-  
+  [axes: string]: AxesRange;
+};
 
 export interface InstrumentStageRanges {
   [stageId: string]: StangeRange;
@@ -35,7 +39,7 @@ export const initializeRanges = createAsyncThunk(
   async ({ host, instrumentStages }: UseStageProps) => {
     const instrumentStageRanges: InstrumentStageRanges = {};
     for (const [stageId, axes] of Object.entries(instrumentStages)) {
-        instrumentStageRanges[stageId] = {};
+      instrumentStageRanges[stageId] = {};
       for (const axis of axes) {
         const min = await getMinimumPosition(host, stageId, axis);
         const max = await getMaximumPosition(host, stageId, axis);
@@ -47,18 +51,18 @@ export const initializeRanges = createAsyncThunk(
 );
 
 export const postMinPos = createAsyncThunk(
-    "range/postMinPos",
-    async ( {host, stageId, axis, value}: PostApiArgs ) => {
-        await postMinimumPosition(host, stageId, axis, value)
-    },
-  );
+  "range/postMinPos",
+  async ({ host, stageId, axis, value }: PostApiArgs) => {
+    await postMinimumPosition(host, stageId, axis, value);
+  },
+);
 
-  export const postMaxPos = createAsyncThunk(
-    "range/postMaxPos",
-    async ( {host, stageId, axis, value}: PostApiArgs ) => {
-        await postMaximumPosition(host, stageId, axis, value)
-    },
-  );
+export const postMaxPos = createAsyncThunk(
+  "range/postMaxPos",
+  async ({ host, stageId, axis, value }: PostApiArgs) => {
+    await postMaximumPosition(host, stageId, axis, value);
+  },
+);
 
 const rangesSlice = createSlice({
   name: "positions",

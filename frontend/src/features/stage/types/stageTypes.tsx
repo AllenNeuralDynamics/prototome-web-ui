@@ -5,7 +5,12 @@ export type StageControlProps = {
   unit: string;
 };
 
-export type StagePosVisProps = {};
+export type StagePosVisProps = {
+  stageId: string;
+  axes: string[];
+  config: object;
+  unit: string;
+};
 
 type InstrumentStages = {
   [stageId: string]: string[];
@@ -16,12 +21,11 @@ export type UseStageProps = {
   instrumentStages: InstrumentStages;
 };
 
-
 export type fetchApiArgs = {
   host: string;
   stageId: string;
   axis: string;
-}
+};
 export type PostApiArgs = fetchApiArgs & {
   value: number;
-}
+};
