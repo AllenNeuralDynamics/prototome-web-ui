@@ -19,19 +19,14 @@
   "fake_coarse_stage": {
     "host": "http://localhost:8000",
     "kwds": {
-      "axes": [
-        "y",
-        "z"
-      ]
+      "axes": ["y", "z"]
     },
     "type": "stage"
   },
   "fake_fine_stage": {
     "host": "http://localhost:8000",
     "kwds": {
-      "axes": [
-        "piezo"
-      ]
+      "axes": ["piezo"]
     },
     "type": "stage"
   }

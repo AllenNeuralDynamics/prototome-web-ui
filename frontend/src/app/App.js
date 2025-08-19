@@ -6,8 +6,7 @@ import { StageControl, StagePosVis } from "../features/stage/index.js";
 import {
   PrototomeConfig,
   StateControl,
-  axisVariablesMapping
-  
+  axisVariablesMapping,
 } from "../features/configuration/index.js";
 import { Group, Stack, Tabs } from "@mantine/core";
 import "@mantine/core/styles.css";
@@ -50,10 +49,6 @@ function App() {
     instrumentStages: instrumentStages,
   });
 
-   useEffect(() => {
-      console.log("Current form state:", config);
-    }, [config]);
-
   if (!config) return <div>Loading configuration...</div>;
 
   const defaultTab = Object.entries(config).find(
@@ -73,7 +68,12 @@ function App() {
         align="center"
       >
         <Stack spacing="xl" align="stretch">
-          <PrototomeConfig config={config} setConfig={setConfig} />
+          <PrototomeConfig
+            config={config.prototome_config}
+            setConfig={(config) => {
+              setConfig((prev) => ({ ...prev, prototome_config: config }));
+            }}
+          />
           <StateControl />
         </Stack>
         <Stack spacing="xl" align="stretch">
@@ -92,14 +92,15 @@ function App() {
             return null;
           })}
           {Object.entries(config).map(([key, value]) => {
+            console.log(config)
             if (value?.type === "stage") {
-              
-              const visConfig = {}
-              for (const axis of value.axes){
-                visConfig[axis] = {}
-                const [ptStage, ptAxis] = config.prototome_config.axis_map[axis].split(".");
-                for (const cfgKey of axisVariablesMapping[ptStage][ptAxis]){
-                  visConfig[axis][cfgKey] = config.prototome_config[cfgKey]
+              const visConfig = {};
+              for (const axis of value.axes) {
+                visConfig[axis] = {};
+                const [ptStage, ptAxis] =
+                  config.prototome_config.axis_map[axis].split(".");
+                for (const cfgKey of axisVariablesMapping[ptStage][ptAxis]) {
+                  visConfig[axis][cfgKey] = config.prototome_config[cfgKey];
                 }
               }
 

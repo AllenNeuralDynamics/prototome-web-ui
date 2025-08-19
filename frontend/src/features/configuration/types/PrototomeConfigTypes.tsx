@@ -1,4 +1,6 @@
-export const prototomeSchema = {
+import { RJSFSchema } from "@rjsf/utils";
+
+export const prototomeSchema: RJSFSchema = {
   title: "Prototome Config",
   type: "object",
   properties: {
@@ -80,13 +82,14 @@ export const uiPrototomeSchema = {
   },
   axis_map: {
     "ui:options": {
-      orderable: "false",
-      addable: "true",
-      removable: "true",
-    },
+    orderable: false,
+    addable: false,      // disables "+"
+    removable: false     // disables "−"
+  },
     "ui:field": "object",
     "ui:widget": "text",
     "ui:placeholder": "device_name.axisN",
+    "ui:disabled": "true"
   },
   bottom_position_mm: {
     "ui:widget": "updown",
@@ -133,8 +136,7 @@ export const uiPrototomeSchema = {
     "ui:title": "Safe Pause Top Position (mm)",
   },
   state_machine: {
-    "ui:widget": "FilePathWidget",
-    "ui:options": {},
+    "ui:widget": "hidden",
   },
   top_position_mm: {
     "ui:widget": "updown",

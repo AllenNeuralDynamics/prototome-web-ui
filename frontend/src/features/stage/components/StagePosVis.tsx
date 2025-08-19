@@ -9,7 +9,7 @@ import { getAxisColor } from "../utils/colorGrabber.tsx";
 export default function StagePosVis({
   stageId,
   axes,
-  config, 
+  config,
   unit = "mm",
 }: StagePosVisProps) {
   const positions = useSelector((state: RootState) => state.positions.data);
@@ -22,7 +22,7 @@ export default function StagePosVis({
   const stageRanges = ranges[stageId] ?? {};
   if (!axes.every((axis) => axis in stageRanges))
     return <div> Cannot find ranges to {stageId} </div>;
-  
+
   return (
     <div>
       {Object.entries(positions[stageId]).map(([axis, value]) => (
@@ -39,6 +39,11 @@ export default function StagePosVis({
             color={getAxisColor(axis)}
             variant="filled"
             className="w-16 text-center"
+            style={{
+              position: "absolute",
+              top: 10,
+              left: 10,
+            }}
           >
             {axis.toUpperCase()}
           </Badge>
@@ -49,18 +54,21 @@ export default function StagePosVis({
             marks={[
               {
                 value: ranges[stageId][axis].min ?? 0,
-                label: `Min: ${ranges[stageId][axis].min} ${unit}`,
+                label: `Min:  ${ranges[stageId][axis].min} ${unit}`,
               },
               {
                 value: ranges[stageId][axis].max ?? 100,
-                label:`Max: ${ranges[stageId][axis].max} ${unit}`,
+                label: `Max: ${ranges[stageId][axis].max} ${unit}`,
               },
               ...Object.entries(config[axis]).map(([key, value]) => ({
                 value: Number(value),
                 label: `${key}: ${value}`,
               })),
             ]}
-            style={{ marginTop: "30px" }}
+            mt="70px"
+            mb="-15px"
+            ml="-20px"
+            mr="20px"
             styles={{
               bar: { backgroundColor: "transparent" },
               mark: {
@@ -73,9 +81,9 @@ export default function StagePosVis({
                 textAlign: "center",
                 maxWidth: "55px",
                 fontSize: 10,
-                marginLeft:"0px",
+                marginLeft: "0px",
                 marginTop: "-60px", // lift above track
-              }
+              },
             }}
           />
         </Card>

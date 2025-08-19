@@ -50,3 +50,8 @@
   transform: translate(14px, 8px) scale(1) !important; /* move label up */
   transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms !important;
 }
+
+.prototome-config-form .edited-field {
+  background-color: #339af0;
+  color: #ffffff;
+}

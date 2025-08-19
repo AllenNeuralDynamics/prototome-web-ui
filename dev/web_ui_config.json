@@ -4,40 +4,34 @@
     "type": "camera",
     "host": "http://localhost:8000",
     "exposure_specs": {
-        "min": -13,
-        "max": 0,
-        "step": 1
-      },
+      "min": -13,
+      "max": 0,
+      "step": 1
+    },
     "gain_specs": {
-        "min": 0,
-        "max": 1,
-        "range": 0.1
-      }
-    
+      "min": 0,
+      "max": 1,
+      "range": 0.1
+    }
   },
   "fake_fine_stage": {
     "host": "http://localhost:8000",
-    "axes": [
-        "piezo"
-      ]
-    ,
+    "axes": ["piezo"],
     "type": "stage"
   },
   "fake_coarse_stage": {
     "host": "http://localhost:8000",
-    "axes": [
-        "y",
-        "z"
-      ],
+    "axes": ["y", "z"],
     "type": "stage"
   },
-  "prototome_config":{
+  "prototome_config": {
     "active": true,
-    "axis_map":{
+    "axis_map": {
       "piezo": "pt_stage_fine.axis1",
       "y": "pt_stage_coarse.axis2",
-      "z":"pt_stage_coarse.axis1"},
-   
+      "z": "pt_stage_coarse.axis1"
+    },
+
     "retract_piezo_distance": 5,
     "bottom_position_mm": 30,
     "ep_cut_bottom": 20,
