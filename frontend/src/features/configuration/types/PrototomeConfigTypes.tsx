@@ -82,14 +82,14 @@ export const uiPrototomeSchema = {
   },
   axis_map: {
     "ui:options": {
-    orderable: false,
-    addable: false,      // disables "+"
-    removable: false     // disables "−"
-  },
+      orderable: "false",
+      addable: "false",
+      removable: "false",
+    },
     "ui:field": "object",
     "ui:widget": "text",
     "ui:placeholder": "device_name.axisN",
-    "ui:disabled": "true"
+    "ui:disabled": "true",
   },
   bottom_position_mm: {
     "ui:widget": "updown",
@@ -144,13 +144,9 @@ export const uiPrototomeSchema = {
   },
 };
 
-
 export const axisVariablesMapping = {
-
   pt_stage_fine: {
-    axis1:[
-      "retract_piezo_distance"
-    ]
+    axis1: ["retract_piezo_distance"],
   },
   pt_stage_coarse: {
     axis1: [
@@ -159,11 +155,8 @@ export const axisVariablesMapping = {
       "ep_cut_top",
       "safe_bottom_position_mm",
       "safe_top_position_mm",
-      "top_position_mm"
+      "top_position_mm",
     ],
-    axis2: [
-      "retract_distance"
-    ]
-  }
-
-}
+    axis2: ["retract_distance"],
+  },
+};

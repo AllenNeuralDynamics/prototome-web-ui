@@ -32,7 +32,7 @@
       "z": "pt_stage_coarse.axis1"
     },
 
-    "retract_piezo_distance": 5,
+    "retract_piezo_distance": 58,
     "bottom_position_mm": 30,
     "ep_cut_bottom": 20,
     "ep_cut_top": 10,

@@ -70,8 +70,8 @@ function App() {
         <Stack spacing="xl" align="stretch">
           <PrototomeConfig
             config={config.prototome_config}
-            setConfig={(config) => {
-              setConfig((prev) => ({ ...prev, prototome_config: config }));
+            setPrototomeConfig={(cfg) => {
+              setConfig((prev) => ({ ...prev, prototome_config: cfg }));
             }}
           />
           <StateControl />
@@ -92,9 +92,9 @@ function App() {
             return null;
           })}
           {Object.entries(config).map(([key, value]) => {
-            console.log(config)
             if (value?.type === "stage") {
               const visConfig = {};
+              console.log(config)
               for (const axis of value.axes) {
                 visConfig[axis] = {};
                 const [ptStage, ptAxis] =

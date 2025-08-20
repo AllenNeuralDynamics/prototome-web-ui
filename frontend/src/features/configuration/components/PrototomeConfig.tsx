@@ -6,7 +6,7 @@ import {
 } from "../types/PrototomeConfigTypes.tsx";
 import validator from "@rjsf/validator-ajv8";
 import Form from "@rjsf/mui";
-import { toPathSchema } from "@rjsf/utils";
+import { Button, FileButton } from "@mantine/core";
 import { FilePathWidget } from "./FilePathWidget.tsx";
 import "../assets/rjsf-spacing.css";
 import { Card } from "@mantine/core";
@@ -20,28 +20,21 @@ export default function PrototomeConfig({
   config,
   setPrototomeConfig,
 }: PrototomeConfigProps) {
-  const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
 
-  
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         // don't save all form values
         e.preventDefault();
-        
+
         const activeEl = document.activeElement as HTMLInputElement | null;
         if (!activeEl) return;
-        if (activeEl) {
-          activeEl.classList.remove("edited-field");         
-        }
-        
-        const configKey = activeEl.name.replace(/^root_/, "")   // hacky way to find the corresponding element. Will break if config is not flat 
-        console.log(configKey)
-        setPrototomeConfig((prev) => ({
-          ...prev,
-          [configKey]: Number(activeEl.value)
-        }));
+        activeEl.classList.remove("edited-field");
 
+        const configKey = activeEl.name.replace(/^root_/, ""); // hacky way to find the corresponding element. Will break if config is not flat
+        const newConfig = config;
+        newConfig[configKey] = Number(activeEl.value);
+        setPrototomeConfig(newConfig);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -52,25 +45,31 @@ export default function PrototomeConfig({
 
   const handleChange = (event: any) => {
     const activeEl = document.activeElement as HTMLInputElement | null;
-        
-        if (!activeEl) return;
-        if (activeEl) {
-          activeEl.classList.add("edited-field");         
-        }
+
+    if (!activeEl) return;
+    activeEl.classList.add("edited-field");
   };
 
-  const editedUiSchema = Object.fromEntries(
-    Object.keys(uiPrototomeSchema).map((key) => [
-      key,
-      {
-        ...uiPrototomeSchema[key],
-        "ui:classNames": editedFields.has(key)
-          ? "edited-field" // CSS class for edited fields
-          : uiPrototomeSchema[key].classNames || "",
-      },
-    ]),
-  );
-
+  const loadConfig = (file: File | null) => {
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e: ProgressEvent<FileReader>) => {
+          try {
+            const parsedData = JSON.parse(e.target.result);
+            const validate = validator.ajv.compile(prototomeSchema)
+            const valid = validate(parsedData?.prototome_config || parsedData);
+            console.log(valid, parsedData?.prototome_config || parsedData)
+            if (!valid) {
+              throw new Error("Loaded json is not valid")
+            }
+            setPrototomeConfig(parsedData?.prototome_config || parsedData);
+          } catch (error) {
+            console.error('Error parsing JSON:', error);
+          }
+        };
+        reader.readAsText(file); // Read the file as text
+      }
+    };
   return (
     <Card
       shadow="xs"
@@ -81,14 +80,30 @@ export default function PrototomeConfig({
     >
       <div className="prototome-config-form">
         <Form
-          uiSchema={editedUiSchema}
+          uiSchema={uiPrototomeSchema}
           schema={prototomeSchema}
           validator={validator}
           widgets={{ FilePathWidget }}
           formData={config}
           onChange={handleChange}
-          onSubmit={({ formData }) => setConfig(formData)}
-        />
+          onSubmit={({ formData }) => {
+            console;
+            for (const key of Object.keys(formData)) {
+              const el = document.getElementsByName(`root_${key}`)[0] as
+                | HTMLInputElement
+                | undefined;
+              if (!el) continue;
+              el.classList.remove("edited-field");
+              console.log("asdfas");
+              setPrototomeConfig(formData);
+            }
+          }}
+        >
+          <Button m="xs" type="submit">Submit</Button>
+          <FileButton onChange={loadConfig} accept="json">
+          {(props) => <Button {...props}>Upload Config</Button>}
+        </FileButton>
+        </Form>
       </div>
     </Card>
   );
