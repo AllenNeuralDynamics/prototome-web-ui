@@ -5,7 +5,6 @@ import CameraWidget from "../features/camera/index.js";
 import { StageControl, StagePosVis } from "../features/stage/index.js";
 import {
   PrototomeConfig,
-  StateControl,
   axisVariablesMapping,
 } from "../features/configuration/index.js";
 import { Group, Stack, Tabs } from "@mantine/core";

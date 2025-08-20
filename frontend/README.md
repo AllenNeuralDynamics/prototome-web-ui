@@ -1,70 +1,96 @@
-# Getting Started with Create React App
+# Microscope Control Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> ⚠️ **WARNING: This repository is a *very rough draft*.**  
+> It is under active development, incomplete, and may contain unstable or experimental code.  
+> Use at your own risk, and expect frequent changes.
 
-## Available Scripts
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Project Structure
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```plaintext
+backend/
+├── api/                # API's config based on dev device. Will need to be refactored for actual prototome.
+├── services/           # contains mock zmq agent. Will need to be rewritten or imported 
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
 
-### `npm test`
+dev/                    # Contains temp mock device, configuration, and zmq agent. Only using for testing. 
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
+frontend/
+└── src/
+    ├── app/            # prototome app 
+    ├── features/
+    │   ├── camera/     # Camera feature (controls, UI)
+    │   └── stage/      # Stage feature (movement, UI)
+    ├── types/  
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Backend
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- The backend is responsible for communicating with microscope hardware (simulated by a mock device in development).
+- Communication with the mock device is done via a **ZeroMQ (ZMQ) client** located in the `dev` folder. This will 
+probably change as more discussion is put into how to communicate with prototome later but is a useful way to start 
+creating the web app with minimal rewriting. 
+- The backend exposes APIs calls for the frontend to control and configure app. Again, the functions themselves will 
+probably need to be updated/changes for the actual prototome but urls could remain the same so useful way to start 
+creating the web app with minimal rewriting. 
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Frontend
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- The frontend is built with React and adheres to the **Bulletproof React** project structure.
+- The **camera** and **stage** are implemented as separate features under `/features`
+- This modular approach facilitates independent development and testing of each hardware component interface.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Getting Started
 
-## Learn More
+### Prerequisites
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- Node.js (v14 or later)
+- npm or yarn
+- Python 3.12
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Setup
 
-### Code Splitting
+1. **Install backend dependencies:**
+   ```bash
+   pip install -e .
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+2.  **Install frontend dependencies:**
+   ```bash
+   cd frontend
+   npm install
+   # or
+   yarn install
+   ```
 
-### Analyzing the Bundle Size
+### Launch
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+1. Start dummy instrument in separate process. ZMQ socket will bind to tcp://localhost:6000. 
+You can change port but not host.  
 
-### Making a Progressive Web App
+   ```bash
+      from dev.instrument import Instrument
+      inst = Instrument()   # running on tcp://localhost:6000
+      ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+2. Launch FastAPI app backend with uvicorn in separate process. Web app will be hosted on 8000 so specify 8000 
 
-### Advanced Configuration
+   ```bash
+      uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+3. Start web ui  
 
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+   ```bash
+      cd frontend
+      npm start
+   ```
