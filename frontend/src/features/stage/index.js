@@ -4,5 +4,5 @@
 export { useStagePositions } from "./hooks/useStagePositions.tsx";
 
 // Components
-export { default as StageWidget } from "./components/StageWidget.tsx";
-//export { default as LineGraphWidget } from "./components/LineGraphWidget";
+export { default as StageControl } from "./components/StageControl.tsx";
+export { default as StagePosVis } from "./components/StagePosVis.tsx";

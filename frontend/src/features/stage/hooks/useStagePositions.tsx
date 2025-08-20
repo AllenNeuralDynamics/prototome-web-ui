@@ -1,33 +1,22 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
-import { StageWidgetProps } from "../types/stageTypes.tsx";
-import { getPosition } from "../api/stageApi.tsx";
+import React, { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { fetchPositions } from "../stores/positionSlice.tsx";
+import { UseStagePositionsProps } from "../types/stageTypes.tsx";
+import { AppDispatch } from "../../../stores/store.tsx";
 
 export function useStagePositions({
-  stageId,
-  axes,
   host,
-}: StageWidgetProps) {
-    const [positions, setPositions] = useState<Record<string, number>>({});
+  instrumentStages,
+}: UseStagePositionsProps) {
+  const dispatch = useDispatch<AppDispatch>();
 
-    useEffect(() => {
-        async function fetchPositions() {
-            try {
-                const newPos: Record<string, number> = {};
-                for (const axis in axes){
-                    newPos[axis] = await getPosition(host, stageId, axis);
-                }
-                setPositions(newPos);
-
-            } catch(error){
-                console.error("Error fetching positions", error)
-            }    
-        }
-        fetchPositions();
-        const posPoll = setInterval(fetchPositions, 1000);
-        return () => {
-            clearInterval(posPoll)
-        }
-    }, [stageId, axes, host])
-
-    return positions;
-};
+  useEffect(() => {
+    dispatch(fetchPositions({ host, instrumentStages }));
+    const posInt = setInterval(() => {
+      const pos = dispatch(fetchPositions({ host, instrumentStages }));
+    }, 500);
+    return () => {
+      clearInterval(posInt);
+    };
+  }, [dispatch, host, instrumentStages]);
+}

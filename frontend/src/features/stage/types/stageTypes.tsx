@@ -1,12 +1,17 @@
-export type StageWidgetProps = {
+export type StageControlProps = {
   stageId: string;
   axes: string[];
   host: string;
-  positions: Positions;
   unit: string;
 };
 
-type Positions = {
-  [key: string]: number;
-}
+export type StagePosVisProps = {};
 
+type InstrumentStages = {
+  [stageId: string]: string[];
+};
+
+export type UseStagePositionsProps = {
+  host: string;
+  instrumentStages: InstrumentStages;
+};

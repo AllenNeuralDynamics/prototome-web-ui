@@ -1,20 +1,21 @@
 import React, { useEffect, useState } from "react";
-import CameraWidget from "../features/camera";;
-import { StageWidget } from "../features/stage";
-import { Group, Stack, Card } from "@mantine/core";
+import CameraWidget from "../features/camera/index.js";
+import { StageControl, StagePosVis } from "../features/stage/index.js";
+import { Group, Stack, Card, Tabs } from "@mantine/core";
 import "@mantine/core/styles.css";
 import validator from "@rjsf/validator-ajv8";
 import Form from "@rjsf/mui";
-export { FilePathWidget } from "../components/FilePathWidget.tsx";
-export {
+import { FilePathWidget } from "../components/FilePathWidget.tsx";
+import {
   prototomeSchema,
   uiPrototomeSchema,
 } from "../types/prototomeConfigTypes.tsx";
 import "../assets/rjsf-spacing.css";
+import { useStagePositions } from "../features/stage/index.js";
 
 function App() {
   const [config, setConfig] = useState(null);
-  const [stagePositions, setStagePositions] = {}
+
   useEffect(() => {
     async function fetchConfig() {
       try {
@@ -31,17 +32,32 @@ function App() {
     fetchConfig();
   }, []);
 
+  const instrumentStages = Object.fromEntries(
+    Object.entries(config ?? {})
+      .filter(([_, value]) => value?.type === "stage")
+      .map(([key, value]) => [key, value.axes]),
+  );
+
+  useStagePositions({
+    host: config?.host ?? "",
+    instrumentStages: instrumentStages,
+  });
+
   if (!config) return <div>Loading configuration...</div>;
 
-
+  const defaultTab = Object.entries(config).find(
+    ([key, value]) => value?.type === "stage",
+  )?.[0];
+  console.log(defaultTab);
   return (
     <div>
       <Group
         spacing="xl"
-        style={{ flexWrap: "wrap", gap: "2rem" }}
+        style={{ gap: "2rem", justifyContent: "center", width: "100%" }}
         align="flex-start"
       >
-        <Stack>
+        <Group>
+          <Stack>
           {Object.entries(config).map(([key, value]) => {
             if (value?.type === "camera") {
               return (
@@ -56,51 +72,81 @@ function App() {
             }
             return null;
           })}
-        </Stack>
-        <Stack>
+          <Tabs defaultValue={defaultTab + " positions"}>
+            <Tabs.List>
+              {Object.entries(config).map(([key, value]) => {
+                if (value?.type === "stage") {
+                  return (
+                    <Tabs.Tab value={key + " positions"}>
+                      {key + " positions"}
+                    </Tabs.Tab>
+                  );
+                }
+                return null;
+              })}
+            </Tabs.List>
+            {Object.entries(config).map(([key, value]) => {
+              if (value?.type === "stage") {
+                return (
+                  <Tabs.Panel value={key + " positions"}>
+                    <StagePosVis
+                      stageId={key}
+                      axes={value.axes}
+                      host={value.host}
+                    />
+                  </Tabs.Panel>
+                );
+              }
+              return null;
+            })}
+          </Tabs>
+          </Stack>
+          <Card
+            shadow="xs"
+            padding="md"
+            radius="md"
+            withBorder
+            className="bg-gray-50"
+          >
+            <div className="prototome-config-form">
+              <Form
+                uiSchema={uiPrototomeSchema}
+                schema={prototomeSchema}
+                validator={validator}
+                widgets={{ FilePathWidget }}
+                formData={config.prototome_config}
+                onChange={({ formData }) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    ["prototome_config"]: formData,
+                  }))
+                }
+                onSubmit={({ formData }) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    ["prototome_config"]: formData,
+                  }))
+                }
+              />
+            </div>
+          </Card>
+        </Group>
+        <Stack spacing="xl" align="flex-start" position="center">
           {Object.entries(config).map(([key, value]) => {
             if (value?.type === "stage") {
               return (
-                <StageWidget
-                  key={key}
-                  stageId={key}
-                  axes={value.axes}
-                  host={value.host}
-                />
+                <div key={key + "stage widget"}>
+                  <StageControl
+                    stageId={key}
+                    axes={value.axes}
+                    host={value.host}
+                  />
+                </div>
               );
             }
             return null;
           })}
         </Stack>
-        <Card
-          shadow="xs"
-          padding="md"
-          radius="md"
-          withBorder
-          className="bg-gray-50"
-        >
-          <div className="prototome-config-form">
-            <Form
-              uiSchema={uiPrototomeSchema}
-              schema={prototomeSchema}
-              validator={validator}
-              widgets={{ FilePathWidget }}
-              formData={config.prototome_config}
-              onChange={({ formData }) =>
-                setConfig((prev) => ({
-                  ...prev,
-                  ["prototome_config"]: formData,
-                }))
-              }
-              onSubmit={({ formData }) =>
-                setConfig((prev) => ({
-                  ...prev,
-                  ["prototome_config"]: formData,
-                }))
-              }
-            />
-          </div>
-        </Card>
       </Group>
     </div>
   );

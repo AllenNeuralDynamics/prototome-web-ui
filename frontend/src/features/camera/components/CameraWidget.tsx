@@ -45,11 +45,11 @@ export default function CameraWidget({
   };
 
   return (
-    <div>
+    <div >
       <Card
         key={cameraId}
         shadow="xs"
-        padding="md"
+        padding="xs"
         radius="md"
         withBorder
         className="bg-gray-50"
@@ -61,7 +61,7 @@ export default function CameraWidget({
           height={480}
           style={{ border: "1px solid black" }}
         />
-        <Group mb="xs">
+        <Group align="center" mb="xs">
           <Button variant="light" onClick={startCamera}>
             Start
           </Button>
@@ -72,7 +72,7 @@ export default function CameraWidget({
           <Text size="sm" c="dimmed">
             {exposure}
           </Text>
-          <div style={{ width: 560, padding: "20px 0" }}>
+          <div style={{ width: 560, padding: "0" }}>
             <Slider
               value={exposure}
               onChange={onExposureChange}
@@ -87,7 +87,7 @@ export default function CameraWidget({
           <Text size="sm" c="dimmed">
             {gain}
           </Text>
-          <div style={{ width: 595, padding: "20px 0" }}>
+          <div style={{ width: 595, padding: "0" }}>
             <Slider
               value={gain}
               onChange={onGainChange}

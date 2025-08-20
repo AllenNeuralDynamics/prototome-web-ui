@@ -11,9 +11,8 @@ import {
   Stack,
 } from "@mantine/core";
 import "@mantine/core/styles.css";
-import { StageWidgetProps } from "../types/stageTypes.tsx";
+import { StageControlProps } from "../types/stageTypes.tsx";
 import {
-  getPosition,
   postPosition,
   getMinimumPosition,
   getMaximumPosition,
@@ -22,14 +21,17 @@ import {
   getVelocity,
   postVelocity,
 } from "../api/stageApi.tsx";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../stores/store.tsx";
+import { getAxisColor } from "../utils/colorGrabber.tsx";
 
-export default function StageWidget({
+export default function StageControl({
   stageId,
   axes,
   host,
-  positions,
   unit = "um",
-}: StageWidgetProps) {
+}: StageControlProps) {
+  const positions = useSelector((state: RootState) => state.positions.data);
   const [posMins, setMinPositions] = useState<Record<string, number>>({});
   const [posMaxes, setMaxPositions] = useState<Record<string, number>>({});
   const [velocity, setVelocity] = useState<Record<string, number>>({});
@@ -87,7 +89,7 @@ export default function StageWidget({
   }, [stageId, axes, host]);
 
   const onPosRangeChange = (range: [number, number], axis: string) => {
-    const position = positions[axis];
+    const position = positions[stageId][axis];
 
     // Clamp range so it must contain current position
     const clampedMin = Math.min(Math.max(range[0], 0), position);
@@ -127,22 +129,17 @@ export default function StageWidget({
     postPosition(host, stageId, axis, val);
   };
 
-  const getAxisColor = (axis: string) => {
-    const colors = {
-      piezo: "blue",
-      y: "green",
-      z: "red",
-    };
-    return colors[axis.toLowerCase()] || "gray";
-  };
+  const stagePositions = positions[stageId] ?? {};
+  if (!axes.every((axis) => axis in stagePositions))
+    return <div> Cannot find positions to {stageId} </div>;
 
   return (
     <div>
-      {Object.entries(positions).map(([axis, value]) => (
+      {Object.entries(positions[stageId]).map(([axis, value]) => (
         <Card
           key={axis}
           shadow="xs"
-          padding="md"
+          padding="xs"
           radius="md"
           withBorder
           className="bg-gray-50"
@@ -160,12 +157,12 @@ export default function StageWidget({
           <Group mb="xs">
             <Text size="sm">Position </Text>
             <Text size="sm" c="dimmed">
-              {positions[axis]?.toFixed(2) || 0} {unit}
+              {positions[stageId][axis]?.toFixed(2) || 0} {unit}
             </Text>
           </Group>
           <Slider
             color={getAxisColor(axis)}
-            value={positions[axis]}
+            value={positions[stageId][axis]}
             labelAlwaysOn
             marks={[
               {
@@ -306,18 +303,6 @@ export default function StageWidget({
           </Group>
         </Card>
       ))}
-      {/* {Object.entries(positions).map(([axis, value]) => (
-        <div
-          key={axis}
-          style={{
-            position: "relative",
-            border: "1px solid #ccc",
-            borderRadius: "0px",
-            padding: "20px",
-            marginTop: "20px",
-          }}
-        ></div>
-      ))} */}
     </div>
   );
 }
