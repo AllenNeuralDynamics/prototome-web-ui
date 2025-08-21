@@ -73,7 +73,6 @@ function App() {
               setConfig((prev) => ({ ...prev, prototome_config: cfg }));
             }}
           />
-          <StateControl />
         </Stack>
         <Stack spacing="xl" align="stretch">
           {Object.entries(config).map(([key, value]) => {
@@ -96,10 +95,9 @@ function App() {
               console.log(config)
               for (const axis of value.axes) {
                 visConfig[axis] = {};
-                const [ptStage, ptAxis] =
-                  config.prototome_config.axis_map[axis].split(".");
+                const [ptStage, ptAxis] = config.prototome_config.axis_map[axis].split(".");
                 for (const cfgKey of axisVariablesMapping[ptStage][ptAxis]) {
-                  visConfig[axis][cfgKey] = config.prototome_config[cfgKey];
+                visConfig[axis][cfgKey] = config.prototome_config[cfgKey];
                 }
               }
 

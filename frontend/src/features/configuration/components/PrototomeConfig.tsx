@@ -7,7 +7,6 @@ import {
 import validator from "@rjsf/validator-ajv8";
 import Form from "@rjsf/mui";
 import { Button, FileButton } from "@mantine/core";
-import { FilePathWidget } from "./FilePathWidget.tsx";
 import "../assets/rjsf-spacing.css";
 import { Card } from "@mantine/core";
 
@@ -83,7 +82,6 @@ export default function PrototomeConfig({
           uiSchema={uiPrototomeSchema}
           schema={prototomeSchema}
           validator={validator}
-          widgets={{ FilePathWidget }}
           formData={config}
           onChange={handleChange}
           onSubmit={({ formData }) => {
