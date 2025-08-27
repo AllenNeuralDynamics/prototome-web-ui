@@ -2,14 +2,14 @@ export type StageControlProps = {
   stageId: string;
   axes: string[];
   host: string;
-  unit: string;
+  unit?: string;
 };
 
 export type StagePosVisProps = {
   stageId: string;
   axes: string[];
   config: object;
-  unit: string;
+  unit?: string;
 };
 
 type InstrumentStages = {

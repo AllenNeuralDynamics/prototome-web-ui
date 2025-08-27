@@ -58,7 +58,7 @@ function App() {
       Object.entries(config ?? {})
         .filter((entry): entry is [string, StageConfig] => {
           const [, value] = entry;
-          return typeof value === "object" && value?.type === "stage";
+          return typeof value === "object" && (value as any).type === "stage";
         })
         .map(([key, value]) => [key, value.axes])
     );
@@ -76,7 +76,7 @@ function App() {
   return (
     <BrowserRouter>
       <NavBar />
-      <AppRouter config={config} />
+      <AppRouter config={config} setConfig={setConfig}/>
     </BrowserRouter>
   );
 }
