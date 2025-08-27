@@ -19,7 +19,6 @@ export default function PrototomeConfig({
   config,
   setPrototomeConfig,
 }: PrototomeConfigProps) {
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
@@ -51,24 +50,26 @@ export default function PrototomeConfig({
 
   const loadConfig = (file: File | null) => {
     if (file) {
-        const reader = new FileReader();
-        reader.onload = (e: ProgressEvent<FileReader>) => {
-          try {
-            const parsedData = JSON.parse(e.target.result);
-            const validate = validator.ajv.compile(prototomeSchema)
-            const valid = validate(parsedData?.prototome_config || parsedData);
-            console.log(valid, parsedData?.prototome_config || parsedData)
-            if (!valid) {
-              throw new Error("Loaded json is not valid")
-            }
-            setPrototomeConfig(parsedData?.prototome_config || parsedData);
-          } catch (error) {
-            console.error('Error parsing JSON:', error);
+      const reader = new FileReader();
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        try {
+          const result = e.target?.result;
+          if (typeof result !== "string") return;
+          const parsedData = JSON.parse(result);
+          const validate = validator.ajv.compile(prototomeSchema);
+          const valid = validate(parsedData?.prototome_config || parsedData);
+          console.log(valid, parsedData?.prototome_config || parsedData);
+          if (!valid) {
+            throw new Error("Loaded json is not valid");
           }
-        };
-        reader.readAsText(file); // Read the file as text
-      }
-    };
+          setPrototomeConfig(parsedData?.prototome_config || parsedData);
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+        }
+      };
+      reader.readAsText(file); // Read the file as text
+    }
+  };
   return (
     <Card
       shadow="xs"
@@ -97,10 +98,12 @@ export default function PrototomeConfig({
             }
           }}
         >
-          <Button m="xs" type="submit">Submit</Button>
+          <Button m="xs" type="submit">
+            Submit
+          </Button>
           <FileButton onChange={loadConfig} accept="json">
-          {(props) => <Button {...props}>Upload Config</Button>}
-        </FileButton>
+            {(props) => <Button {...props}>Upload Config</Button>}
+          </FileButton>
         </Form>
       </div>
     </Card>

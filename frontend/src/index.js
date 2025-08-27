@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { MantineProvider } from "@mantine/core";
 import "./index.css";
-import App from "./app/App";
+import App from "./app/App.tsx";
 import { Provider } from "react-redux";
 import { store } from "./stores/store.tsx";
 

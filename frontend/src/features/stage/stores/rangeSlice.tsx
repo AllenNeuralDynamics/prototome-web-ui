@@ -5,6 +5,7 @@ import {
   postMaximumPosition,
   postMinimumPosition,
 } from "../api/stageApi.tsx";
+import { RootState } from "../../../stores/store.tsx";
 import { UseStageProps, PostApiArgs } from "../types/stageTypes.tsx";
 
 type AxesRange = {
@@ -34,7 +35,11 @@ const initialState: RangesState = {
   error: undefined,
 };
 
-export const initializeRanges = createAsyncThunk(
+export const initializeRanges = createAsyncThunk<
+InstrumentStageRanges,   
+UseStageProps,           
+{ state: RootState }     
+>(
   "range/initializeRange",
   async ({ host, instrumentStages }: UseStageProps) => {
     const instrumentStageRanges: InstrumentStageRanges = {};
@@ -47,6 +52,13 @@ export const initializeRanges = createAsyncThunk(
       }
     }
     return instrumentStageRanges;
+  },
+  {
+    condition: (_, { getState }) => {
+      const state = getState() as RootState;
+      // Don’t run again if already initialized or already loading
+      return !state.range.initialized && !state.range.loading;
+    },
   },
 );
 
@@ -65,7 +77,7 @@ export const postMaxPos = createAsyncThunk(
 );
 
 const rangesSlice = createSlice({
-  name: "positions",
+  name: "range",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
@@ -84,11 +96,30 @@ const rangesSlice = createSlice({
       })
       .addCase(postMinPos.fulfilled, (state, action) => {
         const { stageId, axis, value } = action.meta.arg;
-        state.data[stageId][axis].min = value;
+        state.data = {
+          ...state.data,
+          [stageId]: {
+            ...state.data[stageId],
+            [axis]: {
+              ...state.data[stageId][axis],
+              min: value,
+            },
+          },
+        };
       })
+      
       .addCase(postMaxPos.fulfilled, (state, action) => {
         const { stageId, axis, value } = action.meta.arg;
-        state.data[stageId][axis].max = value;
+        state.data = {
+          ...state.data,
+          [stageId]: {
+            ...state.data[stageId],
+            [axis]: {
+              ...state.data[stageId][axis],
+              max: value,
+            },
+          },
+        };
       });
   },
 });

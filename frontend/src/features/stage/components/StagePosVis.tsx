@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Card, Slider, Badge } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { StagePosVisProps } from "../types/stageTypes.tsx";
-import { useSelector } from "react-redux";
+import { useSelector, useStore } from "react-redux";
 import { RootState } from "../../../stores/store.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
 

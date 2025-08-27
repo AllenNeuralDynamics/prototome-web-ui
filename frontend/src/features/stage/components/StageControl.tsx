@@ -16,7 +16,7 @@ import { postPosition, getVelocity, postVelocity } from "../api/stageApi.tsx";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../stores/store.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
-import { useDispatch } from "react-redux";
+import { useDispatch, useStore } from "react-redux";
 import { AppDispatch } from "../../../stores/store.tsx";
 import { postMinPos, postMaxPos } from "../stores/rangeSlice.tsx";
 
