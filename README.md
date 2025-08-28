@@ -75,7 +75,7 @@ yarn install
 ### Launch
 
 1. Start dummy instrument in separate process. 
-(In Python, you will need to run it as root because of the `keyboard` library dependency.)
+(In Linux, you will need to run it as root because of the `keyboard` library dependency.)
 ZMQ socket will bind to tcp://localhost:6000. You can change port but not host.  
 
 ```bash
