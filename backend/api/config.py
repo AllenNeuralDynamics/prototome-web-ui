@@ -19,6 +19,6 @@ def get_config():
         return json.loads(data.decode("utf-8"))
     
     except KazooTimeoutError:
-        with open(".\dev\web_ui_config.json", "r") as config:
+        with open(r"./dev/web_ui_config.json", "r") as config:
             return json.load(config)
     
