@@ -1,6 +1,8 @@
 import zmq
+import zmq.asyncio
 from threading import Lock
 import asyncio
+import time
 
 class DeviceProxy:
     def __init__(self, host="localhost", req_port="6000", sub_port="6001"):
@@ -12,7 +14,8 @@ class DeviceProxy:
         self.req_socket.connect(self.address)
         
         # SUB socket for receiving published updates
-        self.sub_socket = self.context.socket(zmq.SUB)
+        self.async_context = zmq.asyncio.Context()
+        self.sub_socket = self.async_context.socket(zmq.SUB)
         self.sub_socket.connect(f"tcp://localhost:{sub_port}")
         self.sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
@@ -21,10 +24,9 @@ class DeviceProxy:
 
     async def listen(self):
         """Generator to yield messages from the PUB socket"""
-        loop = asyncio.get_running_loop()
         while True:
-            msg = await loop.run_in_executor(None, self.sub_socket.recv_pyobj)
-            print("I got a message!", msg)
+            msg = await self.sub_socket.recv_pyobj()  # asyncio-friendly
+            print("I got a message!")
             yield msg
 
     def _add_remote_methods(self):

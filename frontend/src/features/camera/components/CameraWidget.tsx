@@ -16,7 +16,6 @@ export default function CameraWidget({
   const [exposure, setExposure] = useState(-9);
   const [gain, setGain] = useState(1);
   const [frameUrl, setFrameUrl] = useState("");
-  const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     let socket;
@@ -28,9 +27,10 @@ export default function CameraWidget({
       };
     
       socket.onmessage = (event) => {
+        
         const msg = JSON.parse(event.data);
-        if (msg.cameraId == cameraId){
-        setFrameUrl(msg.url);
+        if (msg.camera_id == cameraId){
+          setFrameUrl(msg.frame);
         }
       };
     

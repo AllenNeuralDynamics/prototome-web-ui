@@ -26,6 +26,8 @@ class Instrument(ZMQAgent):
 
         keyboard.on_press(self.joystick_moved)
 
+        self.camera_streaming = threading.Event()
+
         super().__init__()
 
     def joystick_moved(self, e):
@@ -39,16 +41,21 @@ class Instrument(ZMQAgent):
         elif e.name == "down":
             self.set_pos("fake_fine_stage", "piezo", self.stages["fake_fine_stage"].positions["piezo"] + -1)
 
+    def streaming_loop(self, cam_id):
+        while self.camera_streaming.is_set():
+            self.grab_frame(cam_id)
+            time.sleep(.1)
+
     def start_camera(self, cam_id):
-        # Run the blocking work in a separate thread
-        threading.Thread(target=self.grab_frame,kwargs={cam_id:cam_id}, daemon=True).start()
+        if not self.camera_streaming.is_set():
+            self.camera_streaming.set()
+            threading.Thread(target=self.streaming_loop,kwargs={"cam_id":cam_id}, daemon=True).start()
     
     def stop_camera(self, cam_id):
-        print("stop")
+        self.camera_streaming.clear()
         
     def grab_frame(self, cam_id) -> np.ndarray:
-        frame = self.grab_frame(cam_id)
-        _, encoded = cv2.imencode(".jpg", frame)
+        encoded = self.cameras[cam_id].grab_frame()
         frame_bytes = encoded.tobytes()
         frame_b64 = base64.b64encode(frame_bytes).decode("ascii")
         self.pub_socket.send_pyobj({
@@ -56,7 +63,7 @@ class Instrument(ZMQAgent):
             "camera_id": cam_id,
             "frame": f"data:image/jpeg;base64,{frame_b64}"
         })
-        return frame
+        return encoded
 
     def set_exposure_time(self, cam_id, value: float):
         self.cameras[cam_id].set_exposure_time(value)
