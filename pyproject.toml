@@ -11,7 +11,9 @@ dependencies = [
     "uvicorn==0.35.0",
     "pydantic==2.11.7",
     "ruff",
-    "pytest"
+    "pytest",
+    "opencv-python>=4.12.0.88",
+    "fastapi[standard]>=0.116.1",
 ]
 
 [tool.pytest.ini_options]
