@@ -60,37 +60,38 @@ creating the web app with minimal rewriting.
 ### Setup
 
 1. **Install backend dependencies:**
-   ```bash
-   pip install -e .
-   ```
+```bash
+uv sync
+```
 
 2.  **Install frontend dependencies:**
-   ```bash
-   cd frontend
-   npm install
-   # or
-   yarn install
-   ```
+```bash
+cd frontend
+npm install
+# or
+yarn install
+```
 
 ### Launch
 
-1. Start dummy instrument in separate process. ZMQ socket will bind to tcp://localhost:6000. 
-You can change port but not host.  
+1. Start dummy instrument in separate process. 
+(In Linux, you will need to run it as root because of the `keyboard` library dependency.)
+ZMQ socket will bind to tcp://localhost:6000. You can change port but not host.  
 
-   ```bash
-      from dev.instrument import Instrument
-      inst = Instrument()   # running on tcp://localhost:6000
-      ```
+```bash
+>>> from dev.instrument import Instrument
+>>> inst = Instrument()   # running on tcp://localhost:6000
+```
 
 2. Launch FastAPI app backend with uvicorn in separate process. Web app will be hosted on 8000 so specify 8000 
 
-   ```bash
-      uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
-    ```
+```bash
+uv run uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
 
 3. Start web ui  
 
-   ```bash
-      cd frontend
-      npm start
-   ```
+```bash
+cd frontend
+npm start
+```
