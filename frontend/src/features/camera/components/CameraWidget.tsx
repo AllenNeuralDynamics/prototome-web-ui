@@ -45,7 +45,7 @@ export default function CameraWidget({
   };
 
   return (
-    <div >
+    <div>
       <Card
         key={cameraId}
         shadow="xs"
@@ -57,8 +57,8 @@ export default function CameraWidget({
         <img
           src={frameUrl}
           alt="Camera frame"
-          width={640}
-          height={480}
+          width={768}
+          height={576}
           style={{ border: "1px solid black" }}
         />
         <Group align="center" mb="xs">

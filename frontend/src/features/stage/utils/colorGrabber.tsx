@@ -2,9 +2,9 @@
 
 export function getAxisColor(axis: string) {
   const colors = {
-    piezo: "violet",
-    y: "green",
-    z: "red",
+    z: "pink",
+    y: "#8A2BE2",
+    piezo: "#20B2AA",
   };
   return colors[axis.toLowerCase()] || "gray";
 }

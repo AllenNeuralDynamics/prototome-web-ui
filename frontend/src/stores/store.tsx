@@ -1,9 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
-import positionsReducer from "../features/stage/stores/positionSlice.tsx";
+import { positionsReducer, rangesReducer } from "../features/stage/index.js";
 
 export const store = configureStore({
   reducer: {
     positions: positionsReducer,
+    range: rangesReducer,
   },
 });
 
