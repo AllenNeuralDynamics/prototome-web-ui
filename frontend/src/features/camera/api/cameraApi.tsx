@@ -1,8 +1,20 @@
-export async function getFrame(host, camera_id) {
-  const response = await fetch(`${host}/camera/${camera_id}/frame`);
-  if (!response.ok) throw new Error("Failed to fetch frame");
-  const blob = await response.blob();
-  return URL.createObjectURL(blob);
+// export async function getFrame(host, camera_id) {
+//   const response = await fetch(`${host}/camera/${camera_id}/frame`);
+//   if (!response.ok) throw new Error("Failed to fetch frame");
+//   const blob = await response.blob();
+//   return URL.createObjectURL(blob);
+// }
+
+export async function start(host, cameraId) {
+  return fetch(`${host}/camera/${cameraId}/start`, {
+    method: "POST",
+  });
+}
+
+export async function stop(host, cameraId) {
+  return fetch(`${host}/camera/${cameraId}/stop`, {
+    method: "POST",
+  });
 }
 
 export async function postExposure(host, cameraId, value) {

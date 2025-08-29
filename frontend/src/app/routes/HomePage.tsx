@@ -8,13 +8,12 @@ import { StateControl } from "../../features/acquisitionControl/index.js";
 import { Group, Stack } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { CameraConfig } from "../../types/configTypes.tsx";
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import { CameraWidgetProps } from "../../features/camera/types/cameraTypes.tsx";
 import { StageConfig } from "../../types/configTypes.tsx";
 import { HomePageProps } from "../../types/pageTypes.tsx";
 
-export const HomePage = ({ config, setConfig}: HomePageProps) => {
-
+export const HomePage = ({ config, setConfig }: HomePageProps) => {
   return (
     <div
       style={{
@@ -37,10 +36,14 @@ export const HomePage = ({ config, setConfig}: HomePageProps) => {
           <StateControl />
         </Stack>
         <Stack align="stretch">
-          {Object.entries(config).filter((entry): entry is [string, CameraConfig] => {
-                    const [, value] = entry;
-                    return typeof value === "object" && (value as any).type === "camera";
-                  }).map(([key, value]) => {
+          {Object.entries(config)
+            .filter((entry): entry is [string, CameraConfig] => {
+              const [, value] = entry;
+              return (
+                typeof value === "object" && (value as any).type === "camera"
+              );
+            })
+            .map(([key, value]) => {
               return (
                 <CameraWidget
                   key={key}
@@ -50,12 +53,15 @@ export const HomePage = ({ config, setConfig}: HomePageProps) => {
                   gainSpecs={value.gain_specs}
                 />
               );
-
-          })}
-          {Object.entries(config).filter((entry): entry is [string, StageConfig] => {
-                    const [, value] = entry;
-                    return typeof value === "object" && (value as any).type === "stage";
-                  }).map(([key, value]) => {
+            })}
+          {Object.entries(config)
+            .filter((entry): entry is [string, StageConfig] => {
+              const [, value] = entry;
+              return (
+                typeof value === "object" && (value as any).type === "stage"
+              );
+            })
+            .map(([key, value]) => {
               const visConfig = {};
 
               for (const axis of value.axes) {
@@ -75,7 +81,7 @@ export const HomePage = ({ config, setConfig}: HomePageProps) => {
                   unit={value.unit}
                 />
               );
-          })}
+            })}
         </Stack>
       </Group>
     </div>

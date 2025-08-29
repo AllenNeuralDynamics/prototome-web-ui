@@ -7,19 +7,26 @@ import { StageConfig } from "../../types/configTypes.tsx";
 export const StagesPage = ({ config }) => {
   return (
     <Stack align="center">
-      {Object.entries(config).filter((entry): entry is [string, StageConfig] => {
-                const [, value] = entry;
-                return typeof value === "object" && (value as any).type === "stage";
-              }).map(([key, value]) => {
-        if (value?.type === "stage") {
-          return (
-            <div key={key + "stage widget"}>
-              <StageControl stageId={key} axes={value.axes} host={value.host} unit={value.unit}/>
-            </div>
-          );
-        }
-        return null;
-      })}
+      {Object.entries(config)
+        .filter((entry): entry is [string, StageConfig] => {
+          const [, value] = entry;
+          return typeof value === "object" && (value as any).type === "stage";
+        })
+        .map(([key, value]) => {
+          if (value?.type === "stage") {
+            return (
+              <div key={key + "stage widget"}>
+                <StageControl
+                  stageId={key}
+                  axes={value.axes}
+                  host={value.host}
+                  unit={value.unit}
+                />
+              </div>
+            );
+          }
+          return null;
+        })}
     </Stack>
   );
 };

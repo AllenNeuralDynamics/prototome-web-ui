@@ -36,9 +36,9 @@ const initialState: RangesState = {
 };
 
 export const initializeRanges = createAsyncThunk<
-InstrumentStageRanges,   
-UseStageProps,           
-{ state: RootState }     
+  InstrumentStageRanges,
+  UseStageProps,
+  { state: RootState }
 >(
   "range/initializeRange",
   async ({ host, instrumentStages }: UseStageProps) => {
@@ -107,7 +107,7 @@ const rangesSlice = createSlice({
           },
         };
       })
-      
+
       .addCase(postMaxPos.fulfilled, (state, action) => {
         const { stageId, axis, value } = action.meta.arg;
         state.data = {

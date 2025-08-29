@@ -2,6 +2,36 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { getPosition } from "../api/stageApi.tsx";
 import { UseStageProps } from "../types/stageTypes.tsx";
 
+
+// Websocket connection 
+
+let socket;
+
+export const connectPositionSocket = (dispatch) => {
+  socket = new WebSocket("ws://localhost:8000/ws/stage_pos");
+
+  socket.onopen = () => {
+    console.log("Stage WebSocket connected");
+  };
+
+  socket.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    console.log("Stage update:", msg);
+    dispatch(
+      stagePositionUpdated({
+        stageId: msg.stage_id,
+        axis: msg.axis,
+        position: msg.position,
+      })
+    )
+  };
+
+  socket.onclose = () => {
+    console.log("Stage WebSocket closed, reconnecting...");
+    setTimeout(() => connectPositionSocket(dispatch), 2000); // auto-reconnect
+  };
+};
+
 type StagePositions = {
   [axes: string]: number;
 };
@@ -22,7 +52,7 @@ const initialState: PositionsState = {
   error: undefined,
 };
 
-export const fetchPositions = createAsyncThunk(
+export const initializePosition = createAsyncThunk(
   "positions/fetchPositons",
   async ({ host, instrumentStages }: UseStageProps) => {
     const instrumentStagePositions: InstrumentStagePositions = {};
@@ -43,19 +73,35 @@ export const fetchPositions = createAsyncThunk(
 const positionsSlice = createSlice({
   name: "positions",
   initialState,
-  reducers: {},
+  reducers: {
+    stagePositionUpdated: (
+      state,
+      action: PayloadAction<{
+        stageId: string;
+        axis: string;
+        position: number;
+      }>,
+    ) => {
+      const { stageId, axis, position } = action.payload;
+      if (!state.data[stageId]) {
+        state.data[stageId] = {};
+      }
+      state.data[stageId][axis] = position;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchPositions.pending, (state) => {
+      .addCase(initializePosition.pending, (state) => {
         state.loading = true;
       })
-      .addCase(fetchPositions.fulfilled, (state, action) => {
+      .addCase(initializePosition.fulfilled, (state, action) => {
         state.data = action.payload;
       })
-      .addCase(fetchPositions.rejected, (state, action) => {
+      .addCase(initializePosition.rejected, (state, action) => {
         state.error = action.error.message;
       });
   },
 });
 
+export const { stagePositionUpdated } = positionsSlice.actions;
 export default positionsSlice.reducer;

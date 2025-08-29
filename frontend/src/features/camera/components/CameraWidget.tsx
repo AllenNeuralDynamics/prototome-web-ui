@@ -1,8 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Slider, Text, Button, Group, Card } from "@mantine/core";
 import "@mantine/core/styles.css";
-import { getFrame, postExposure, postGain } from "../api/cameraApi.tsx";
+import { start, stop, postExposure, postGain } from "../api/cameraApi.tsx";
 import { CameraWidgetProps } from "../types/cameraTypes.tsx";
+
+
+
 
 export default function CameraWidget({
   cameraId,
@@ -15,23 +18,38 @@ export default function CameraWidget({
   const [frameUrl, setFrameUrl] = useState("");
   const intervalRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    let socket;
+    const connectFrameSocket = () => {
+      socket = new WebSocket("ws://localhost:8000/ws/camera_frame");
+    
+      socket.onopen = () => {
+        console.log("Camera WebSocket connected");
+      };
+    
+      socket.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.cameraId == cameraId){
+        setFrameUrl(msg.url);
+        }
+      };
+    
+      socket.onclose = () => {
+        console.log("Camera WebSocket closed, reconnecting...");
+        setTimeout(() => connectFrameSocket(), 2000); // auto-reconnect
+      };
+    };
+    connectFrameSocket()
+
+    return() => socket.close();
+  }, [cameraId])
+
   const startCamera = () => {
-    if (intervalRef.current) return;
-    intervalRef.current = setInterval(async () => {
-      try {
-        const url = await getFrame(host, cameraId);
-        setFrameUrl(url);
-      } catch (error) {
-        console.error("Error fetching frame:", error);
-      }
-    }, 500);
+    start(host, cameraId)
   };
 
   const stopCamera = () => {
-    if (intervalRef.current !== null) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    stop(host, cameraId)
   };
 
   const onExposureChange = (val: number) => {

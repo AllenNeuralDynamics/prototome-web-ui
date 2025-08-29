@@ -3,10 +3,15 @@ import threading
 
 
 class ZMQAgent:
-    def __init__(self, port=6000, auto_register=True, start_background=True):
+    def __init__(self, rep_port=6000, pub_port=6001, auto_register=True, start_background=True):
         self.context = zmq.Context()
-        self.socket = self.context.socket(zmq.REP)
-        self.socket.bind(f"tcp://localhost:{port}")
+        self.rep_socket = self.context.socket(zmq.REP)
+        self.rep_socket.bind(f"tcp://localhost:{rep_port}")
+        
+        self.pub_socket = self.context.socket(zmq.PUB)
+        self.pub_socket.bind(f"tcp://*:{pub_port}")
+
+        
         self.methods = {}
         self._running = False
         self._thread = None
@@ -31,24 +36,24 @@ class ZMQAgent:
         self._running = True
         while self._running:
             try:
-                msg = self.socket.recv_pyobj()
+                msg = self.rep_socket.recv_pyobj()
                 method = msg.get("method")
                 args = msg.get("args", [])
                 kwargs = msg.get("kwargs", {})
 
                 if method == "__dir__":
                     # Return list of registered methods
-                    self.socket.send_pyobj(list(self.methods.keys()))
+                    self.rep_socket.send_pyobj(list(self.methods.keys()))
                     continue
 
                 if method in self.methods:
                     try:
                         result = self.methods[method](*args, **kwargs)
-                        self.socket.send_pyobj({"result": result})
+                        self.rep_socket.send_pyobj({"result": result})
                     except Exception as e:
-                        self.socket.send_pyobj({"error": str(e)})
+                        self.rep_socket.send_pyobj({"error": str(e)})
                 else:
-                    self.socket.send_pyobj({"error": f"Unknown method: {method}"})
+                    self.rep_socket.send_pyobj({"error": f"Unknown method: {method}"})
             except zmq.ZMQError:
                 # Socket closed or interrupted
                 break
@@ -60,7 +65,7 @@ class ZMQAgent:
 
     def stop(self):
         self._running = False
-        self.socket.close()
+        self.rep_socket.close()
         self.context.term()
         if self._thread is not None:
             self._thread.join()

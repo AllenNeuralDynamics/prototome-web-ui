@@ -2,11 +2,11 @@ import React, { useEffect, useState, useMemo } from "react";
 import { BrowserRouter, Link, useLocation } from "react-router-dom";
 import { AppRouter } from "./router.tsx";
 import { useDispatch } from "react-redux";
-import { useStagePositions } from "../features/stage/index.js";
 import { initializeRanges } from "../features/stage/stores/rangeSlice.tsx";
 import { Group, Button, Paper } from "@mantine/core";
 import { AppConfig, StageConfig } from "../types/configTypes.tsx";
 import { AppDispatch } from "../stores/store.tsx";
+import { initializePosition,  connectPositionSocket  } from "../features/stage/stores/positionSlice.tsx";
 
 function NavBar() {
   const location = useLocation();
@@ -52,6 +52,10 @@ function App() {
     }
     fetchConfig();
   }, []);
+  
+  useEffect(() => {
+    connectPositionSocket(dispatch);
+  }, [dispatch]);
 
   const instrumentStages = useMemo(() => {
     return Object.fromEntries(
@@ -60,7 +64,7 @@ function App() {
           const [, value] = entry;
           return typeof value === "object" && (value as any).type === "stage";
         })
-        .map(([key, value]) => [key, value.axes])
+        .map(([key, value]) => [key, value.axes]),
     );
   }, [config]);
 
@@ -69,14 +73,17 @@ function App() {
     dispatch(initializeRanges({ host: config.host, instrumentStages }));
   }, [dispatch, config, instrumentStages]);
 
-  useStagePositions({ host: config?.host ?? "", instrumentStages });
+  useEffect(() => {
+    if (!config) return;
+    dispatch(initializePosition({ host: config.host, instrumentStages }));
+  }, [dispatch, config, instrumentStages]);
 
   if (!config) return <div>Loading configuration...</div>;
 
   return (
     <BrowserRouter>
       <NavBar />
-      <AppRouter config={config} setConfig={setConfig}/>
+      <AppRouter config={config} setConfig={setConfig} />
     </BrowserRouter>
   );
 }

@@ -5,6 +5,9 @@ import json
 import os
 import keyboard
 import logging
+import threading
+import time
+import base64
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(SCRIPT_DIR, "config.json")
@@ -36,8 +39,24 @@ class Instrument(ZMQAgent):
         elif e.name == "down":
             self.set_pos("fake_fine_stage", "piezo", self.stages["fake_fine_stage"].positions["piezo"] + -1)
 
+    def start_camera(self, cam_id):
+        # Run the blocking work in a separate thread
+        threading.Thread(target=self.grab_frame,kwargs={cam_id:cam_id}, daemon=True).start()
+    
+    def stop_camera(self, cam_id):
+        print("stop")
+        
     def grab_frame(self, cam_id) -> np.ndarray:
-        return self.cameras[cam_id].grab_frame()
+        frame = self.grab_frame(cam_id)
+        _, encoded = cv2.imencode(".jpg", frame)
+        frame_bytes = encoded.tobytes()
+        frame_b64 = base64.b64encode(frame_bytes).decode("ascii")
+        self.pub_socket.send_pyobj({
+            "type": "camera_frame",
+            "camera_id": cam_id,
+            "frame": f"data:image/jpeg;base64,{frame_b64}"
+        })
+        return frame
 
     def set_exposure_time(self, cam_id, value: float):
         self.cameras[cam_id].set_exposure_time(value)
@@ -50,6 +69,12 @@ class Instrument(ZMQAgent):
 
     def set_pos(self, stage_id: str, axis: str, value: float):
         self.stages[stage_id].set_pos(axis, value)
+        self.pub_socket.send_pyobj({
+                "type": "stage_pos",
+                "stage_id": stage_id,
+                "axis": axis,
+                "position": value
+            })
 
     def set_min_pos(self, stage_id: str, axis: str, value: float):
         self.stages[stage_id].set_min_pos(axis, value)
@@ -75,7 +100,7 @@ class Camera:
 
     def __init__(self, exposure_range: dict,
                  gain_range: dict,
-                 index=0):
+                 index=1):
 
         self.camera = cv2.VideoCapture(index)
         self.camera.set(cv2.CAP_PROP_AUTO_EXPOSURE, .25)  # 0.25 for manual exposure on some cameras

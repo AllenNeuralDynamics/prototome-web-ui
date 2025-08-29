@@ -1,13 +1,17 @@
 from backend.services.zmq_agent import DeviceProxy
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, WebSocket
+import asyncio
 from pydantic import BaseModel
 
 router = APIRouter()
 stage_client = DeviceProxy()
 
+
+
 class ValuePayload(BaseModel):
     value: float
 
+# --- REST endpoints ---
 @router.get("/stage/{stage_id}/{axis}/pos")
 async def get_pos(stage_id: str, axis: str):
     return {"position" : stage_client.get_pos(stage_id, axis)}

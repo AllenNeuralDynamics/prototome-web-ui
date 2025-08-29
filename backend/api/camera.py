@@ -13,9 +13,15 @@ camera_client = DeviceProxy()
 class ValuePayload(BaseModel):
     value: float
 
-@router.get("/camera/{camera_id}/frame")
-async def get_frame(camera_id: str):
-    return Response(content=camera_client.grab_frame(camera_id).tobytes(), media_type='image/jpeg')
+@router.post("/camera/{camera_id}/start")
+async def start(camera_id: str):
+    camera_client.start_camera(camera_id)
+    return {"status": "ok"}
+
+@router.post("/camera/{camera_id}/stop")
+async def stop(camera_id: str):
+    camera_client.stop_camera(camera_id)
+    return {"status": "ok"}
 
 @router.post("/camera/{camera_id}/exposure")
 async def set_exposure_time(camera_id: str, value: ValuePayload):
