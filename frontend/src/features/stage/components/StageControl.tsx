@@ -26,7 +26,7 @@ export default function StageControl({
   host,
   unit = "um",
 }: StageControlProps) {
-  const positions = useSelector((state: RootState) => state.positions.data);
+  const [positions, setPos] = useState<Record<string, number>>(() => Object.fromEntries(axes.map(axis => [axis, 0])));
   const ranges = useSelector((state: RootState) => state.range.data);
   const dispatch = useDispatch<AppDispatch>();
   const [velocity, setVelocity] = useState<Record<string, number>>({});
@@ -34,6 +34,32 @@ export default function StageControl({
   const [stepSizeInput, setStepSizeInput] = useState<Record<string, number>>(
     {},
   );
+
+  useEffect(() => {
+      let socket: WebSocket;
+      const connectFrameSocket = () => {
+        socket = new WebSocket(`ws://localhost:8000/ws/${stageId}/z/stage_pos`);
+      
+        socket.onopen = () => {
+          console.log("Stage WebSocket connected", `ws://localhost:8000/ws/${stageId}/z/stage_pos`);
+        };
+      
+        socket.onmessage = (event) => {
+          
+          const pos = JSON.parse(event.data);
+          setPos((prev) => ({...prev, "z": pos}))
+          console.log("pos", pos)
+        };
+      
+        socket.onclose = () => {
+          console.log("Stage WebSocket closed, reconnecting...");
+          setTimeout(() => connectFrameSocket(), 2000); // auto-reconnect
+        };
+      };
+      connectFrameSocket()
+  
+      return() => socket.close();
+    }, [stageId])
 
   useEffect(() => {
     async function fetchVelocity() {
@@ -91,7 +117,8 @@ export default function StageControl({
     postPosition(host, stageId, axis, val);
   };
 
-  const stagePositions = positions[stageId] ?? {};
+  const stagePositions = positions ?? {};
+  console.log("stage positions", stagePositions)
   if (!axes.every((axis) => axis in stagePositions))
     return <div> Cannot find positions to {stageId} </div>;
 
@@ -101,7 +128,7 @@ export default function StageControl({
 
   return (
     <div>
-      {Object.entries(positions[stageId]).map(([axis, value]) => (
+      {Object.entries(positions).map(([axis, value]) => (
         <Card
           key={axis}
           shadow="xs"
@@ -123,12 +150,12 @@ export default function StageControl({
           <Group mb="xs">
             <Text size="sm">Position </Text>
             <Text size="sm" c="dimmed">
-              {positions[stageId][axis]?.toFixed(2) || 0} {unit}
+              {positions[axis]?.toFixed(2) || 0} {unit}
             </Text>
           </Group>
           <Slider
             color={getAxisColor(axis)}
-            value={positions[stageId][axis]}
+            value={positions[axis]}
             labelAlwaysOn
             marks={[
               {
@@ -274,4 +301,4 @@ export default function StageControl({
       ))}
     </div>
   );
-}
+ }

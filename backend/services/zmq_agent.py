@@ -3,6 +3,12 @@ import zmq.asyncio
 from threading import Lock
 import asyncio
 import time
+from  pydantic import BaseModel
+from typing import Any
+
+class DeviceProxyMessage(BaseModel):
+    destination: str
+    payload: Any
 
 class DeviceProxy:
     def __init__(self, host="localhost", req_port="6000", sub_port="6001"):
@@ -25,9 +31,16 @@ class DeviceProxy:
     async def listen(self):
         """Generator to yield messages from the PUB socket"""
         while True:
-            msg = await self.sub_socket.recv_pyobj()  # asyncio-friendly
-            print("I got a message!")
+            msg: DeviceProxyMessage = await self.sub_socket.recv_pyobj()  # asyncio-friendly
             yield msg
+
+    async def send(self, data: dict):
+        print("data", data, type(data))
+        if data["destination"] == "livestream":
+            if data["start"]:
+                self.start_camera(data["camera_id"])
+            else: 
+                self.stop_camera(data["camera_id"])
 
     def _add_remote_methods(self):
         methods = self.get_remote_attributes()

@@ -39,6 +39,7 @@ function App() {
   const dispatch = useDispatch<AppDispatch>();
   const [config, setConfig] = useState<AppConfig | null>(null);
 
+  //  fetch config
   useEffect(() => {
     async function fetchConfig() {
       try {
@@ -53,30 +54,30 @@ function App() {
     fetchConfig();
   }, []);
   
-  useEffect(() => {
-    connectPositionSocket(dispatch);
-  }, [dispatch]);
+  // useEffect(() => {
+  //   connectPositionSocket(dispatch);
+  // }, [dispatch]);
 
-  const instrumentStages = useMemo(() => {
-    return Object.fromEntries(
-      Object.entries(config ?? {})
-        .filter((entry): entry is [string, StageConfig] => {
-          const [, value] = entry;
-          return typeof value === "object" && (value as any).type === "stage";
-        })
-        .map(([key, value]) => [key, value.axes]),
-    );
-  }, [config]);
+  // const instrumentStages = useMemo(() => {
+  //   return Object.fromEntries(
+  //     Object.entries(config ?? {})
+  //       .filter((entry): entry is [string, StageConfig] => {
+  //         const [, value] = entry;
+  //         return typeof value === "object" && (value as any).type === "stage";
+  //       })
+  //       .map(([key, value]) => [key, value.axes]),
+  //   );
+  // }, [config]);
 
-  useEffect(() => {
-    if (!config) return;
-    dispatch(initializeRanges({ host: config.host, instrumentStages }));
-  }, [dispatch, config, instrumentStages]);
+  // useEffect(() => {
+  //   if (!config) return;
+  //   dispatch(initializeRanges({ host: config.host, instrumentStages }));
+  // }, [dispatch, config, instrumentStages]);
 
-  useEffect(() => {
-    if (!config) return;
-    dispatch(initializePosition({ host: config.host, instrumentStages }));
-  }, [dispatch, config, instrumentStages]);
+  // useEffect(() => {
+  //   if (!config) return;
+  //   dispatch(initializePosition({ host: config.host, instrumentStages }));
+  // }, [dispatch, config, instrumentStages]);
 
   if (!config) return <div>Loading configuration...</div>;
 

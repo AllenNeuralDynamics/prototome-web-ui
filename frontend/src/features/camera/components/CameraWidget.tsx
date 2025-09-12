@@ -1,11 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Slider, Text, Button, Group, Card } from "@mantine/core";
 import "@mantine/core/styles.css";
-import { start, stop, postExposure, postGain } from "../api/cameraApi.tsx";
 import { CameraWidgetProps } from "../types/cameraTypes.tsx";
-
-
-
+import { negotiate } from "../../../utils/webRtcConnection.tsx";
 
 export default function CameraWidget({
   cameraId,
@@ -15,41 +12,59 @@ export default function CameraWidget({
 }: CameraWidgetProps) {
   const [exposure, setExposure] = useState(-9);
   const [gain, setGain] = useState(1);
-  const [frameUrl, setFrameUrl] = useState("");
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const [livestreamChannel, setLivestreamChannel] = useState<RTCDataChannel>()
 
   useEffect(() => {
-    let socket;
-    const connectFrameSocket = () => {
-      socket = new WebSocket("ws://localhost:8000/ws/camera_frame");
+    const pc = new RTCPeerConnection();
+    pcRef.current = pc;
     
-      socket.onopen = () => {
-        console.log("Camera WebSocket connected");
-      };
+    // add MediaTrackStreams
+    pcRef.current.addTransceiver('video', {direction: 'recvonly'})
+
+    // add any dataChannels
+    setLivestreamChannel(pcRef.current.createDataChannel("livestream"));
     
-      socket.onmessage = (event) => {
-        
-        const msg = JSON.parse(event.data);
-        if (msg.camera_id == cameraId){
-          setFrameUrl(msg.frame);
-        }
-      };
-    
-      socket.onclose = () => {
-        console.log("Camera WebSocket closed, reconnecting...");
-        setTimeout(() => connectFrameSocket(), 2000); // auto-reconnect
-      };
+    // negotiate sbd and ice with peer connection
+    negotiate(pc)
+
+    return () => {
+      pc.close();
     };
-    connectFrameSocket()
+  }, []); // run once
 
-    return() => socket.close();
-  }, [cameraId])
+  const startCamera = async () => {
+    if (pcRef.current) {
+    pcRef.current.addEventListener('track', (evt) => {
+      if (evt.track.kind === 'video' && videoRef.current) {
+        videoRef.current.srcObject = evt.streams[0];
+      }
+    });
+    // re negotiate since track has been added 
+    negotiate(pcRef.current)
 
-  const startCamera = () => {
-    start(host, cameraId)
+    // send message to start livestream
+    if (livestreamChannel){
+    livestreamChannel.send(JSON.stringify({"destination": "livestream", "camera_id": cameraId, "start": true}))
+    }
+}
   };
 
   const stopCamera = () => {
-    stop(host, cameraId)
+    // disconnect video
+    // if (videoRef.current && videoRef.current.srcObject) {
+    //   const stream = videoRef.current.srcObject as MediaStream;
+    //   // stop all tracks (video/audio)
+    //   stream.getTracks().forEach((track) => track.stop());
+    //   // disconnect from video element
+    //   videoRef.current.srcObject = null;
+    // }
+
+    console.log("button click")
+    if (livestreamChannel){
+    livestreamChannel.send(JSON.stringify({"destination": "livestream", "camera_id": cameraId, "start": false}))
+    }
   };
 
   const onExposureChange = (val: number) => {
@@ -72,9 +87,11 @@ export default function CameraWidget({
         withBorder
         className="bg-gray-50"
       >
-        <img
-          src={frameUrl}
-          alt="Camera frame"
+        <video
+          ref={videoRef}
+          muted
+          autoPlay
+          playsInline
           width={768}
           height={576}
           style={{ border: "1px solid black" }}

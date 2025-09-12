@@ -54,7 +54,7 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
                 />
               );
             })}
-          {Object.entries(config)
+          {/* {Object.entries(config)
             .filter((entry): entry is [string, StageConfig] => {
               const [, value] = entry;
               return (
@@ -81,7 +81,7 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
                   unit={value.unit}
                 />
               );
-            })}
+            })} */}
         </Stack>
       </Group>
     </div>

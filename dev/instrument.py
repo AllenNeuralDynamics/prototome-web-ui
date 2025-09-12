@@ -44,7 +44,7 @@ class Instrument(ZMQAgent):
     def streaming_loop(self, cam_id):
         while self.camera_streaming.is_set():
             self.grab_frame(cam_id)
-            time.sleep(.1)
+            time.sleep(.06)
 
     def start_camera(self, cam_id):
         if not self.camera_streaming.is_set():
@@ -57,12 +57,10 @@ class Instrument(ZMQAgent):
     def grab_frame(self, cam_id) -> np.ndarray:
         encoded = self.cameras[cam_id].grab_frame()
         frame_bytes = encoded.tobytes()
-        frame_b64 = base64.b64encode(frame_bytes).decode("ascii")
-        self.pub_socket.send_pyobj({
-            "type": "camera_frame",
-            "camera_id": cam_id,
-            "frame": f"data:image/jpeg;base64,{frame_b64}"
-        })
+        self.pub_socket.send_multipart([
+            f"camera_frame_{cam_id}".encode(),
+            frame_bytes
+        ])
         return encoded
 
     def set_exposure_time(self, cam_id, value: float):
@@ -77,10 +75,8 @@ class Instrument(ZMQAgent):
     def set_pos(self, stage_id: str, axis: str, value: float):
         self.stages[stage_id].set_pos(axis, value)
         self.pub_socket.send_pyobj({
-                "type": "stage_pos",
-                "stage_id": stage_id,
-                "axis": axis,
-                "position": value
+                "destination": f"position_{stage_id}_{axis}",
+                "payload": value
             })
 
     def set_min_pos(self, stage_id: str, axis: str, value: float):
