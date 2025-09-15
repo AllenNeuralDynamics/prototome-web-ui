@@ -14,7 +14,9 @@ export default function CameraWidget({
   const [gain, setGain] = useState(1);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
-  const [livestreamChannel, setLivestreamChannel] = useState<RTCDataChannel>()
+  const livestreamChannelRef = useRef<RTCDataChannel | null>(null)
+  const exposureChannelRef = useRef<RTCDataChannel | null>(null)
+  const gainChannelRef = useRef<RTCDataChannel | null>(null)
 
   useEffect(() => {
     const pc = new RTCPeerConnection();
@@ -23,58 +25,63 @@ export default function CameraWidget({
     // add MediaTrackStreams
     pcRef.current.addTransceiver('video', {direction: 'recvonly'})
 
+    // add track listener for video 
+    pcRef.current.addEventListener('track', (evt) => {
+      if (evt.track.kind === 'video' && videoRef.current) {
+        videoRef.current.srcObject = evt.streams[0];
+      }
+    })
+
     // add any dataChannels
-    setLivestreamChannel(pcRef.current.createDataChannel("livestream"));
+    const livestreamChannel = pcRef.current.createDataChannel("livestream");
+    livestreamChannelRef.current = livestreamChannel
+
+    const exposureChannel = pcRef.current.createDataChannel("exposure");
+    exposureChannelRef.current = exposureChannel
+
+    const gainChannel = pcRef.current.createDataChannel("gain");
+    gainChannelRef.current = gainChannel
+
     
     // negotiate sbd and ice with peer connection
     negotiate(pc)
 
     return () => {
       pc.close();
+      livestreamChannel.close()
+      exposureChannel.close()
+      gainChannel.close()
+
     };
   }, []); // run once
 
   const startCamera = async () => {
     if (pcRef.current) {
-    pcRef.current.addEventListener('track', (evt) => {
-      if (evt.track.kind === 'video' && videoRef.current) {
-        videoRef.current.srcObject = evt.streams[0];
-      }
-    });
-    // re negotiate since track has been added 
-    negotiate(pcRef.current)
-
     // send message to start livestream
-    if (livestreamChannel){
-    livestreamChannel.send(JSON.stringify({"destination": "livestream", "camera_id": cameraId, "start": true}))
+    if (livestreamChannelRef.current){
+      livestreamChannelRef.current.send(JSON.stringify({"destination": "livestream", "camera_id": cameraId, "value": true}))
     }
-}
+} 
   };
 
-  const stopCamera = () => {
-    // disconnect video
-    // if (videoRef.current && videoRef.current.srcObject) {
-    //   const stream = videoRef.current.srcObject as MediaStream;
-    //   // stop all tracks (video/audio)
-    //   stream.getTracks().forEach((track) => track.stop());
-    //   // disconnect from video element
-    //   videoRef.current.srcObject = null;
-    // }
-
-    console.log("button click")
-    if (livestreamChannel){
-    livestreamChannel.send(JSON.stringify({"destination": "livestream", "camera_id": cameraId, "start": false}))
+  const stopCamera = () => {   
+    if (livestreamChannelRef.current){
+      livestreamChannelRef.current.send(JSON.stringify({"destination": "livestream", "camera_id": cameraId, "value": false}))
     }
   };
 
   const onExposureChange = (val: number) => {
     setExposure(val);
-    postExposure(host, cameraId, val);
+    if (exposureChannelRef.current){
+      exposureChannelRef.current.send(JSON.stringify({"destination": "exposure", "camera_id": cameraId, "value": val}))
+    }
   };
 
   const onGainChange = (val: number) => {
     setGain(val);
-    postGain(host, cameraId, val);
+    if (gainChannelRef.current){
+      gainChannelRef.current.send(JSON.stringify({"destination": "gain", "camera_id": cameraId, "value": val}))
+    }
   };
 
   return (

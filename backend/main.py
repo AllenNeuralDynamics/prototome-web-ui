@@ -89,8 +89,7 @@ async def offer(request:Request):
     def channel_handler(channel):
         @channel.on("message")
         async def on_message(message):
-            print("I got a message")
-            #await router_client.send(json.loads(message))
+            await router_client.send(json.loads(message))
     pc.on("datachannel", channel_handler)
 
     await pc.setRemoteDescription(offer_sdp)

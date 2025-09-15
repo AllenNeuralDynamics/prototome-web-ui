@@ -5,6 +5,7 @@ import { StagePosVisProps } from "../types/stageTypes.tsx";
 import { useSelector, useStore } from "react-redux";
 import { RootState } from "../../../stores/store.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
+import { negotiate } from "../../../utils/webRtcConnection.tsx";
 
 export default function StagePosVis({
   stageId,
@@ -14,6 +15,11 @@ export default function StagePosVis({
 }: StagePosVisProps) {
   const positions = useSelector((state: RootState) => state.positions.data);
   const ranges = useSelector((state: RootState) => state.range.data);
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const livestreamChannelRef = useRef<RTCDataChannel | null>(null)
+  const exposureChannelRef = useRef<RTCDataChannel | null>(null)
+  const gainChannelRef = useRef<RTCDataChannel | null>(null)
+
 
   const stagePositions = positions[stageId] ?? {};
   if (!axes.every((axis) => axis in stagePositions))

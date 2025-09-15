@@ -35,12 +35,19 @@ class DeviceProxy:
             yield msg
 
     async def send(self, data: dict):
-        print("data", data, type(data))
+        
+        
         if data["destination"] == "livestream":
-            if data["start"]:
+            if data["value"]:
                 self.start_camera(data["camera_id"])
             else: 
                 self.stop_camera(data["camera_id"])
+        
+        elif data["destination"] == "exposure":
+            self.set_exposure_time(data["camera_id"], data["value"])
+
+        elif data["destination"] == "gain":
+            self.set_gain(data["camera_id"], data["value"])
 
     def _add_remote_methods(self):
         methods = self.get_remote_attributes()
