@@ -12,68 +12,67 @@ import numpy as np
 from aiortc.contrib.media import MediaPlayer, MediaRelay
 import cv2
 import json
+import asyncio
 
 # instantiate router client 
 router_client = DeviceProxy()
 
-# instantiate socketio instance
-pc = RTCPeerConnection()
-
-# create dataChannels based on config for sending info to front end
-config_channels = ["position", "min_pos", "max_pos", "camera_frame_web_camera"]
+# empty data channels to populate upon offer
 data_channels = {}
 
-for channel in config_channels:
-    data_channels[channel] = pc.createDataChannel(channel)
+# frame queues ZMQCameraTrack can pull from
+frame_queue = {}
 
 #begin listening to zmq router at begining of app 
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     # define background task
-#     async def zmq_listener():
-#         async for msg in router_client.listen():
-#             print("i gotta msg")
-#             # await data_channels[msg["destination"]].send(msg["payload"])
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # define background task
+    async def zmq_listener():
+        async for msg in router_client.listen():
+            if (key := msg["destination"]) in data_channels.keys():
+                data_channels[key].send(json.dumps(msg["payload"]))
+            elif (key := msg["destination"]) in frame_queue.keys():
+                if frame_queue[key].full():
+                    return
+                await frame_queue[key].put(msg["payload"])
+                
+    # schedule it as a task in the event loop
+    task = asyncio.create_task(zmq_listener())
 
-#     # schedule it as a task in the event loop
-#     task = asyncio.create_task(zmq_listener())
+    yield
 
-#     yield
-
-#     # cancel when app shuts down
-#     task.cancel()
+    # cancel when app shuts down
+    task.cancel()
 
 
 # create MediaStreamTrack for camera
 class ZMQCameraTrack(VideoStreamTrack):
     kind = "video"
 
-    def __init__(self, zmq_endpoint):
+    def __init__(self, frame_queue: asyncio.Queue, cam_id: str):
         super().__init__()
-        self.ctx = zmq.asyncio.Context()
-        self.sub = self.ctx.socket(zmq.SUB)
-        self.sub.connect(zmq_endpoint)
-        self.sub.setsockopt_string(zmq.SUBSCRIBE, "camera_frame_web_camera")
-    
+        self.queue = frame_queue
+        self.cam_id = cam_id
+
     async def recv(self):
         # get timestamp for WebRTC
         pts, time_base = await self.next_timestamp()
 
         # receive the next frame from ZMQ
-        id, msg = await self.sub.recv_multipart()
-        
+        msg = await self.queue.get()
         jpg_bytes  = np.frombuffer(msg, dtype=np.uint8)
         frame_array = cv2.imdecode(jpg_bytes, cv2.IMREAD_COLOR)  
         video_frame = VideoFrame.from_ndarray(frame_array, format="rgb24")
         video_frame.pts = pts
         video_frame.time_base = time_base
-    
+        
         return video_frame
 
 # wait for offer from client
 offer_router = APIRouter()
-@offer_router.post("/offer")
-async def offer(request:Request):
+@offer_router.post("/{element_id}/offer")
+async def offer(element_id: str, request:Request):
+    
     params = await request.json()
     offer_sdp = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
 
@@ -86,21 +85,28 @@ async def offer(request:Request):
         if pc.connectionState == "failed":
             await pc.close()
 
-    def channel_handler(channel):
+    @pc.on("datachannel")
+    def on_datachannel(channel):
+        data_channels[channel.label] = channel
+
+        @channel.on("open")
+        def on_open():
+            print("channel open:", channel.label)
+
         @channel.on("message")
         async def on_message(message):
             await router_client.send(json.loads(message))
-    pc.on("datachannel", channel_handler)
 
     await pc.setRemoteDescription(offer_sdp)
     for t in pc.getTransceivers():
         if t.kind == "video":
             # open media source
-            webcam = ZMQCameraTrack("tcp://localhost:6001")
+            frame_queue[f"frame_{element_id}"] = asyncio.Queue(maxsize=10)
+            webcam = ZMQCameraTrack(frame_queue[f"frame_{element_id}"], element_id)
             relay = MediaRelay()
             video = relay.subscribe(webcam)
             pc.addTrack(video)
-
+            
     answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
 
@@ -112,7 +118,7 @@ async def offer(request:Request):
 
 
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

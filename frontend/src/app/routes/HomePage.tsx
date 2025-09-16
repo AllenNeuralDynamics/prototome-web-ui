@@ -54,7 +54,7 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
                 />
               );
             })}
-          {/* {Object.entries(config)
+          {Object.entries(config)
             .filter((entry): entry is [string, StageConfig] => {
               const [, value] = entry;
               return (
@@ -74,14 +74,16 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
               }
 
               return (
+                <div>
                 <StagePosVis
                   stageId={key}
                   axes={value.axes}
                   config={visConfig}
                   unit={value.unit}
                 />
+                </div>
               );
-            })} */}
+            })}
         </Stack>
       </Group>
     </div>

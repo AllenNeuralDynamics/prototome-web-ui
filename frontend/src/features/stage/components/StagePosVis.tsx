@@ -13,25 +13,56 @@ export default function StagePosVis({
   config,
   unit = "mm",
 }: StagePosVisProps) {
-  const positions = useSelector((state: RootState) => state.positions.data);
-  const ranges = useSelector((state: RootState) => state.range.data);
+  const [positions, setPositions] = useState({})
+  const [ranges, setRanges] = useState({})
   const pcRef = useRef<RTCPeerConnection | null>(null);
-  const livestreamChannelRef = useRef<RTCDataChannel | null>(null)
-  const exposureChannelRef = useRef<RTCDataChannel | null>(null)
-  const gainChannelRef = useRef<RTCDataChannel | null>(null)
+  const positionChannelRef = useRef<RTCDataChannel | null>(null)
+  const rangeChannelRef = useRef<RTCDataChannel | null>(null)
 
+  // initialize and negotiate webRTC 
+  useEffect(() => {
+      const pc = new RTCPeerConnection();
+      pcRef.current = pc;
+        
+      // add any dataChannels
+      const positionChannel = pcRef.current.createDataChannel(`position_${stageId}`);
+      positionChannel.onmessage = (evt) => {
+          const pos = JSON.parse(evt.data)
+          setPositions(prev => ({...prev, ...pos}));
+      }
+      positionChannel.onopen = (evt) => {
+        initializeStage()
+    }
+      positionChannelRef.current = positionChannel
+  
+      const rangeChannel = pcRef.current.createDataChannel(`range_${stageId}`);
+      rangeChannelRef.current = rangeChannel 
+      
+      // negotiate sbd and ice with peer connection
+      negotiate(pc, stageId)
+  
+      return () => {
+        pc.close();
+        positionChannel.close()
+        rangeChannel.close()  
+      };
+    }, []); 
 
-  const stagePositions = positions[stageId] ?? {};
+  // initialize stage positions
+  function initializeStage () {
+    if (positionChannelRef.current){
+    for (const axis of axes){
+      positionChannelRef.current.send(JSON.stringify({"destination": "position", "stage_id": stageId, "axis": axis}))
+    }}
+  }; 
+
+  const stagePositions = positions ?? {};
   if (!axes.every((axis) => axis in stagePositions))
     return <div> Cannot find positions to {stageId} </div>;
 
-  const stageRanges = ranges[stageId] ?? {};
-  if (!axes.every((axis) => axis in stageRanges))
-    return <div> Cannot find ranges to {stageId} </div>;
-
   return (
     <div>
-      {Object.entries(positions[stageId]).map(([axis, value]) => (
+      {Object.entries(positions).map(([axis, value]) => (
         <Card
           key={axis}
           shadow="xs"
@@ -55,17 +86,17 @@ export default function StagePosVis({
           </Badge>
           <Slider
             color={getAxisColor(axis)}
-            value={positions[stageId][axis]}
+            value={positions[axis]}
             labelAlwaysOn
             marks={[
-              {
-                value: ranges[stageId][axis].min ?? 0,
-                label: `Min:  ${ranges[stageId][axis].min} ${unit}`,
-              },
-              {
-                value: ranges[stageId][axis].max ?? 100,
-                label: `Max: ${ranges[stageId][axis].max} ${unit}`,
-              },
+              // {
+              //   value: ranges[stageId][axis].min ?? 0,
+              //   label: `Min:  ${ranges[stageId][axis].min} ${unit}`,
+              // },
+              // {
+              //   value: ranges[stageId][axis].max ?? 100,
+              //   label: `Max: ${ranges[stageId][axis].max} ${unit}`,
+              // },
               ...Object.entries(config[axis]).map(([key, value]) => ({
                 value: Number(value),
                 label: `${key}: ${value}`,

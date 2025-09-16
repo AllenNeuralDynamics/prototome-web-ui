@@ -44,7 +44,7 @@ export default function CameraWidget({
 
     
     // negotiate sbd and ice with peer connection
-    negotiate(pc)
+    negotiate(pc, cameraId)
 
     return () => {
       pc.close();

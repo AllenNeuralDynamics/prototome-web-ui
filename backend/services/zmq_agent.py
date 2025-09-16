@@ -24,7 +24,7 @@ class DeviceProxy:
         self.sub_socket = self.async_context.socket(zmq.SUB)
         self.sub_socket.connect(f"tcp://localhost:{sub_port}")
         self.sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
-
+    
         # Fetch remote method names and register
         self._add_remote_methods()
 
@@ -35,7 +35,6 @@ class DeviceProxy:
             yield msg
 
     async def send(self, data: dict):
-        
         
         if data["destination"] == "livestream":
             if data["value"]:
@@ -49,6 +48,9 @@ class DeviceProxy:
         elif data["destination"] == "gain":
             self.set_gain(data["camera_id"], data["value"])
 
+        elif data["destination"] == "position":
+            pos = self.get_pos(data["stage_id"], data["axis"])
+           
     def _add_remote_methods(self):
         methods = self.get_remote_attributes()
         for method_name in methods:

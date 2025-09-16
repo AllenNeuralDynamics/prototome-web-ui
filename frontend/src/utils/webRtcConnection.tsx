@@ -2,11 +2,12 @@
  * negotiate function for establishing sdp and ice with webRTC peer connections
  *
  * @param pc - peer connection to use 
+ * @param elementId - what elementId to use in the offer http
  */
 
-export async function negotiate (pc: RTCPeerConnection) {
+export async function negotiate (pc: RTCPeerConnection, elementId: string) {
     
-    // create offer
+  // create offer
     const offer = await pc.createOffer()
     // set offer as local description
     await pc.setLocalDescription(offer)
@@ -32,8 +33,7 @@ export async function negotiate (pc: RTCPeerConnection) {
     if (!localDescription) {
     throw new Error("PeerConnection localDescription is not set yet");
     }
-    
-    const response = await fetch("http://localhost:8000/offer", {
+    const response = await fetch(`http://localhost:8000/${elementId}/offer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -44,6 +44,5 @@ export async function negotiate (pc: RTCPeerConnection) {
 
     // recieve sdp answer from server
     const answer = await response.json();
-    console.log(answer)
     await pc.setRemoteDescription(answer);
   }
