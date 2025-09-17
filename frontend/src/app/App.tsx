@@ -1,15 +1,8 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter, Link, useLocation } from "react-router-dom";
 import { AppRouter } from "./router.tsx";
-import { useDispatch } from "react-redux";
-import { initializeRanges } from "../features/stage/stores/rangeSlice.tsx";
 import { Group, Button, Paper } from "@mantine/core";
-import { AppConfig, StageConfig } from "../types/configTypes.tsx";
-import { AppDispatch } from "../stores/store.tsx";
-import {
-  initializePosition,
-  connectPositionSocket,
-} from "../features/stage/stores/positionSlice.tsx";
+import { AppConfig } from "../types/configTypes.tsx";
 
 function NavBar() {
   const location = useLocation();
