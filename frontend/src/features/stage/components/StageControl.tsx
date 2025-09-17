@@ -162,25 +162,52 @@ export default function StageControl({
     };
   
 
-  // const onMoveLowerClick = (axis: string) => {
-  //   postPosition(host, stageId, axis, ranges[stageId][axis].min);
-  // };
+  const onMoveLowerClick = (axis: string) => {
+    if (positionChannelRef.current) {
+      positionChannelRef.current.send(
+        JSON.stringify({
+          destination: "position",
+          stage_id: stageId,
+          axis: axis,
+          value: ranges[axis].min,
+        }))
+      }
+  };
 
-  // const onMoveUpperClick = (axis: string) => {
-  //   postPosition(host, stageId, axis, ranges[stageId][axis].max);
-  // };
+  const onMoveUpperClick = (axis: string) => {
+    if (positionChannelRef.current) {
+      positionChannelRef.current.send(
+        JSON.stringify({
+          destination: "position",
+          stage_id: stageId,
+          axis: axis,
+          value: ranges[axis].max,
+        }))
+      }
+  };
 
-  // const onMoveMiddleClick = (axis: string) => {
-  //   postPosition(
-  //     host,
-  //     stageId,
-  //     axis,
-  //     Math.round((ranges[stageId][axis].min + ranges[stageId][axis].max) / 2),
-  //   );
-  // };
-  // const onMoveClick = (val: number, axis: string) => {
-  //   postPosition(host, stageId, axis, val);
-  // };
+  const onMoveMiddleClick = (axis: string) => {
+    if (positionChannelRef.current) {
+      positionChannelRef.current.send(
+        JSON.stringify({
+          destination: "position",
+          stage_id: stageId,
+          axis: axis,
+          value: Math.round((ranges[axis].min + ranges[axis].max) / 2),
+        }))
+      }
+  };
+  const onMoveClick = (val: number, axis: string) => {
+    if (positionChannelRef.current) {
+      positionChannelRef.current.send(
+        JSON.stringify({
+          destination: "position",
+          stage_id: stageId,
+          axis: axis,
+          value: val,
+        }))
+      }
+  };
 
   const stagePositions = positions ?? {};
   if (!axes.every((axis) => axis in stagePositions))
@@ -284,7 +311,7 @@ export default function StageControl({
               }
             }}
           />
-          {/*<Group mt="md">
+          <Group mt="md">
             <Button
               color={getAxisColor(axis)}
               variant="light"
@@ -307,8 +334,8 @@ export default function StageControl({
             </Button>
             <Stack>
               <NumberInput
-                min={ranges[stageId][axis].min}
-                max={ranges[stageId][axis].max}
+                min={ranges[axis].min}
+                max={ranges[axis].max}
                 value={posInput[axis]}
                 placeholder="position"
                 hideControls
@@ -374,7 +401,7 @@ export default function StageControl({
             >
               Move
             </Button>
-          </Group> */}
+          </Group>
         </Card>
       ))}
     </div>

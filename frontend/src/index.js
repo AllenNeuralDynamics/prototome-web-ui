@@ -3,7 +3,6 @@ import ReactDOM from "react-dom/client";
 import { MantineProvider } from "@mantine/core";
 import "./index.css";
 import App from "./app/App.tsx";
-import { Provider } from "react-redux";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

@@ -49,6 +49,8 @@ class DeviceProxy:
             self.set_gain(data["camera_id"], data["value"])
 
         elif data["destination"] == "position":
+            if "value" in data.keys():
+                self.set_pos(data["stage_id"], data["axis"], data["value"])
             pos = self.get_pos(data["stage_id"], data["axis"])
 
         elif data["destination"] == "position":
