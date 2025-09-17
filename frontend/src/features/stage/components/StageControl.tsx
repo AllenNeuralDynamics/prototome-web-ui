@@ -121,7 +121,7 @@ export default function StageControl({
     }
   }
 
-  // initialize stage range
+  // initialize stage velocity
   function initializeStageVelocity() {
     if (velocityChannelRef.current) {
       for (const axis of axes) {
@@ -150,6 +150,7 @@ export default function StageControl({
     ) {
       const newRange = { min: clampedMin, max: clampedMax };
       setRanges((prev) => ({ ...prev, [axis]: newRange}));
+      // send updated ranges to backend
       rangeChannelRef.current.send(
         JSON.stringify({
           destination: "range",
