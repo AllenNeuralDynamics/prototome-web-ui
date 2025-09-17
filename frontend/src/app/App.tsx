@@ -6,7 +6,10 @@ import { initializeRanges } from "../features/stage/stores/rangeSlice.tsx";
 import { Group, Button, Paper } from "@mantine/core";
 import { AppConfig, StageConfig } from "../types/configTypes.tsx";
 import { AppDispatch } from "../stores/store.tsx";
-import { initializePosition,  connectPositionSocket  } from "../features/stage/stores/positionSlice.tsx";
+import {
+  initializePosition,
+  connectPositionSocket,
+} from "../features/stage/stores/positionSlice.tsx";
 
 function NavBar() {
   const location = useLocation();
@@ -52,7 +55,7 @@ function App() {
     }
     fetchConfig();
   }, []);
-  
+
   if (!config) return <div>Loading configuration...</div>;
 
   return (

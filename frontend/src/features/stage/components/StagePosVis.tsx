@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { Card, Slider, Badge } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { StagePosVisProps } from "../types/stageTypes.tsx";
-import { useSelector, useStore } from "react-redux";
-import { RootState } from "../../../stores/store.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
 import { negotiate } from "../../../utils/webRtcConnection.tsx";
 
@@ -13,52 +11,94 @@ export default function StagePosVis({
   config,
   unit = "mm",
 }: StagePosVisProps) {
-  const [positions, setPositions] = useState({})
-  const [ranges, setRanges] = useState({})
+  const [positions, setPositions] = useState({});
+  const [ranges, setRanges] = useState({});
   const pcRef = useRef<RTCPeerConnection | null>(null);
-  const positionChannelRef = useRef<RTCDataChannel | null>(null)
-  const rangeChannelRef = useRef<RTCDataChannel | null>(null)
+  const positionChannelRef = useRef<RTCDataChannel | null>(null);
+  const rangeChannelRef = useRef<RTCDataChannel | null>(null);
 
-  // initialize and negotiate webRTC 
+  // initialize and negotiate webRTC
   useEffect(() => {
-      const pc = new RTCPeerConnection();
-      pcRef.current = pc;
-        
-      // add any dataChannels
-      const positionChannel = pcRef.current.createDataChannel(`position_${stageId}`);
-      positionChannel.onmessage = (evt) => {
-          const pos = JSON.parse(evt.data)
-          setPositions(prev => ({...prev, ...pos}));
-      }
-      positionChannel.onopen = (evt) => {
-        initializeStage()
-    }
-      positionChannelRef.current = positionChannel
-  
-      const rangeChannel = pcRef.current.createDataChannel(`range_${stageId}`);
-      rangeChannelRef.current = rangeChannel 
-      
-      // negotiate sbd and ice with peer connection
-      negotiate(pc, stageId)
-  
-      return () => {
-        pc.close();
-        positionChannel.close()
-        rangeChannel.close()  
-      };
-    }, []); 
+    const pc = new RTCPeerConnection();
+    pcRef.current = pc;
+
+    // add any dataChannels
+
+    // add position channel
+    const positionChannel = pcRef.current.createDataChannel(
+      `position_${stageId}`,
+    );
+    positionChannel.onopen = (evt) => {
+      // initialize stage upon channel opening
+      initializeStagePosition();
+    };
+    positionChannel.onmessage = (evt) => {
+      // update positions upon message
+      const pos = JSON.parse(evt.data);
+      setPositions((prev) => ({ ...prev, ...pos }));
+    };
+    positionChannelRef.current = positionChannel;
+
+    // add range channel
+    const rangeChannel = pcRef.current.createDataChannel(`range_${stageId}`);
+    rangeChannel.onopen = (evt) => {
+      // initialize stage upon channel opening
+      initializeStageRange();
+    };
+    rangeChannel.onmessage = (evt) => {
+      // update range upon message
+      const range = JSON.parse(evt.data);
+      setRanges((prev) => ({ ...prev, ...range }));
+    };
+    rangeChannelRef.current = rangeChannel;
+
+    // negotiate sbd and ice with peer connection
+    negotiate(pc, stageId);
+
+    return () => {
+      pc.close();
+      positionChannel.close();
+      rangeChannel.close();
+    };
+  }, []);
 
   // initialize stage positions
-  function initializeStage () {
-    if (positionChannelRef.current){
-    for (const axis of axes){
-      positionChannelRef.current.send(JSON.stringify({"destination": "position", "stage_id": stageId, "axis": axis}))
-    }}
-  }; 
+  function initializeStagePosition() {
+    if (positionChannelRef.current) {
+      for (const axis of axes) {
+        positionChannelRef.current.send(
+          JSON.stringify({
+            destination: "position",
+            stage_id: stageId,
+            axis: axis,
+          }),
+        );
+      }
+    }
+  }
+
+  // initialize stage range
+  function initializeStageRange() {
+    if (rangeChannelRef.current) {
+      for (const axis of axes) {
+        rangeChannelRef.current.send(
+          JSON.stringify({
+            destination: "range",
+            stage_id: stageId,
+            axis: axis,
+          }),
+        );
+      }
+    }
+  }
 
   const stagePositions = positions ?? {};
   if (!axes.every((axis) => axis in stagePositions))
     return <div> Cannot find positions to {stageId} </div>;
+
+  const stageRanges = ranges ?? {};
+  if (!axes.every((axis) => axis in stageRanges))
+    return <div> Cannot find ranges for {stageId} </div>;
 
   return (
     <div>
@@ -89,14 +129,14 @@ export default function StagePosVis({
             value={positions[axis]}
             labelAlwaysOn
             marks={[
-              // {
-              //   value: ranges[stageId][axis].min ?? 0,
-              //   label: `Min:  ${ranges[stageId][axis].min} ${unit}`,
-              // },
-              // {
-              //   value: ranges[stageId][axis].max ?? 100,
-              //   label: `Max: ${ranges[stageId][axis].max} ${unit}`,
-              // },
+              {
+                value: ranges[axis].min ?? 0,
+                label: `Min:  ${ranges[axis].min} ${unit}`,
+              },
+              {
+                value: ranges[axis].max ?? 100,
+                label: `Max: ${ranges[axis].max} ${unit}`,
+              },
               ...Object.entries(config[axis]).map(([key, value]) => ({
                 value: Number(value),
                 label: `${key}: ${value}`,

@@ -50,6 +50,24 @@ class DeviceProxy:
 
         elif data["destination"] == "position":
             pos = self.get_pos(data["stage_id"], data["axis"])
+
+        elif data["destination"] == "position":
+            pos = self.get_pos(data["stage_id"], data["axis"])
+
+        elif data["destination"] == "range":
+            if "value" in data.keys():
+                self.set_min_pos(data["stage_id"], data["axis"], data["value"]["min"])
+                self.set_max_pos(data["stage_id"], data["axis"], data["value"]["max"])
+                self.get_range(data["stage_id"], data["axis"])
+            else:
+                rng = self.get_range(data["stage_id"], data["axis"])
+
+        elif data["destination"] == "velocity":
+            if "value" in data.keys():
+                self.set_velocity(data["stage_id"], data["axis"], data["value"])
+                self.get_velocity(data["stage_id"], data["axis"])
+            else: 
+                velocity = self.get_velocity(data["stage_id"], data["axis"])
            
     def _add_remote_methods(self):
         methods = self.get_remote_attributes()

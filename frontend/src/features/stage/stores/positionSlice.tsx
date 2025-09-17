@@ -2,18 +2,15 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { getPosition } from "../api/stageApi.tsx";
 import { UseStageProps } from "../types/stageTypes.tsx";
 
-
-// Websocket connection 
+// Websocket connection
 
 let socket;
 
 export const connectPositionSocket = (dispatch) => {
   // socket = new WebSocket("ws://localhost:8000/ws/stage_pos");
-
   // socket.onopen = () => {
   //   console.log("Stage WebSocket connected");
   // };
-
   // socket.onmessage = (event) => {
   //   const msg = JSON.parse(event.data);
   //   console.log("Stage update:", msg);
@@ -25,7 +22,6 @@ export const connectPositionSocket = (dispatch) => {
   //     })
   //   )
   // };
-
   // socket.onclose = () => {
   //   console.log("Stage WebSocket closed, reconnecting...");
   //   setTimeout(() => connectPositionSocket(dispatch), 2000); // auto-reconnect

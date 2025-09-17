@@ -89,6 +89,14 @@ class Instrument(ZMQAgent):
                 "destination": f"position_{stage_id}",
                 "payload": {axis: value}
             })
+        
+    def get_range(self, stage_id: str, axis: str):
+        rng = {"min":self.get_min_pos(stage_id, axis),
+               "max":self.get_max_pos(stage_id, axis)}
+        self.pub_socket.send_pyobj({
+                "destination": f"range_{stage_id}",
+                "payload": {axis: rng}
+            })
 
     def set_min_pos(self, stage_id: str, axis: str, value: float):
         self.stages[stage_id].set_min_pos(axis, value)
@@ -106,7 +114,12 @@ class Instrument(ZMQAgent):
         self.stages[stage_id].set_velocity(axis, value)
 
     def get_velocity(self, stage_id: str, axis: str):
-        return self.stages[stage_id].get_velocity(axis)
+        velocity =  self.stages[stage_id].get_velocity(axis)
+        self.pub_socket.send_pyobj({
+                "destination": f"velocity_{stage_id}",
+                "payload": {axis: velocity}
+            })
+        return velocity
 
 
 

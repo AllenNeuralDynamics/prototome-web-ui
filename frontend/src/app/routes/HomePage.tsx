@@ -75,12 +75,12 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
 
               return (
                 <div>
-                <StagePosVis
-                  stageId={key}
-                  axes={value.axes}
-                  config={visConfig}
-                  unit={value.unit}
-                />
+                  <StagePosVis
+                    stageId={key}
+                    axes={value.axes}
+                    config={visConfig}
+                    unit={value.unit}
+                  />
                 </div>
               );
             })}
