@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from pathlib import Path
 from kazoo.client import KazooClient
 from kazoo.handlers.threading import KazooTimeoutError
 import json
@@ -19,5 +20,5 @@ def get_config():
     #     return json.loads(data.decode("utf-8"))
 
     # except KazooTimeoutError:
-         with open(".\dev\web_ui_config.json", "r") as config:
+         with open(Path("./dev/web_ui_config.json"), "r") as config:
             return json.load(config)
