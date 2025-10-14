@@ -1,17 +1,17 @@
 import CameraWidget from "../../features/camera/index.js";
 import { StagePosVis } from "../../features/stage/index.js";
 import {
-  PrototomeConfig,
-  axisVariablesMapping,
+  PrototomeConfigForm,
 } from "../../features/configuration/index.js";
 import { StateControl } from "../../features/acquisitionControl/index.js";
 import { Group, Stack } from "@mantine/core";
 import "@mantine/core/styles.css";
-import { CameraConfig } from "../../types/configTypes.tsx";
+import { CameraConfig, PrototomeConfig } from "../../types/configTypes.tsx";
 import React, { useEffect } from "react";
 import { CameraWidgetProps } from "../../features/camera/types/cameraTypes.tsx";
 import { StageConfig } from "../../types/configTypes.tsx";
 import { HomePageProps } from "../../types/pageTypes.tsx";
+import {axisVariablesMapping} from "../../types/axisVariableMapping.tsx";
 
 export const HomePage = ({ config, setConfig }: HomePageProps) => {
   return (
@@ -27,7 +27,7 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
         align="center"
       >
         <Stack align="stretch">
-          <PrototomeConfig
+          <PrototomeConfigForm
             config={config.prototome_config}
             setPrototomeConfig={(cfg) => {
               setConfig((prev) => ({ ...prev, prototome_config: cfg }));
@@ -62,13 +62,14 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
               );
             })
             .map(([key, value]) => {
-              const visConfig = {};
+              const visConfig: Record<string, Record<string, any>> = {};
 
               for (const axis of value.axes) {
                 visConfig[axis] = {};
                 const [ptStage, ptAxis] =
                   config.prototome_config.axis_map[axis].split(".");
-                for (const cfgKey of axisVariablesMapping[ptStage][ptAxis]) {
+                type ProtoKey = keyof PrototomeConfig;
+                for (const cfgKey of axisVariablesMapping[ptStage][ptAxis] as ProtoKey[]) {
                   visConfig[axis][cfgKey] = config.prototome_config[cfgKey];
                 }
               }

@@ -1,3 +1,5 @@
+import {axisVariablesMapping} from "../../../types/axisVariableMapping.tsx";
+
 export type StageControlProps = {
   stageId: string;
   axes: string[];
@@ -8,7 +10,7 @@ export type StageControlProps = {
 export type StagePosVisProps = {
   stageId: string;
   axes: string[];
-  config: object;
+  config: Record<string, Record<string, string[]>>;
   unit?: string;
 };
 

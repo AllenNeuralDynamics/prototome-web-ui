@@ -11,8 +11,8 @@ export default function StagePosVis({
   config,
   unit = "mm",
 }: StagePosVisProps) {
-  const [positions, setPositions] = useState({});
-  const [ranges, setRanges] = useState({});
+  const [positions, setPositions] = useState<Record<string, number>>({});
+  const [ranges, setRanges] = useState<Record<string,  number[]>>({});
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const positionChannelRef = useRef<RTCDataChannel | null>(null);
   const rangeChannelRef = useRef<RTCDataChannel | null>(null);

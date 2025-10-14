@@ -15,7 +15,7 @@ type PrototomeConfigProps = {
   setPrototomeConfig: (newConfig: any) => void;
 };
 
-export default function PrototomeConfig({
+export default function PrototomeConfigForm({
   config,
   setPrototomeConfig,
 }: PrototomeConfigProps) {
