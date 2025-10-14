@@ -26,12 +26,12 @@ export default function StagePosVis({
 
     // add position channel
     const positionChannel = pcRef.current.createDataChannel(
-      `position_${stageId}`,
+      `prototome_stage_positions`,
     );
-    positionChannel.onopen = (evt) => {
-      // initialize stage upon channel opening
-      initializeStagePosition();
-    };
+    // positionChannel.onopen = (evt) => {
+    //   // initialize stage upon channel opening
+    //   initializeStagePosition();
+    // };
     positionChannel.onmessage = (evt) => {
       // update positions upon message
       const pos = JSON.parse(evt.data);
@@ -40,11 +40,11 @@ export default function StagePosVis({
     positionChannelRef.current = positionChannel;
 
     // add range channel
-    const rangeChannel = pcRef.current.createDataChannel(`range_${stageId}`);
-    rangeChannel.onopen = (evt) => {
-      // initialize stage upon channel opening
-      initializeStageRange();
-    };
+    const rangeChannel = pcRef.current.createDataChannel(`prototome_stage_travel`);
+    // rangeChannel.onopen = (evt) => {
+    //   // initialize stage upon channel opening
+    //   initializeStageRange();
+    // };
     rangeChannel.onmessage = (evt) => {
       // update range upon message
       const range = JSON.parse(evt.data);
@@ -62,36 +62,6 @@ export default function StagePosVis({
     };
   }, []);
 
-  // initialize stage positions
-  function initializeStagePosition() {
-    if (positionChannelRef.current) {
-      for (const axis of axes) {
-        positionChannelRef.current.send(
-          JSON.stringify({
-            destination: "position",
-            stage_id: stageId,
-            axis: axis,
-          }),
-        );
-      }
-    }
-  }
-
-  // initialize stage range
-  function initializeStageRange() {
-    if (rangeChannelRef.current) {
-      for (const axis of axes) {
-        rangeChannelRef.current.send(
-          JSON.stringify({
-            destination: "range",
-            stage_id: stageId,
-            axis: axis,
-          }),
-        );
-      }
-    }
-  }
-
   const stagePositions = positions ?? {};
   if (!axes.every((axis) => axis in stagePositions))
     return <div> Cannot find positions to {stageId} </div>;
@@ -99,10 +69,9 @@ export default function StagePosVis({
   const stageRanges = ranges ?? {};
   if (!axes.every((axis) => axis in stageRanges))
     return <div> Cannot find ranges for {stageId} </div>;
-
   return (
     <div>
-      {Object.entries(positions).map(([axis, value]) => (
+      {axes.map((axis, index) => (
         <Card
           key={axis}
           shadow="xs"
@@ -130,12 +99,12 @@ export default function StagePosVis({
             labelAlwaysOn
             marks={[
               {
-                value: ranges[axis].min ?? 0,
-                label: `Min:  ${ranges[axis].min} ${unit}`,
+                value: ranges[axis][0] ?? 0,
+                label: `Min:  ${ranges[axis][0]} ${unit}`,
               },
               {
-                value: ranges[axis].max ?? 100,
-                label: `Max: ${ranges[axis].max} ${unit}`,
+                value: ranges[axis][1] ?? 100,
+                label: `Max: ${ranges[axis][1]} ${unit}`,
               },
               ...Object.entries(config[axis]).map(([key, value]) => ({
                 value: Number(value),

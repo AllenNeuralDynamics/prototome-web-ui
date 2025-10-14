@@ -16,20 +16,20 @@
   },
   "fake_fine_stage": {
     "host": "http://localhost:8000",
-    "axes": ["piezo"],
+    "axes": ["Piezo"],
     "type": "stage"
   },
   "fake_coarse_stage": {
     "host": "http://localhost:8000",
-    "axes": ["y", "z"],
+    "axes": ["Y", "Z"],
     "type": "stage"
   },
   "prototome_config": {
     "active": true,
     "axis_map": {
-      "piezo": "pt_stage_fine.axis1",
-      "y": "pt_stage_coarse.axis2",
-      "z": "pt_stage_coarse.axis1"
+      "Piezo": "pt_stage_fine.axis1",
+      "Y": "pt_stage_coarse.axis2",
+      "Z": "pt_stage_coarse.axis1"
     },
     "bottom_position_mm": 60,
     "cut_speed": 4,

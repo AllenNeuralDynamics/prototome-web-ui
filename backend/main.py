@@ -13,9 +13,12 @@ from aiortc.contrib.media import MediaPlayer, MediaRelay
 import cv2
 import json
 import asyncio
+from one_liner.client import RouterClient
+import zmq
 
 # instantiate router client 
-router_client = DeviceProxy()
+# router_client = DeviceProxy()
+router_client = RouterClient()
 
 # empty data channels to populate upon offer
 data_channels = {}
@@ -26,15 +29,36 @@ frame_queue = {}
 #begin listening to zmq router at begining of app 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    stop_event = asyncio.Event()
+    
     # define background task
     async def zmq_listener():
-        async for msg in router_client.listen():
-            if (key := msg["destination"]) in data_channels.keys():
-                data_channels[key].send(json.dumps(msg["payload"]))
-            elif (key := msg["destination"]) in frame_queue.keys():
-                if frame_queue[key].full():
-                    return
-                await frame_queue[key].put(msg["payload"])
+            while True:
+                try:
+                    # iterate through all data channels
+                    for ch_name, ch in data_channels.items():
+                        try:
+                            msg = router_client.get_stream(ch_name)
+                        except zmq.Again:
+                            continue
+                        ch.send(json.dumps(msg[1]))
+
+                    # # iterate through all frame queues
+                    # for frame_name, frame_queue in frame_queue.items():
+                    #     msg = await router_client.get_stream(frame_name)
+                    #     if not frame_queue.full():
+                    #         await frame_queue.put(msg["payload"])
+                except Exception as e:
+                    print(str(e))
+                await asyncio.sleep(1)
+
+        # async for msg in router_client.listen():
+        #     if (key := msg["destination"]) in data_channels.keys():
+        #         data_channels[key].send(json.dumps(msg["payload"]))
+        #     elif (key := msg["destination"]) in frame_queue.keys():
+        #         if frame_queue[key].full():
+        #             return
+        #         await frame_queue[key].put(msg["payload"])
                 
     # schedule it as a task in the event loop
     task = asyncio.create_task(zmq_listener())
@@ -88,14 +112,17 @@ async def offer(element_id: str, request:Request):
     @pc.on("datachannel")
     def on_datachannel(channel):
         data_channels[channel.label] = channel
-
+        router_client.configure_stream(channel.label, storage_type="cache")
+        
         @channel.on("open")
         def on_open():
             print("channel open:", channel.label)
 
         @channel.on("message")
         async def on_message(message):
-            await router_client.send(json.loads(message))
+            #await router_client.send(json.loads(message))
+            print(message)
+            #router_client.call(json.loads(message))
 
     await pc.setRemoteDescription(offer_sdp)
     for t in pc.getTransceivers():
