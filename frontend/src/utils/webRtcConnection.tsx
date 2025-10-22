@@ -5,7 +5,7 @@
  * @param elementId - what elementId to use in the offer http
  */
 
-export async function negotiate(pc: RTCPeerConnection, elementId: string) {
+export async function negotiate(pc: RTCPeerConnection) {
   // create offer
   const offer = await pc.createOffer();
   // set offer as local description
@@ -32,7 +32,7 @@ export async function negotiate(pc: RTCPeerConnection, elementId: string) {
   if (!localDescription) {
     throw new Error("PeerConnection localDescription is not set yet");
   }
-  const response = await fetch(`http://localhost:8000/${elementId}/offer`, {
+  const response = await fetch(`http://localhost:8000/offer`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

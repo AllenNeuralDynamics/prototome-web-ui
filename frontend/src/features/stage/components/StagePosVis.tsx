@@ -3,7 +3,7 @@ import { Card, Slider, Badge } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { StagePosVisProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
-import { negotiate } from "../../../utils/webRtcConnection.tsx";
+import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
 
 export default function StagePosVis({
   stageId,
@@ -13,54 +13,41 @@ export default function StagePosVis({
 }: StagePosVisProps) {
   const [positions, setPositions] = useState<Record<string, number>>({});
   const [ranges, setRanges] = useState<Record<string,  number[]>>({});
-  const pcRef = useRef<RTCPeerConnection | null>(null);
   const positionChannelRef = useRef<RTCDataChannel | null>(null);
   const rangeChannelRef = useRef<RTCDataChannel | null>(null);
+  const dataChannels = useDataChannelStore((state) => state.channels)
+  
 
-  // initialize and negotiate webRTC
+  // access stored dataChannels and add message handlers 
   useEffect(() => {
-    const pc = new RTCPeerConnection();
-    pcRef.current = pc;
-
-    // add any dataChannels
 
     // add position channel
-    const positionChannel = pcRef.current.createDataChannel(
-      `prototome_stage_positions`,
-    );
-    // positionChannel.onopen = (evt) => {
-    //   // initialize stage upon channel opening
-    //   initializeStagePosition();
-    // };
-    positionChannel.onmessage = (evt) => {
-      // update positions upon message
+    const positionChannel = dataChannels[`prototome_stage_positions`]
+    // update pos upon message
+    const handlePosMessage = (evt: MessageEvent) => {
       const pos = JSON.parse(evt.data);
       setPositions((prev) => ({ ...prev, ...pos }));
-    };
+  };
+    positionChannel.addEventListener('message', handlePosMessage)
+    // create reference
     positionChannelRef.current = positionChannel;
 
     // add range channel
-    const rangeChannel = pcRef.current.createDataChannel(`prototome_stage_travel`);
-    // rangeChannel.onopen = (evt) => {
-    //   // initialize stage upon channel opening
-    //   initializeStageRange();
-    // };
-    rangeChannel.onmessage = (evt) => {
-      // update range upon message
+    const rangeChannel = dataChannels[`prototome_stage_travel`];
+    // update range upon message
+    const handleRangeMessage = (evt: MessageEvent) => {
       const range = JSON.parse(evt.data);
       setRanges((prev) => ({ ...prev, ...range }));
-    };
+    }
+    rangeChannel.addEventListener('message', handleRangeMessage)
+    // create reference
     rangeChannelRef.current = rangeChannel;
 
-    // negotiate sbd and ice with peer connection
-    negotiate(pc, stageId);
-
     return () => {
-      pc.close();
       positionChannel.close();
       rangeChannel.close();
     };
-  }, []);
+  }, [dataChannels]);
 
   const stagePositions = positions ?? {};
   if (!axes.every((axis) => axis in stagePositions))
@@ -95,7 +82,7 @@ export default function StagePosVis({
           </Badge>
           <Slider
             color={getAxisColor(axis)}
-            value={positions[axis]}
+            value={parseFloat(positions[axis].toFixed(3))}
             labelAlwaysOn
             marks={[
               {

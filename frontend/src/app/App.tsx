@@ -3,6 +3,8 @@ import { BrowserRouter, Link, useLocation } from "react-router-dom";
 import { AppRouter } from "./router.tsx";
 import { Group, Button, Paper } from "@mantine/core";
 import { AppConfig } from "../types/configTypes.tsx";
+import { useDataChannelStore, useVideoStreamStore } from "../stores/dataChannelStore.tsx";
+import { negotiate } from "../utils/webRtcConnection.tsx";
 
 function NavBar() {
   const location = useLocation();
@@ -33,6 +35,10 @@ function NavBar() {
 
 function App() {
   const [config, setConfig] = useState<AppConfig | null>(null);
+  const dataChannels = useDataChannelStore((state) => state.channels)
+  const addChannel = useDataChannelStore((state) => state.addChannel)
+  const addStream = useVideoStreamStore((state) => state.addStream)
+  const transcieverMapping = useState<Record<string, string>>({});
 
   //  fetch config
   useEffect(() => {
@@ -43,18 +49,49 @@ function App() {
         const data = await response.json();
         setConfig(data);
       } catch (error) {
-        console.error("Error fetching config:", error);
+        console.error("Error fetching config:", error)
       }
     }
     fetchConfig();
   }, []);
 
+  //  populate dataChannels and streams 
+  useEffect(() => {
+      if (!config) return;
+      const pc = new RTCPeerConnection();
+      // create dataChannels and store them 
+      for (const channel of config.data_channels){
+        const newChannel = pc.createDataChannel(channel);
+        addChannel(channel, newChannel)
+      }
+      
+      // create streams and store them 
+      for (const stream of config.video_streams){
+        const newStream = pc.addTransceiver("video", { direction: "recvonly" });
+        newStream._id = stream
+      }
+      // add track listener for video
+      pc.addEventListener("track", (evt) => {
+          if (evt.track.kind === "video") {
+            addStream(evt.transceiver._id, evt.streams[0])
+          }
+        });
+
+      negotiate(pc);
+
+  }, [config]);
+
   if (!config) return <div>Loading configuration...</div>;
+
+  if (!config.data_channels.every((ch) => ch in dataChannels))
+    return <div> Connecting data channels </div>;
+
+
 
   return (
     <BrowserRouter>
       <NavBar />
-      <AppRouter config={config} setConfig={setConfig} />
+      <AppRouter config={config} setConfig={setConfig as React.Dispatch<React.SetStateAction<AppConfig>>} />
     </BrowserRouter>
   );
 }

@@ -44,5 +44,13 @@
     "section_thickness": 100,
     "state_machine": "C:\\Users\\micah.woodard\\Documents\\GitHub\\prototome\\pylasso\\devices\\microtome\\prototome_cd\\prototome_cd_facing.scxml",
     "top_position_mm": 5
-  }
+  },
+  "data_channels": ["prototome_stage_positions", 
+                    "prototome_stage_travel", 
+                    "prototome_stage_velocities", 
+                    "prototome_start_camera", 
+                    "prototome_stop_camera", 
+                    "prototome_exposure", 
+                    "prototome_gain"],
+  "video_streams": ["new_frame"]
 }

@@ -2,8 +2,15 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import { HomePage } from "./routes/HomePage.tsx";
 import { StagesPage } from "./routes/StagesPage.tsx";
+import { AppConfig } from "../types/configTypes.tsx";
 
-export const AppRouter = ({ config, setConfig }) => {
+type AppRouterProps = {
+  config: AppConfig;
+  setConfig: React.Dispatch<React.SetStateAction<AppConfig>>;
+};
+
+
+export const AppRouter = ({ config, setConfig }: AppRouterProps) => {
   return (
     <Routes>
       <Route

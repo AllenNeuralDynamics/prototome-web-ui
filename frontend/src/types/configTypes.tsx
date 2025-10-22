@@ -34,5 +34,7 @@ export interface PrototomeConfig {
 export interface AppConfig {
   host: string;
   prototome_config: PrototomeConfig;
-  [key: string]: CameraConfig | StageConfig | PrototomeConfig | string;
+  data_channels: string[];
+  video_streams: string[];
+  [key: string]: CameraConfig | StageConfig | PrototomeConfig | string | string[];
 }

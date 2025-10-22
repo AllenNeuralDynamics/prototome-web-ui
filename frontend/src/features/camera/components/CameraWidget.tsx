@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Slider, Text, Button, Group, Card } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { CameraWidgetProps } from "../types/cameraTypes.tsx";
-import { negotiate } from "../../../utils/webRtcConnection.tsx";
+import { useDataChannelStore,  useVideoStreamStore} from "../../../stores/dataChannelStore.tsx";
 
 export default function CameraWidget({
   cameraId,
@@ -13,67 +13,73 @@ export default function CameraWidget({
   const [exposure, setExposure] = useState(-9);
   const [gain, setGain] = useState(1);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const pcRef = useRef<RTCPeerConnection | null>(null);
-  const livestreamChannelRef = useRef<RTCDataChannel | null>(null);
+  const dataChannels = useDataChannelStore((state) => state.channels)
+  const videoStream = useVideoStreamStore(state => state.streams["new_frame"]);
+  const startLivestreamChannelRef = useRef<RTCDataChannel | null>(null);
+  const stopLivestreamChannelRef = useRef<RTCDataChannel | null>(null);
   const exposureChannelRef = useRef<RTCDataChannel | null>(null);
   const gainChannelRef = useRef<RTCDataChannel | null>(null);
+  const lastFrameTimeRef = useRef<number | null>(null);
 
+const handleFrame = (now: number, metadata: VideoFrameCallbackMetadata) => {
+  if (lastFrameTimeRef.current != null) {
+    const deltaMs = now - lastFrameTimeRef.current;
+    console.log(`Time between frames: ${deltaMs.toFixed(2)} ms`);
+  }
+  lastFrameTimeRef.current = now;
+
+  // Schedule next frame callback
+  videoRef.current?.requestVideoFrameCallback(handleFrame);
+};
+
+  // set up livestream
+  useEffect (() => {
+    if (!videoRef.current || !videoStream) return;
+    videoRef.current.srcObject = videoStream;
+  }, [videoStream]);
+
+  // set up dataChannels 
   useEffect(() => {
-    const pc = new RTCPeerConnection();
-    pcRef.current = pc;
+    const startLivestreamChannel = dataChannels["prototome_start_camera"];
+    startLivestreamChannelRef.current = startLivestreamChannel;
 
-    // add MediaTrackStreams
-    pcRef.current.addTransceiver("video", { direction: "recvonly" });
+    const stopLivestreamChannel = dataChannels["prototome_stop_camera"];
+    stopLivestreamChannelRef.current = stopLivestreamChannel;
 
-    // add track listener for video
-    pcRef.current.addEventListener("track", (evt) => {
-      if (evt.track.kind === "video" && videoRef.current) {
-        videoRef.current.srcObject = evt.streams[0];
-      }
-    });
 
-    // add any dataChannels
-    const livestreamChannel = pcRef.current.createDataChannel("livestream");
-    livestreamChannelRef.current = livestreamChannel;
-
-    const exposureChannel = pcRef.current.createDataChannel("exposure");
+    const exposureChannel = dataChannels["prototome_exposure"];
     exposureChannelRef.current = exposureChannel;
 
-    const gainChannel = pcRef.current.createDataChannel("gain");
+    const gainChannel = dataChannels["prototome_gain"];
     gainChannelRef.current = gainChannel;
 
-    // negotiate sbd and ice with peer connection
-    negotiate(pc, cameraId);
-
     return () => {
-      pc.close();
-      livestreamChannel.close();
+      startLivestreamChannel.close();
+      stopLivestreamChannel.close();
       exposureChannel.close();
       gainChannel.close();
     };
-  }, []); // run once
+  }, [dataChannels]);
 
   const startCamera = async () => {
       // send message to start livestream
-      if (livestreamChannelRef.current) {
-        livestreamChannelRef.current.send(
+      if (startLivestreamChannelRef.current) {
+        startLivestreamChannelRef.current.send(
           JSON.stringify({
-            destination: "livestream",
-            camera_id: cameraId,
-            value: true,
+            instance_name: "window1_ximea_camera", 
+            callable_name: "start_imaging"
           }),
         );
      }
    };
 
   const stopCamera = () => {
-    if (livestreamChannelRef.current) {
-      livestreamChannelRef.current.send(
+    if (stopLivestreamChannelRef.current) {
+      stopLivestreamChannelRef.current.send(
         JSON.stringify({
-          destination: "livestream",
-          camera_id: cameraId,
-          value: false,
-        }),
+            instance_name: "window1_ximea_camera", 
+            callable_name: "stop_imaging"
+          }),
       );
     }
   };
