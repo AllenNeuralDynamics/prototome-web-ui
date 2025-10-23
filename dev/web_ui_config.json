@@ -4,13 +4,13 @@
     "type": "camera",
     "host": "http://localhost:8000",
     "exposure_specs": {
-      "min": -13,
-      "max": 0,
-      "step": 1
+      "min": 22,
+      "max": 1000000.0,
+      "step": 10
     },
     "gain_specs": {
-      "min": 0,
-      "max": 1,
+      "min": -1.5,
+      "max": 6,
       "range": 0.1
     }
   },

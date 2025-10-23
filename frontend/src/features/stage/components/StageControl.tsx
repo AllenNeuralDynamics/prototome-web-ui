@@ -62,7 +62,6 @@ export default function StageControl({
     const velocityChannel = dataChannels[`prototome_stage_velocities`];
     // update range upon message
     const handleVelocityMessage = (evt: MessageEvent) => {
-      console.log("message")
       const velocity = JSON.parse(evt.data);
       setVelocities((prev) => ({ ...prev, ...velocity }));
     }
@@ -76,7 +75,7 @@ export default function StageControl({
       rangeChannel.close();
       velocityChannel.close()
     };
-  }, []);
+  }, [dataChannels]);
 
   const onPosRangeChange = (range: [number, number], axis: string) => {
     const position = positions[axis];
@@ -193,7 +192,7 @@ export default function StageControl({
           </Group>
           <Slider
             color={getAxisColor(axis)}
-            value={positions[axis]}
+            value={parseFloat(positions[axis].toFixed(3))}
             labelAlwaysOn
             marks={[
               {
@@ -240,7 +239,6 @@ export default function StageControl({
             color={getAxisColor(axis)}
             value={velocities[axis] || 0}
             onChange={(val) => {
-              console.log(velocityChannelRef.current)
               if (velocityChannelRef.current) {
                 setVelocities((prev) => ({ ...prev, [axis]:val }));
                 velocityChannelRef.current.send(

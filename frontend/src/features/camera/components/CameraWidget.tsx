@@ -21,17 +21,6 @@ export default function CameraWidget({
   const gainChannelRef = useRef<RTCDataChannel | null>(null);
   const lastFrameTimeRef = useRef<number | null>(null);
 
-const handleFrame = (now: number, metadata: VideoFrameCallbackMetadata) => {
-  if (lastFrameTimeRef.current != null) {
-    const deltaMs = now - lastFrameTimeRef.current;
-    console.log(`Time between frames: ${deltaMs.toFixed(2)} ms`);
-  }
-  lastFrameTimeRef.current = now;
-
-  // Schedule next frame callback
-  videoRef.current?.requestVideoFrameCallback(handleFrame);
-};
-
   // set up livestream
   useEffect (() => {
     if (!videoRef.current || !videoStream) return;
@@ -48,9 +37,21 @@ const handleFrame = (now: number, metadata: VideoFrameCallbackMetadata) => {
 
 
     const exposureChannel = dataChannels["prototome_exposure"];
+    // update exposure upon message
+    const handleExposeMessage = (evt: MessageEvent) => {
+      const exposure = JSON.parse(evt.data);
+      setExposure(exposure);
+    };
+    exposureChannel.addEventListener('message', handleExposeMessage)
     exposureChannelRef.current = exposureChannel;
 
     const gainChannel = dataChannels["prototome_gain"];
+    // update gain upon message
+    const handleGainMessage = (evt: MessageEvent) => {
+      const gain = JSON.parse(evt.data);
+      setGain(gain);
+    };
+    gainChannel.addEventListener('message', handleGainMessage)
     gainChannelRef.current = gainChannel;
 
     return () => {
@@ -89,9 +90,10 @@ const handleFrame = (now: number, metadata: VideoFrameCallbackMetadata) => {
     if (exposureChannelRef.current) {
       exposureChannelRef.current.send(
         JSON.stringify({
-          destination: "exposure",
-          camera_id: cameraId,
-          value: val,
+            instance_name: "window1_ximea_camera", 
+            callable_name: "set",
+            key: "exposure",
+            value: val
         }),
       );
     }
@@ -102,9 +104,10 @@ const handleFrame = (now: number, metadata: VideoFrameCallbackMetadata) => {
     if (gainChannelRef.current) {
       gainChannelRef.current.send(
         JSON.stringify({
-          destination: "gain",
-          camera_id: cameraId,
-          value: val,
+            instance_name: "window1_ximea_camera", 
+            callable_name: "set",
+            key: "gain",
+            value: val
         }),
       );
     }
