@@ -129,7 +129,7 @@ async def offer(request:Request):
 
     for t in pc.getTransceivers():
         if t.kind == "video":   # configure video sources
-            stream_name = "new_frame"
+            stream_name = params["transceiverMidMapping"][t.mid]
             queue = asyncio.Queue(maxsize=1)
             tasks.append(asyncio.create_task(video_propagation(stream_name, queue)))    # create asyncio task to poll stream for frames and add to queue
             track = ZMQStreamTrack(queue)

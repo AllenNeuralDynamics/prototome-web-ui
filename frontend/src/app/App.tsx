@@ -66,18 +66,22 @@ function App() {
       }
       
       // create streams and store them 
+      const transceiverMapping: { [key: string]: RTCRtpTransceiver } = {}
       for (const stream of config.video_streams){
-        const newStream = pc.addTransceiver("video", { direction: "recvonly" });
-        newStream._id = stream
+        const newTran = pc.addTransceiver("video", { direction: "recvonly" });
+        transceiverMapping[stream] = newTran
       }
       // add track listener for video
       pc.addEventListener("track", (evt) => {
           if (evt.track.kind === "video") {
-            addStream(evt.transceiver._id, evt.streams[0])
+            const streamName = Object.keys(transceiverMapping).find(k => transceiverMapping[k] === evt.transceiver);
+            if (streamName){
+              addStream(streamName, evt.streams[0])
+            }
           }
         });
 
-      negotiate(pc);
+      negotiate(pc, transceiverMapping);
 
   }, [config]);
 
