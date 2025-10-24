@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Card, Slider, Badge } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { StagePosVisProps } from "../types/stageTypes.tsx";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../stores/store.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
+import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
 
 export default function StagePosVis({
   stageId,
@@ -12,20 +11,54 @@ export default function StagePosVis({
   config,
   unit = "mm",
 }: StagePosVisProps) {
-  const positions = useSelector((state: RootState) => state.positions.data);
-  const ranges = useSelector((state: RootState) => state.range.data);
+  const [positions, setPositions] = useState<Record<string, number>>({});
+  const [ranges, setRanges] = useState<Record<string,  number[]>>({});
+  const positionChannelRef = useRef<RTCDataChannel | null>(null);
+  const rangeChannelRef = useRef<RTCDataChannel | null>(null);
+  const dataChannels = useDataChannelStore((state) => state.channels)
+  
 
-  const stagePositions = positions[stageId] ?? {};
+  // access stored dataChannels and add message handlers 
+  useEffect(() => {
+
+    // add position channel
+    const positionChannel = dataChannels[`prototome_stage_positions`]
+    // update pos upon message
+    const handlePosMessage = (evt: MessageEvent) => {
+      const pos = JSON.parse(evt.data);
+      setPositions((prev) => ({ ...prev, ...pos }));
+  };
+    positionChannel.addEventListener('message', handlePosMessage)
+    // create reference
+    positionChannelRef.current = positionChannel;
+
+    // add range channel
+    const rangeChannel = dataChannels[`prototome_stage_travel`];
+    // update range upon message
+    const handleRangeMessage = (evt: MessageEvent) => {
+      const range = JSON.parse(evt.data);
+      setRanges((prev) => ({ ...prev, ...range }));
+    }
+    rangeChannel.addEventListener('message', handleRangeMessage)
+    // create reference
+    rangeChannelRef.current = rangeChannel;
+
+    return () => {
+      positionChannel.close();
+      rangeChannel.close();
+    };
+  }, [dataChannels]);
+
+  const stagePositions = positions ?? {};
   if (!axes.every((axis) => axis in stagePositions))
     return <div> Cannot find positions to {stageId} </div>;
 
-  const stageRanges = ranges[stageId] ?? {};
+  const stageRanges = ranges ?? {};
   if (!axes.every((axis) => axis in stageRanges))
-    return <div> Cannot find ranges to {stageId} </div>;
-
+    return <div> Cannot find ranges for {stageId} </div>;
   return (
     <div>
-      {Object.entries(positions[stageId]).map(([axis, value]) => (
+      {axes.map((axis, index) => (
         <Card
           key={axis}
           shadow="xs"
@@ -49,16 +82,16 @@ export default function StagePosVis({
           </Badge>
           <Slider
             color={getAxisColor(axis)}
-            value={positions[stageId][axis]}
+            value={parseFloat(positions[axis].toFixed(3))}
             labelAlwaysOn
             marks={[
               {
-                value: ranges[stageId][axis].min ?? 0,
-                label: `Min:  ${ranges[stageId][axis].min} ${unit}`,
+                value: ranges[axis][0] ?? 0,
+                label: `Min:  ${ranges[axis][0]} ${unit}`,
               },
               {
-                value: ranges[stageId][axis].max ?? 100,
-                label: `Max: ${ranges[stageId][axis].max} ${unit}`,
+                value: ranges[axis][1] ?? 100,
+                label: `Max: ${ranges[axis][1]} ${unit}`,
               },
               ...Object.entries(config[axis]).map(([key, value]) => ({
                 value: Number(value),

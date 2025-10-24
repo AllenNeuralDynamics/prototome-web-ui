@@ -1,8 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Slider, Text, Button, Group, Card } from "@mantine/core";
 import "@mantine/core/styles.css";
-import { getFrame, postExposure, postGain } from "../api/cameraApi.tsx";
 import { CameraWidgetProps } from "../types/cameraTypes.tsx";
+import { useDataChannelStore,  useVideoStreamStore} from "../../../stores/dataChannelStore.tsx";
 
 export default function CameraWidget({
   cameraId,
@@ -12,36 +12,105 @@ export default function CameraWidget({
 }: CameraWidgetProps) {
   const [exposure, setExposure] = useState(-9);
   const [gain, setGain] = useState(1);
-  const [frameUrl, setFrameUrl] = useState("");
-  const intervalRef = useRef<number | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const dataChannels = useDataChannelStore((state) => state.channels)
+  const videoStream = useVideoStreamStore(state => state.streams["new_frame"]);
+  const startLivestreamChannelRef = useRef<RTCDataChannel | null>(null);
+  const stopLivestreamChannelRef = useRef<RTCDataChannel | null>(null);
+  const exposureChannelRef = useRef<RTCDataChannel | null>(null);
+  const gainChannelRef = useRef<RTCDataChannel | null>(null);
+  const lastFrameTimeRef = useRef<number | null>(null);
 
-  const startCamera = () => {
-    if (intervalRef.current) return;
-    intervalRef.current = setInterval(async () => {
-      try {
-        const url = await getFrame(host, cameraId);
-        setFrameUrl(url);
-      } catch (error) {
-        console.error("Error fetching frame:", error);
-      }
-    }, 500);
-  };
+  // set up livestream
+  useEffect (() => {
+    if (!videoRef.current || !videoStream) return;
+    videoRef.current.srcObject = videoStream;
+  }, [videoStream]);
+
+  // set up dataChannels 
+  useEffect(() => {
+    const startLivestreamChannel = dataChannels["prototome_start_camera"];
+    startLivestreamChannelRef.current = startLivestreamChannel;
+
+    const stopLivestreamChannel = dataChannels["prototome_stop_camera"];
+    stopLivestreamChannelRef.current = stopLivestreamChannel;
+
+
+    const exposureChannel = dataChannels["prototome_exposure"];
+    // update exposure upon message
+    const handleExposeMessage = (evt: MessageEvent) => {
+      const exposure = JSON.parse(evt.data);
+      setExposure(exposure);
+    };
+    exposureChannel.addEventListener('message', handleExposeMessage)
+    exposureChannelRef.current = exposureChannel;
+
+    const gainChannel = dataChannels["prototome_gain"];
+    // update gain upon message
+    const handleGainMessage = (evt: MessageEvent) => {
+      const gain = JSON.parse(evt.data);
+      setGain(gain);
+    };
+    gainChannel.addEventListener('message', handleGainMessage)
+    gainChannelRef.current = gainChannel;
+
+    return () => {
+      startLivestreamChannel.close();
+      stopLivestreamChannel.close();
+      exposureChannel.close();
+      gainChannel.close();
+    };
+  }, [dataChannels]);
+
+  const startCamera = async () => {
+      // send message to start livestream
+      if (startLivestreamChannelRef.current) {
+        startLivestreamChannelRef.current.send(
+          JSON.stringify({
+            instance_name: "window1_ximea_camera", 
+            callable_name: "start_imaging"
+          }),
+        );
+     }
+   };
 
   const stopCamera = () => {
-    if (intervalRef.current !== null) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+    if (stopLivestreamChannelRef.current) {
+      stopLivestreamChannelRef.current.send(
+        JSON.stringify({
+            instance_name: "window1_ximea_camera", 
+            callable_name: "stop_imaging"
+          }),
+      );
     }
   };
 
   const onExposureChange = (val: number) => {
     setExposure(val);
-    postExposure(host, cameraId, val);
+    if (exposureChannelRef.current) {
+      exposureChannelRef.current.send(
+        JSON.stringify({
+            instance_name: "window1_ximea_camera", 
+            callable_name: "set",
+            key: "exposure",
+            value: val
+        }),
+      );
+    }
   };
 
   const onGainChange = (val: number) => {
     setGain(val);
-    postGain(host, cameraId, val);
+    if (gainChannelRef.current) {
+      gainChannelRef.current.send(
+        JSON.stringify({
+            instance_name: "window1_ximea_camera", 
+            callable_name: "set",
+            key: "gain",
+            value: val
+        }),
+      );
+    }
   };
 
   return (
@@ -54,9 +123,11 @@ export default function CameraWidget({
         withBorder
         className="bg-gray-50"
       >
-        <img
-          src={frameUrl}
-          alt="Camera frame"
+        <video
+          ref={videoRef}
+          muted
+          autoPlay
+          playsInline
           width={768}
           height={576}
           style={{ border: "1px solid black" }}

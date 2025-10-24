@@ -5,6 +5,9 @@ import json
 import os
 import keyboard
 import logging
+import threading
+import time
+import base64
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(SCRIPT_DIR, "config.json")
@@ -23,6 +26,8 @@ class Instrument(ZMQAgent):
 
         keyboard.on_press(self.joystick_moved)
 
+        self.camera_streaming = threading.Event()
+
         super().__init__()
 
     def joystick_moved(self, e):
@@ -36,8 +41,32 @@ class Instrument(ZMQAgent):
         elif e.name == "down":
             self.set_pos("fake_fine_stage", "piezo", self.stages["fake_fine_stage"].positions["piezo"] + -1)
 
+    def streaming_loop(self, cam_id):
+        while self.camera_streaming.is_set():
+            self.grab_frame(cam_id)
+            time.sleep(.1)
+
+    def start_camera(self, cam_id):
+        if not self.camera_streaming.is_set():
+            self.camera_streaming.set()
+            threading.Thread(target=self.streaming_loop,kwargs={"cam_id":cam_id}, daemon=True).start()
+    
+    def stop_camera(self, cam_id):
+        self.camera_streaming.clear()
+        
     def grab_frame(self, cam_id) -> np.ndarray:
-        return self.cameras[cam_id].grab_frame()
+        
+        encoded = self.cameras[cam_id].grab_frame()
+        frame_bytes = encoded.tobytes()
+        # self.pub_socket.send_multipart([
+        #     f"camera_frame_{cam_id}".encode(),
+        #     frame_bytes
+        # ])
+        self.pub_socket.send_pyobj({
+                "destination": f"frame_{cam_id}",
+                "payload": frame_bytes
+            })
+        return encoded
 
     def set_exposure_time(self, cam_id, value: float):
         self.cameras[cam_id].set_exposure_time(value)
@@ -46,10 +75,28 @@ class Instrument(ZMQAgent):
         self.cameras[cam_id].set_gain(value)
 
     def get_pos(self, stage_id: str, axis: str):
-        return self.stages[stage_id].get_pos(axis)
+        pos = self.stages[stage_id].get_pos(axis)
+        self.pub_socket.send_pyobj({
+                "destination": f"position_{stage_id}",
+                "payload": {axis: pos}
+            })
+        return pos
 
     def set_pos(self, stage_id: str, axis: str, value: float):
+        print("moving stage")
         self.stages[stage_id].set_pos(axis, value)
+        self.pub_socket.send_pyobj({
+                "destination": f"position_{stage_id}",
+                "payload": {axis: value}
+            })
+        
+    def get_range(self, stage_id: str, axis: str):
+        rng = {"min":self.get_min_pos(stage_id, axis),
+               "max":self.get_max_pos(stage_id, axis)}
+        self.pub_socket.send_pyobj({
+                "destination": f"range_{stage_id}",
+                "payload": {axis: rng}
+            })
 
     def set_min_pos(self, stage_id: str, axis: str, value: float):
         self.stages[stage_id].set_min_pos(axis, value)
@@ -67,7 +114,12 @@ class Instrument(ZMQAgent):
         self.stages[stage_id].set_velocity(axis, value)
 
     def get_velocity(self, stage_id: str, axis: str):
-        return self.stages[stage_id].get_velocity(axis)
+        velocity =  self.stages[stage_id].get_velocity(axis)
+        self.pub_socket.send_pyobj({
+                "destination": f"velocity_{stage_id}",
+                "payload": {axis: velocity}
+            })
+        return velocity
 
 
 
@@ -75,7 +127,7 @@ class Camera:
 
     def __init__(self, exposure_range: dict,
                  gain_range: dict,
-                 index=0):
+                 index=1):
 
         self.camera = cv2.VideoCapture(index)
         self.camera.set(cv2.CAP_PROP_AUTO_EXPOSURE, .25)  # 0.25 for manual exposure on some cameras

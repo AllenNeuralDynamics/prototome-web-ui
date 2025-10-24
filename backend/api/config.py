@@ -1,8 +1,7 @@
 from fastapi import APIRouter
-from kazoo.client import KazooClient
-from kazoo.exceptions import NoNodeError
-from kazoo.handlers.threading import KazooTimeoutError
 from pathlib import Path
+from kazoo.client import KazooClient
+from kazoo.handlers.threading import KazooTimeoutError
 import json
 import os
 
@@ -10,22 +9,6 @@ router = APIRouter()
 
 @router.get("/config")
 def get_config():
-<<<<<<< HEAD
-    # try: 
-    #     zk = KazooClient(hosts='eng-logtools:2181')
-    #     zk.start()
-
-    #     rig = os.environ.get("aibs_comp_id")
-    #     config_path = f"/rigs/{rig}/projects/prototome/configuration"
-    #     data, _ = zk.get(config_path)
-    #     zk.stop()
-    #     return json.loads(data.decode("utf-8"))
-    
-    # except KazooTimeoutError:
-         with open(".\dev\web_ui_config.json", "r") as config:
-            return json.load(config)
-    
-=======
     try:  # Pull config from Zookeeper.
         zk = KazooClient(hosts='eng-logtools:2181')
         zk.start()
@@ -42,4 +25,3 @@ def get_config():
         config_text = Path("./dev/web_ui_config.json").read_text()
         return json.loads(config_text)
 
->>>>>>> main

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   RangeSlider,
   Slider,
@@ -12,13 +12,8 @@ import {
 } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { StageControlProps } from "../types/stageTypes.tsx";
-import { postPosition, getVelocity, postVelocity } from "../api/stageApi.tsx";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../stores/store.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "../../../stores/store.tsx";
-import { postMinPos, postMaxPos } from "../stores/rangeSlice.tsx";
+import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
 
 export default function StageControl({
   stageId,
@@ -26,82 +21,151 @@ export default function StageControl({
   host,
   unit = "um",
 }: StageControlProps) {
-  const positions = useSelector((state: RootState) => state.positions.data);
-  const ranges = useSelector((state: RootState) => state.range.data);
-  const dispatch = useDispatch<AppDispatch>();
-  const [velocity, setVelocity] = useState<Record<string, number>>({});
+  const [velocities, setVelocities] = useState<Record<string, number>>({});
   const [posInput, setPosInput] = useState<Record<string, number>>({});
   const [stepSizeInput, setStepSizeInput] = useState<Record<string, number>>(
     {},
   );
+  const [positions, setPositions] = useState<Record<string, number>>({});
+  const [ranges, setRanges] = useState<Record<string,  number[]>>({});
+  const positionChannelRef = useRef<RTCDataChannel | null>(null);
+  const rangeChannelRef = useRef<RTCDataChannel | null>(null);
+  const velocityChannelRef = useRef<RTCDataChannel | null>(null);
+  const dataChannels = useDataChannelStore((state) => state.channels)
 
+  // initialize and negotiate webRTC
   useEffect(() => {
-    async function fetchVelocity() {
-      try {
-        const newVelocities: Record<string, number> = {};
-        for (const axis of axes) {
-          const vel = await getVelocity(host, stageId, axis);
-          newVelocities[axis] = vel;
-        }
-        setVelocity(newVelocities);
-      } catch (error) {
-        console.error("Error fetching velocities:", error);
-      }
+
+    // add position channel
+    const positionChannel = dataChannels[`prototome_stage_positions`]
+    // update pos upon message
+    const handlePosMessage = (evt: MessageEvent) => {
+      const pos = JSON.parse(evt.data);
+      setPositions((prev) => ({ ...prev, ...pos }));
+  };
+    positionChannel.addEventListener('message', handlePosMessage)
+    // create reference
+    positionChannelRef.current = positionChannel;
+
+    // add range channel
+    const rangeChannel = dataChannels[`prototome_stage_travel`];
+    // update range upon message
+    const handleRangeMessage = (evt: MessageEvent) => {
+      const range = JSON.parse(evt.data);
+      setRanges((prev) => ({ ...prev, ...range }));
     }
-    fetchVelocity();
-  }, [stageId, axes, host]);
+    rangeChannel.addEventListener('message', handleRangeMessage)
+    // create reference
+    rangeChannelRef.current = rangeChannel;
+
+    // add velocity channel
+    const velocityChannel = dataChannels[`prototome_stage_velocities`];
+    // update range upon message
+    const handleVelocityMessage = (evt: MessageEvent) => {
+      const velocity = JSON.parse(evt.data);
+      setVelocities((prev) => ({ ...prev, ...velocity }));
+    }
+
+    velocityChannel.addEventListener('message', handleVelocityMessage)
+    // create reference
+    velocityChannelRef.current = velocityChannel;  
+
+    return () => {
+      positionChannel.close();
+      rangeChannel.close();
+      velocityChannel.close()
+    };
+  }, [dataChannels]);
 
   const onPosRangeChange = (range: [number, number], axis: string) => {
-    const position = positions[stageId][axis];
+    const position = positions[axis];
 
     // Clamp range so it must contain current position
-    const clampedMin = Math.min(Math.max(range[0], 0), position);
-    const clampedMax = Math.max(Math.min(range[1], 100), position);
+    const clampedMin = Math.min(range[0], position);
+    const clampedMax = Math.max(range[1], position);
 
     if (
-      clampedMin !== ranges[stageId][axis].min ||
-      clampedMax !== ranges[stageId][axis].max
+      rangeChannelRef.current &&
+      (clampedMin !== ranges[axis][0] ||
+      clampedMax !== ranges[axis][1])
     ) {
-      dispatch(postMinPos({ host, stageId, axis, value: clampedMin }));
-      dispatch(postMaxPos({ host, stageId, axis, value: clampedMax }));
+      const newRange = [clampedMin, clampedMax];
+      setRanges((prev) => ({ ...prev, [axis]: newRange}));
+      // send updated ranges to backend
+      rangeChannelRef.current.send(
+        JSON.stringify({
+          destination: "range",
+          stage_id: stageId,
+          axis: axis,
+          value: newRange
+        }),
+      );
     }
-  };
-  const onVelocityChange = (vel: number, axis: string) => {
-    setVelocity((prev) => ({ ...prev, [axis]: vel }));
-    postVelocity(host, stageId, axis, vel);
-  };
+    };
+  
 
   const onMoveLowerClick = (axis: string) => {
-    postPosition(host, stageId, axis, ranges[stageId][axis].min);
+    if (positionChannelRef.current) {
+      positionChannelRef.current.send(
+        JSON.stringify({
+          destination: "position",
+          stage_id: stageId,
+          axis: axis,
+          value: ranges[axis][0],
+        }))
+      }
   };
 
   const onMoveUpperClick = (axis: string) => {
-    postPosition(host, stageId, axis, ranges[stageId][axis].max);
+    if (positionChannelRef.current) {
+      positionChannelRef.current.send(
+        JSON.stringify({
+          destination: "position",
+          stage_id: stageId,
+          axis: axis,
+          value: ranges[axis][1],
+        }))
+      }
   };
 
   const onMoveMiddleClick = (axis: string) => {
-    postPosition(
-      host,
-      stageId,
-      axis,
-      Math.round((ranges[stageId][axis].min + ranges[stageId][axis].max) / 2),
-    );
+    if (positionChannelRef.current) {
+      positionChannelRef.current.send(
+        JSON.stringify({
+          destination: "position",
+          stage_id: stageId,
+          axis: axis,
+          value: Math.round((ranges[axis][0] + ranges[axis][1]) / 2),
+        }))
+      }
   };
   const onMoveClick = (val: number, axis: string) => {
-    postPosition(host, stageId, axis, val);
+    if (positionChannelRef.current) {
+      positionChannelRef.current.send(
+        JSON.stringify({
+          destination: "position",
+          stage_id: stageId,
+          axis: axis,
+          value: val,
+        }))
+      }
   };
 
-  const stagePositions = positions[stageId] ?? {};
+  const stagePositions = positions ?? {};
   if (!axes.every((axis) => axis in stagePositions))
     return <div> Cannot find positions to {stageId} </div>;
 
-  const stageRanges = ranges[stageId] ?? {};
+  const stageRanges = ranges ?? {};
   if (!axes.every((axis) => axis in stageRanges))
-    return <div> Cannot find ranges to {stageId} </div>;
+    return <div> Cannot find ranges for {stageId} </div>;
+
+  const stageVelocities = velocities ?? {};
+  if (!axes.every((axis) => axis in stageVelocities))
+    return <div> Cannot find velocities for {stageId} </div>;
 
   return (
     <div>
-      {Object.entries(positions[stageId]).map(([axis, value]) => (
+      {axes.map((axis, index) => (
         <Card
           key={axis}
           shadow="xs"
@@ -123,20 +187,20 @@ export default function StageControl({
           <Group mb="xs">
             <Text size="sm">Position </Text>
             <Text size="sm" c="dimmed">
-              {positions[stageId][axis]?.toFixed(2) || 0} {unit}
+              {positions[axis]?.toFixed(2) || 0} {unit}
             </Text>
           </Group>
           <Slider
             color={getAxisColor(axis)}
-            value={positions[stageId][axis]}
+            value={parseFloat(positions[axis].toFixed(3))}
             labelAlwaysOn
             marks={[
               {
-                value: ranges[stageId][axis].min ?? 0,
+                value: ranges[axis][0] ?? 0,
                 label: "",
               },
               {
-                value: ranges[stageId][axis].max ?? 100,
+                value: ranges[axis][1] ?? 100,
                 label: "",
               },
             ]}
@@ -152,32 +216,41 @@ export default function StageControl({
             <Text size="sm">Bounds</Text>
             <Group>
               <Text size="sm" c="dimmed">
-                Min: {ranges[stageId][axis].min?.toFixed(2) || 0} {unit}
+                Min: {ranges[axis][0]?.toFixed(2) || 0} {unit}
               </Text>
               <Text size="sm" c="dimmed">
-                Max: {ranges[stageId][axis].max?.toFixed(2) || 100} {unit}
+                Max: {ranges[axis][1]?.toFixed(2) || 100} {unit}
               </Text>
             </Group>
           </Group>
           <RangeSlider
             color={getAxisColor(axis)}
-            value={[
-              ranges[stageId][axis].min ?? 0,
-              ranges[stageId][axis].max ?? 100,
-            ]}
+            value={[ranges[axis][0] ?? 0, ranges[axis][1] ?? 100]}
             minRange={0}
             onChange={(val) => onPosRangeChange(val, axis)}
           />
           <Group mb="xs" style={{ marginTop: "10px" }}>
             <Text size="sm">Velocity</Text>
             <Text size="sm" c="dimmed">
-              {velocity[axis]?.toFixed(2) || 0}
+              {velocities[axis]?.toFixed(2) || 0}
             </Text>
           </Group>
           <Slider
             color={getAxisColor(axis)}
-            value={velocity[axis] || 0}
-            onChange={(val) => onVelocityChange(val, axis)}
+            value={velocities[axis] || 0}
+            onChange={(val) => {
+              if (velocityChannelRef.current) {
+                setVelocities((prev) => ({ ...prev, [axis]:val }));
+                velocityChannelRef.current.send(
+                  JSON.stringify({
+                    destination: "velocity",
+                    stage_id: stageId,
+                    axis: axis,
+                    value: val,
+                  }),
+                );
+              }
+            }}
           />
           <Group mt="md">
             <Button
@@ -202,8 +275,8 @@ export default function StageControl({
             </Button>
             <Stack>
               <NumberInput
-                min={ranges[stageId][axis].min}
-                max={ranges[stageId][axis].max}
+                min={ranges[axis][0]}
+                max={ranges[axis][1]}
                 value={posInput[axis]}
                 placeholder="position"
                 hideControls
