@@ -21,7 +21,7 @@ def get_config():
         zk.stop()
         return json.loads(data.decode("utf-8"))
 
-    except (KazooTimeoutError, NoNodeError, FileNotFoundError): # local fallback
+    except (KazooTimeoutError, FileNotFoundError): # local fallback
         config_text = Path("./dev/web_ui_config.json").read_text()
         return json.loads(config_text)
 
