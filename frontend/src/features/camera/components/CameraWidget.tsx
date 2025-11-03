@@ -10,7 +10,7 @@ export default function CameraWidget({
   exposureSpecs,
   gainSpecs,
 }: CameraWidgetProps) {
-  const [exposure, setExposure] = useState(-9);
+  const [exposure, setExposure] = useState(1);
   const [gain, setGain] = useState(1);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const dataChannels = useDataChannelStore((state) => state.channels)
@@ -20,6 +20,8 @@ export default function CameraWidget({
   const exposureChannelRef = useRef<RTCDataChannel | null>(null);
   const gainChannelRef = useRef<RTCDataChannel | null>(null);
   const lastFrameTimeRef = useRef<number | null>(null);
+
+  console.log(exposureSpecs)
 
   // set up livestream
   useEffect (() => {
@@ -67,8 +69,8 @@ export default function CameraWidget({
       if (startLivestreamChannelRef.current) {
         startLivestreamChannelRef.current.send(
           JSON.stringify({
-            instance_name: "window1_ximea_camera", 
-            callable_name: "start_imaging"
+            obj_name: "window2_web_camera", 
+            attr_name: "start_imaging"
           }),
         );
      }
@@ -78,8 +80,8 @@ export default function CameraWidget({
     if (stopLivestreamChannelRef.current) {
       stopLivestreamChannelRef.current.send(
         JSON.stringify({
-            instance_name: "window1_ximea_camera", 
-            callable_name: "stop_imaging"
+            obj_name: "window2_web_camera", 
+            attr_name: "stop_imaging"
           }),
       );
     }
@@ -90,8 +92,8 @@ export default function CameraWidget({
     if (exposureChannelRef.current) {
       exposureChannelRef.current.send(
         JSON.stringify({
-            instance_name: "window1_ximea_camera", 
-            callable_name: "set",
+            obj_name: "window2_web_camera", 
+            attr_name: "set",
             key: "exposure",
             value: val
         }),
@@ -104,8 +106,8 @@ export default function CameraWidget({
     if (gainChannelRef.current) {
       gainChannelRef.current.send(
         JSON.stringify({
-            instance_name: "window1_ximea_camera", 
-            callable_name: "set",
+            obj_name: "window1_ximea_camera", 
+            attr_name: "set",
             key: "gain",
             value: val
         }),

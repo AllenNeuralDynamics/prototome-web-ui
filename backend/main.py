@@ -18,7 +18,8 @@ from threading import Thread
 import time
 
 # instantiate router client 
-router_client = RouterClient()
+router_client = RouterClient(interface="10.132.17.51")
+#router_client = RouterClient()
 
 stop_event = asyncio.Event()
 tasks = []
@@ -28,7 +29,10 @@ async def lifespan(app: FastAPI):   # sup up lifespan function to kill tasks at 
     yield
 
     stop_event.set()
-    # cancel when app shuts down
+    cancel_tasks(tasks)  # cancel when app shuts down
+
+
+def cancel_tasks(tasks:list[asyncio.Task]):
     for task in tasks:
         task.cancel()
 
@@ -56,8 +60,12 @@ async def data_channel_propagation(channel: RTCDataChannel) -> None:
     while not stop_event.is_set():
         if dict(await poller.poll(timeout=1000)):   # block until msgs in stream
             timestamp, msg = router_client.get_stream(channel.label)
-            channel.send(json.dumps(msg))
-   
+            channel.send(json.dumps(msg))   
+        # try: 
+        #     timestamp, msg = router_client.get_stream(channel.label)
+
+        # except Exception as e:
+        #     print(e)
        
 async def video_propagation(stream_name: str, queue: asyncio.Queue) -> None:
     """
@@ -107,6 +115,9 @@ offer_router = APIRouter()
 @offer_router.post("/offer")
 async def offer(request:Request):
     
+    cancel_tasks(tasks) # cancel existing 
+    tasks.clear()   # clear all tasks from previous loads
+
     params = await request.json()
     offer_sdp = RTCSessionDescription(sdp=params["sdp"], type=params["type"])   # create description of frontend connection
     pc = RTCPeerConnection()                    # create a new peer connection for this client
@@ -139,7 +150,7 @@ async def offer(request:Request):
     
     answer = await pc.createAnswer() 
     await pc.setLocalDescription(answer)
-
+   
     return {
         "sdp":pc.localDescription.sdp,
         "type": pc.localDescription.type
