@@ -5,7 +5,6 @@ from contextlib import asynccontextmanager
 import asyncio
 from aiortc import RTCPeerConnection, RTCSessionDescription, RTCDataChannel, VideoStreamTrack
 from av import VideoFrame
-import zmq
 import numpy as np
 from aiortc.contrib.media import MediaRelay
 import cv2
@@ -14,8 +13,6 @@ import asyncio
 from one_liner.client import RouterClient
 import zmq
 import zmq.asyncio
-from threading import Thread
-import time
 
 # instantiate router client 
 router_client = RouterClient()
