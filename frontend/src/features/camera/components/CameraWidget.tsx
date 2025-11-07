@@ -67,8 +67,8 @@ export default function CameraWidget({
       if (startLivestreamChannelRef.current) {
         startLivestreamChannelRef.current.send(
           JSON.stringify({
-            instance_name: "window1_ximea_camera", 
-            callable_name: "start_imaging"
+            obj_name: "window1_ximea_camera",
+            attr_name: "start_imaging"
           }),
         );
      }
@@ -78,8 +78,8 @@ export default function CameraWidget({
     if (stopLivestreamChannelRef.current) {
       stopLivestreamChannelRef.current.send(
         JSON.stringify({
-            instance_name: "window1_ximea_camera", 
-            callable_name: "stop_imaging"
+            obj_name: "window1_ximea_camera",
+            attr_name: "stop_imaging"
           }),
       );
     }
@@ -90,8 +90,8 @@ export default function CameraWidget({
     if (exposureChannelRef.current) {
       exposureChannelRef.current.send(
         JSON.stringify({
-            instance_name: "window1_ximea_camera", 
-            callable_name: "set",
+            obj_name: "window1_ximea_camera",
+            attr_name: "set",
             key: "exposure",
             value: val
         }),
@@ -104,8 +104,8 @@ export default function CameraWidget({
     if (gainChannelRef.current) {
       gainChannelRef.current.send(
         JSON.stringify({
-            instance_name: "window1_ximea_camera", 
-            callable_name: "set",
+            obj_name: "window1_ximea_camera",
+            attr_name: "set",
             key: "gain",
             value: val
         }),
