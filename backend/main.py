@@ -122,7 +122,10 @@ async def offer(request:Request):
         
         @channel.on("message")
         async def on_message(message):                                          # create handler to send messages from data_channel through stream
-            router_client.call(**json.loads(message))
+            msg = json.loads(message)
+            print(f"{msg}")
+            #router_client.call(**json.loads(message))
+            router_client.call(**msg)
 
     for t in pc.getTransceivers():
         if t.kind == "video":   # configure video sources
