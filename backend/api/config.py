@@ -25,7 +25,7 @@ def get_config():
         return json.loads(data.decode("utf-8"))
 
     except (KazooTimeoutError, FileNotFoundError): # local fallback
-        logger.warning(f"Could not fetch a remote config for {rig}. Falling "
+        logger.warning(f"Could not fetch a remote config for rig: {rig}. Falling "
                        "back to a local config.")
         config_text = Path("./dev/web_ui_config.json").read_text()
         return json.loads(config_text)
