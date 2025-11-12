@@ -53,7 +53,7 @@ def configure_stream_polling(stream_name: str) -> zmq.asyncio.Poller:
     poller.register(socket, zmq.POLLIN)
     return poller
 
-async def data_channel_propagation(channel: RTCDataChannel) -> None:
+async def propagate_data_channel(channel: RTCDataChannel) -> None:
     """
         Propagate msg from client through datachannel to front end
 
@@ -118,7 +118,7 @@ async def offer(request:Request):
     # set up handlers for all data_channels on peer connection 
     @pc.on("datachannel")
     async def on_datachannel(channel):
-        tasks.append(asyncio.create_task(data_channel_propagation(channel)))    # create asyncio task to poll stream for messages
+        tasks.append(asyncio.create_task(propagate_data_channel(channel)))    # create asyncio task to poll stream for messages
         
         @channel.on("message")
         async def on_message(message):                                          # create handler to send messages from data_channel through stream
