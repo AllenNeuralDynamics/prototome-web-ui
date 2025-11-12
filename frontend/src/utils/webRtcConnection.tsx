@@ -41,7 +41,7 @@ export async function negotiate(pc: RTCPeerConnection, transceiverMapping: { [ke
     )
   );
 
-  const response = await fetch(`http://localhost:8000/offer`, {
+  const response = await fetch(`http://10.132.17.49:8000/offer`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
