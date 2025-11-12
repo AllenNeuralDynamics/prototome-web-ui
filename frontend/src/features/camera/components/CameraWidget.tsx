@@ -104,7 +104,7 @@ export default function CameraWidget({
     if (exposureChannelRef.current) {
       exposureChannelRef.current.send(
         JSON.stringify({
-            obj_name: "window2_web_camera", 
+            obj_name: "window1_ximea_camera", 
             attr_name: "set",
             key: "exposure",
             value: val

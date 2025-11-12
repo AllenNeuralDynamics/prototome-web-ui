@@ -19,8 +19,7 @@ import time
 from fractions import Fraction
 
 # instantiate router client 
-#router_client = RouterClient(interface="10.132.17.9")
-router_client = RouterClient(interface="10.0.0.107")
+router_client = RouterClient()
 
 stop_event = asyncio.Event()
 tasks: list[asyncio.Task] = []
@@ -144,7 +143,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_origins=["*"],  # React dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
