@@ -10,12 +10,16 @@ from aiortc.contrib.media import MediaRelay
 import cv2
 import json
 import asyncio
+import logging
 from one_liner.client import RouterClient
 import zmq
 import zmq.asyncio
 from threading import Thread
 import time
 from fractions import Fraction
+
+
+logger = logging.getLogger(__name__)
 
 # instantiate router client 
 router_client = RouterClient()
@@ -119,8 +123,7 @@ async def offer(request:Request):
         @channel.on("message")
         async def on_message(message):                                          # create handler to send messages from data_channel through stream
             msg = json.loads(message)
-            print(f"{msg}")
-            #router_client.call(**json.loads(message))
+            logger.debug(f"Received: {msg}")
             router_client.call(**msg)
 
     for t in pc.getTransceivers():
