@@ -44,7 +44,7 @@ function App() {
   useEffect(() => {
     async function fetchConfig() {
       try {
-        const response = await fetch("http://localhost:8000/config");
+        const response = await fetch("http://10.132.17.49:8000/config");
         if (!response.ok) throw new Error("Failed to fetch config");
         const data = await response.json();
         setConfig(data);

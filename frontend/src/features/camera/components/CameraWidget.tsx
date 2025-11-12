@@ -21,12 +21,24 @@ export default function CameraWidget({
   const gainChannelRef = useRef<RTCDataChannel | null>(null);
   const lastFrameTimeRef = useRef<number | null>(null);
 
-  console.log(exposureSpecs)
-
   // set up livestream
   useEffect (() => {
     if (!videoRef.current || !videoStream) return;
     videoRef.current.srcObject = videoStream;
+
+  //   let lastFrameTime: number | null = null;
+
+  //   const handleFrame = (now: DOMHighResTimeStamp, metadata: VideoFrameCallbackMetadata) => {
+  //   if (lastFrameTime !== null) {
+  //     const delta = now - lastFrameTime; // milliseconds
+  //     console.log(`Time since last frame: ${delta.toFixed(2)} ms`, metadata);
+  //   }
+  //   lastFrameTime = now;
+
+  //   // Schedule next frame callback
+  //   videoRef.current?.requestVideoFrameCallback(handleFrame);
+  // };
+  // videoRef.current.requestVideoFrameCallback(handleFrame);
   }, [videoStream]);
 
   // set up dataChannels 
@@ -69,7 +81,7 @@ export default function CameraWidget({
       if (startLivestreamChannelRef.current) {
         startLivestreamChannelRef.current.send(
           JSON.stringify({
-            obj_name: "window2_web_camera", 
+            obj_name: "window1_ximea_camera", 
             attr_name: "start_imaging"
           }),
         );
@@ -80,7 +92,7 @@ export default function CameraWidget({
     if (stopLivestreamChannelRef.current) {
       stopLivestreamChannelRef.current.send(
         JSON.stringify({
-            obj_name: "window2_web_camera", 
+            obj_name: "window1_ximea_camera", 
             attr_name: "stop_imaging"
           }),
       );
@@ -92,7 +104,7 @@ export default function CameraWidget({
     if (exposureChannelRef.current) {
       exposureChannelRef.current.send(
         JSON.stringify({
-            obj_name: "window2_web_camera", 
+            obj_name: "window1_ximea_camera", 
             attr_name: "set",
             key: "exposure",
             value: val
