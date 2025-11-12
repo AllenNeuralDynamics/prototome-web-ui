@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, APIRouter, Request, Body
+from fastapi import FastAPI, APIRouter, Request
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.config import router as config_router
 from contextlib import asynccontextmanager
@@ -13,19 +13,25 @@ import asyncio
 from one_liner.client import RouterClient
 import zmq
 import zmq.asyncio
+from threading import Thread
+import time
+from fractions import Fraction
 
 # instantiate router client 
 router_client = RouterClient()
 
 stop_event = asyncio.Event()
-tasks = []
+tasks: list[asyncio.Task] = []
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):   # sup up lifespan function to kill tasks at end of app
     yield
 
     stop_event.set()
-    # cancel when app shuts down
+    cancel_tasks(tasks)  # cancel when app shuts down
+
+
+def cancel_tasks(tasks:list[asyncio.Task]):
     for task in tasks:
         task.cancel()
 
@@ -53,23 +59,7 @@ async def data_channel_propagation(channel: RTCDataChannel) -> None:
     while not stop_event.is_set():
         if dict(await poller.poll(timeout=1000)):   # block until msgs in stream
             timestamp, msg = router_client.get_stream(channel.label)
-            channel.send(json.dumps(msg))
-   
-       
-async def video_propagation(stream_name: str, queue: asyncio.Queue) -> None:
-    """
-        Propagate frames from client to queue to front end
-
-        :param stream_name: name of stream
-        :param queue: queue to place frames     
-    """
-    poller = configure_stream_polling(stream_name)
-    while not stop_event.is_set():
-        if dict(await poller.poll(timeout=1000)):   # block until msgs in stream
-            timestamp, frame = router_client.get_stream(stream_name)
-            if queue.full():
-                queue.get_nowait()
-            queue.put_nowait(frame)
+            channel.send(json.dumps(msg))   
                         
 # create VideoStreamTrack for livestreams
 class ZMQStreamTrack(VideoStreamTrack):
@@ -82,19 +72,22 @@ class ZMQStreamTrack(VideoStreamTrack):
     
     kind = "video"
 
-    def __init__(self, queue: asyncio.Queue[np.ndarray]):
+    def __init__(self, stream_name: str):
         super().__init__()
-        self.queue = queue
-
+        self.stream_name = stream_name
+        self.poller = configure_stream_polling(stream_name)
+    
     async def recv(self):
         try: 
-            pts, time_base = await self.next_timestamp()
-            frame = await self.queue.get()  
-            yuv_frame = await asyncio.to_thread(cv2.cvtColor, frame, cv2.COLOR_RGB2YUV_I420) # decreases encoding time to frontend
-            video_frame = VideoFrame.from_ndarray(yuv_frame, format="yuv420p")
-            video_frame.pts = pts
-            video_frame.time_base = time_base
+            await self.poller.poll(timeout=-1)
+            timestamp, frame = router_client.get_stream(self.stream_name)
+            frame = await asyncio.to_thread(cv2.cvtColor, frame, cv2.COLOR_RGB2YUV_I420) # decreases encoding time to frontend
+            video_frame = VideoFrame.from_ndarray(frame, format="yuv420p")
+            # webrtc rtp uses 90kHz as standard clock rate
+            video_frame.pts = int(time.monotonic() * 90000) # presentation timestamp 
+            video_frame.time_base = Fraction(1, 90000)      # duration of one timestamp
             return video_frame
+            
         except Exception as e:
             print(e)
         
@@ -104,6 +97,9 @@ offer_router = APIRouter()
 @offer_router.post("/offer")
 async def offer(request:Request):
     
+    cancel_tasks(tasks) # cancel existing 
+    tasks.clear()   # clear all tasks from previous loads
+
     params = await request.json()
     offer_sdp = RTCSessionDescription(sdp=params["sdp"], type=params["type"])   # create description of frontend connection
     pc = RTCPeerConnection()                    # create a new peer connection for this client
@@ -130,16 +126,14 @@ async def offer(request:Request):
     for t in pc.getTransceivers():
         if t.kind == "video":   # configure video sources
             stream_name = params["transceiverMidMapping"][t.mid]
-            queue = asyncio.Queue(maxsize=1)
-            tasks.append(asyncio.create_task(video_propagation(stream_name, queue)))    # create asyncio task to poll stream for frames and add to queue
-            track = ZMQStreamTrack(queue)
+            track = ZMQStreamTrack(stream_name)
             relay = MediaRelay()
             video = relay.subscribe(track)
             pc.addTrack(video)
     
     answer = await pc.createAnswer() 
     await pc.setLocalDescription(answer)
-
+   
     return {
         "sdp":pc.localDescription.sdp,
         "type": pc.localDescription.type

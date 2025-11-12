@@ -10,7 +10,7 @@ export default function CameraWidget({
   exposureSpecs,
   gainSpecs,
 }: CameraWidgetProps) {
-  const [exposure, setExposure] = useState(-9);
+  const [exposure, setExposure] = useState(1);
   const [gain, setGain] = useState(1);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const dataChannels = useDataChannelStore((state) => state.channels)
@@ -25,6 +25,20 @@ export default function CameraWidget({
   useEffect (() => {
     if (!videoRef.current || !videoStream) return;
     videoRef.current.srcObject = videoStream;
+
+  //   let lastFrameTime: number | null = null;
+
+  //   const handleFrame = (now: DOMHighResTimeStamp, metadata: VideoFrameCallbackMetadata) => {
+  //   if (lastFrameTime !== null) {
+  //     const delta = now - lastFrameTime; // milliseconds
+  //     console.log(`Time since last frame: ${delta.toFixed(2)} ms`, metadata);
+  //   }
+  //   lastFrameTime = now;
+
+  //   // Schedule next frame callback
+  //   videoRef.current?.requestVideoFrameCallback(handleFrame);
+  // };
+  // videoRef.current.requestVideoFrameCallback(handleFrame);
   }, [videoStream]);
 
   // set up dataChannels 
