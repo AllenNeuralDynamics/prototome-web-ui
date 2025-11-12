@@ -3,7 +3,10 @@ from pathlib import Path
 from kazoo.client import KazooClient
 from kazoo.handlers.threading import KazooTimeoutError
 import json
+import logging
 import os
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 

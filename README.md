@@ -75,14 +75,11 @@ yarn install
 
 1. Start dummy instrument in separate process. 
 (In Linux, you will need to run it as root because of the `keyboard` library dependency.)
-ZMQ socket will bind to tcp://localhost:6000. You can change port but not host.  
+From the **dev** folder, run:
 
 ```bash
->>> from dev.instrument import Instrument
->>> inst = Instrument()   # running on tcp://localhost:6000
+uv run instrument_server.py
 ```
-
-   ````
 
 2. Launch FastAPI app backend with uvicorn in separate process. Web app will be hosted on 8000 so specify 8000
 

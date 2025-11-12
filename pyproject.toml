@@ -15,6 +15,7 @@ dependencies = [
     "opencv-python>=4.12.0.88",
     "fastapi[standard]>=0.116.1",
     "aiortc>=1.13.0",
+    "one-liner",
 ]
 
 [tool.pytest.ini_options]
@@ -23,4 +24,7 @@ pythonpath = ["src", "tests"]
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+
+[tool.uv.sources]
+one-liner = { git = "https://github.com/AllenNeuralDynamics/one-liner.git" }
 

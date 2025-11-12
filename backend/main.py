@@ -5,18 +5,21 @@ from contextlib import asynccontextmanager
 import asyncio
 from aiortc import RTCPeerConnection, RTCSessionDescription, RTCDataChannel, VideoStreamTrack
 from av import VideoFrame
-import zmq
 import numpy as np
 from aiortc.contrib.media import MediaRelay
 import cv2
 import json
 import asyncio
+import logging
 from one_liner.client import RouterClient
 import zmq
 import zmq.asyncio
 from threading import Thread
 import time
 from fractions import Fraction
+
+
+logger = logging.getLogger(__name__)
 
 # instantiate router client 
 router_client = RouterClient()
@@ -50,7 +53,7 @@ def configure_stream_polling(stream_name: str) -> zmq.asyncio.Poller:
     poller.register(socket, zmq.POLLIN)
     return poller
 
-async def data_channel_propagation(channel: RTCDataChannel) -> None:
+async def propagate_data_channel(channel: RTCDataChannel) -> None:
     """
         Propagate msg from client through datachannel to front end
 
@@ -115,11 +118,13 @@ async def offer(request:Request):
     # set up handlers for all data_channels on peer connection 
     @pc.on("datachannel")
     async def on_datachannel(channel):
-        tasks.append(asyncio.create_task(data_channel_propagation(channel)))    # create asyncio task to poll stream for messages
+        tasks.append(asyncio.create_task(propagate_data_channel(channel)))    # create asyncio task to poll stream for messages
         
         @channel.on("message")
         async def on_message(message):                                          # create handler to send messages from data_channel through stream
-            router_client.call(**json.loads(message))
+            msg = json.loads(message)
+            logger.debug(f"Received: {msg}")
+            router_client.call(**msg)
 
     for t in pc.getTransceivers():
         if t.kind == "video":   # configure video sources
