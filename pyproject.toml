@@ -26,5 +26,5 @@ line-length = 120
 target-version = "py312"
 
 [tool.uv.sources]
-one-liner = { git = "https://github.com/AllenNeuralDynamics/one-liner.git" }
+one-liner = { git = "https://github.com/AllenNeuralDynamics/one-liner.git", branch = "feat-async-client"}
 

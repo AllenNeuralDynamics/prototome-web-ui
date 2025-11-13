@@ -11,7 +11,7 @@ import cv2
 import json
 import asyncio
 import logging
-from one_liner.client import RouterClient
+from one_liner.async_client import AsyncRouterClient as RouterClient
 import zmq
 import zmq.asyncio
 from threading import Thread
@@ -40,30 +40,16 @@ def cancel_tasks(tasks:list[asyncio.Task]):
         task.cancel()
 
 
-def configure_stream_polling(stream_name: str) -> zmq.asyncio.Poller:
-    """
-        Add stream to client and configure poller for stream
-
-        :param stream_name: name for client stream
-    """
-
-    router_client.configure_stream(stream_name, storage_type="cache")
-    socket = router_client.stream_client.sub_sockets[stream_name]
-    poller = zmq.asyncio.Poller()
-    poller.register(socket, zmq.POLLIN)
-    return poller
-
 async def propagate_data_channel(channel: RTCDataChannel) -> None:
     """
         Propagate msg from client through datachannel to front end
 
         :param channel: data channel to send message through     
     """
-    poller = configure_stream_polling(channel.label)
+    router_client.configure_stream(channel.label, storage_type="cache")
     while not stop_event.is_set():
-        if dict(await poller.poll(timeout=1000)):   # block until msgs in stream
-            timestamp, msg = router_client.get_stream(channel.label)
-            channel.send(json.dumps(msg))   
+        timestamp, msg = await router_client.get_stream(channel.label)
+        channel.send(json.dumps(msg))
                         
 # create VideoStreamTrack for livestreams
 class ZMQStreamTrack(VideoStreamTrack):
@@ -79,12 +65,11 @@ class ZMQStreamTrack(VideoStreamTrack):
     def __init__(self, stream_name: str):
         super().__init__()
         self.stream_name = stream_name
-        self.poller = configure_stream_polling(stream_name)
-    
+        router_client.configure_stream(self.stream_name, storage_type="cache")
+
     async def recv(self):
-        try: 
-            await self.poller.poll(timeout=-1)
-            timestamp, frame = router_client.get_stream(self.stream_name)
+        try:
+            timestamp, frame = await router_client.get_stream(self.stream_name)
             frame = await asyncio.to_thread(cv2.cvtColor, frame, cv2.COLOR_RGB2YUV_I420) # decreases encoding time to frontend
             video_frame = VideoFrame.from_ndarray(frame, format="yuv420p")
             # webrtc rtp uses 90kHz as standard clock rate
@@ -124,7 +109,7 @@ async def offer(request:Request):
         async def on_message(message):                                          # create handler to send messages from data_channel through stream
             msg = json.loads(message)
             logger.debug(f"Received: {msg}")
-            router_client.call(**msg)
+            await router_client.call(**msg)
 
     for t in pc.getTransceivers():
         if t.kind == "video":   # configure video sources
