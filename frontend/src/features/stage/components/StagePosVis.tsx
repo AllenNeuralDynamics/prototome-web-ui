@@ -12,23 +12,21 @@ export default function StagePosVis({
   unit = "mm",
 }: StagePosVisProps) {
   const [positions, setPositions] = useState<Record<string, number>>({});
-  const [ranges, setRanges] = useState<Record<string,  number[]>>({});
+  const [ranges, setRanges] = useState<Record<string, number[]>>({});
   const positionChannelRef = useRef<RTCDataChannel | null>(null);
   const rangeChannelRef = useRef<RTCDataChannel | null>(null);
-  const dataChannels = useDataChannelStore((state) => state.channels)
-  
+  const dataChannels = useDataChannelStore((state) => state.channels);
 
-  // access stored dataChannels and add message handlers 
+  // access stored dataChannels and add message handlers
   useEffect(() => {
-
     // add position channel
-    const positionChannel = dataChannels[`prototome_stage_positions`]
+    const positionChannel = dataChannels[`prototome_stage_positions`];
     // update pos upon message
     const handlePosMessage = (evt: MessageEvent) => {
       const pos = JSON.parse(evt.data);
       setPositions((prev) => ({ ...prev, ...pos }));
-  };
-    positionChannel.addEventListener('message', handlePosMessage)
+    };
+    positionChannel.addEventListener("message", handlePosMessage);
     // create reference
     positionChannelRef.current = positionChannel;
 
@@ -38,24 +36,22 @@ export default function StagePosVis({
     const handleRangeMessage = (evt: MessageEvent) => {
       const range = JSON.parse(evt.data);
       setRanges((prev) => ({ ...prev, ...range }));
-    }
-    rangeChannel.addEventListener('message', handleRangeMessage)
+    };
+    rangeChannel.addEventListener("message", handleRangeMessage);
     // create reference
     rangeChannelRef.current = rangeChannel;
 
     return () => {
-      positionChannel.close();
-      rangeChannel.close();
+      positionChannel.removeEventListener("message", handlePosMessage);
+      rangeChannel.removeEventListener("message", handleRangeMessage);
     };
   }, [dataChannels]);
 
   const stagePositions = positions ?? {};
-  if (!axes.every((axis) => axis in stagePositions))
-    return <div> Cannot find positions to {stageId} </div>;
+  if (!axes.every((axis) => axis in stagePositions)) return;
 
   const stageRanges = ranges ?? {};
-  if (!axes.every((axis) => axis in stageRanges))
-    return <div> Cannot find ranges for {stageId} </div>;
+  if (!axes.every((axis) => axis in stageRanges)) return;
   return (
     <div>
       {axes.map((axis, index) => (

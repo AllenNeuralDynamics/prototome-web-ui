@@ -1,17 +1,14 @@
 import CameraWidget from "../../features/camera/index.js";
 import { StagePosVis } from "../../features/stage/index.js";
-import {
-  PrototomeConfigForm,
-} from "../../features/configuration/index.js";
+import { PrototomeConfigForm } from "../../features/configuration/index.js";
 import { StateControl } from "../../features/acquisitionControl/index.js";
 import { Group, Stack } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { CameraConfig, PrototomeConfig } from "../../types/configTypes.tsx";
 import React, { useEffect } from "react";
-import { CameraWidgetProps } from "../../features/camera/types/cameraTypes.tsx";
 import { StageConfig } from "../../types/configTypes.tsx";
 import { HomePageProps } from "../../types/pageTypes.tsx";
-import {axisVariablesMapping} from "../../types/axisVariableMapping.tsx";
+import { axisVariablesMapping } from "../../types/axisVariableMapping.tsx";
 
 export const HomePage = ({ config, setConfig }: HomePageProps) => {
   return (
@@ -48,7 +45,6 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
                 <CameraWidget
                   key={key}
                   cameraId={key}
-                  host={value.host}
                   exposureSpecs={value.exposure_specs}
                   gainSpecs={value.gain_specs}
                 />
@@ -69,7 +65,9 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
                 const [ptStage, ptAxis] =
                   config.prototome_config.axis_map[axis].split(".");
                 type ProtoKey = keyof PrototomeConfig;
-                for (const cfgKey of axisVariablesMapping[ptStage][ptAxis] as ProtoKey[]) {
+                for (const cfgKey of axisVariablesMapping[ptStage][
+                  ptAxis
+                ] as ProtoKey[]) {
                   visConfig[axis][cfgKey] = config.prototome_config[cfgKey];
                 }
               }

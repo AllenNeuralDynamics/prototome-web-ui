@@ -1,26 +1,12 @@
 {
-  "host": "http://localhost:8000",
-  "web_camera": {
-    "type": "camera",
-    "host": "http://localhost:8000",
-    "exposure_specs": {
-      "min": 22,
-      "max": 1000000.0,
-      "step": 10
-    },
-    "gain_specs": {
-      "min": -1.5,
-      "max": 6,
-      "range": 0.1
-    }
+  "window1_ximea_camera": {
+    "type": "camera"
   },
-  "fake_fine_stage": {
-    "host": "http://localhost:8000",
+  "pt_stage_fine": {
     "axes": ["Piezo"],
     "type": "stage"
   },
-  "fake_coarse_stage": {
-    "host": "http://localhost:8000",
+  "pt_stage_coarse": {
     "axes": ["Y", "Z"],
     "type": "stage"
   },

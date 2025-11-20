@@ -1,11 +1,11 @@
 from fastapi import FastAPI, APIRouter, Request
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.config import router as config_router
+#from backend.api.camera import router as camera_router
 from contextlib import asynccontextmanager
 import asyncio
 from aiortc import RTCPeerConnection, RTCSessionDescription, RTCDataChannel, VideoStreamTrack
 from av import VideoFrame
-import numpy as np
 from aiortc.contrib.media import MediaRelay
 import cv2
 import json
@@ -14,15 +14,20 @@ import logging
 from one_liner.client import RouterClient
 import zmq
 import zmq.asyncio
-from threading import Thread
 import time
 from fractions import Fraction
-
+from typing import Union
 
 logger = logging.getLogger(__name__)
 
 # instantiate router client 
+#router_client = RouterClient(interface="10.132.17.9")
 router_client = RouterClient()
+
+# Make it available to all routers
+def get_router_client() -> RouterClient:
+    return router_client
+
 
 stop_event = asyncio.Event()
 tasks: list[asyncio.Task] = []
@@ -47,7 +52,8 @@ def configure_stream_polling(stream_name: str) -> zmq.asyncio.Poller:
         :param stream_name: name for client stream
     """
 
-    router_client.configure_stream(stream_name, storage_type="cache")
+    if stream_name not in router_client.stream_client.sub_sockets.keys():
+        router_client.configure_stream(stream_name, storage_type="cache")
     socket = router_client.stream_client.sub_sockets[stream_name]
     poller = zmq.asyncio.Poller()
     poller.register(socket, zmq.POLLIN)
@@ -103,7 +109,7 @@ async def offer(request:Request):
     
     cancel_tasks(tasks) # cancel existing 
     tasks.clear()   # clear all tasks from previous loads
-
+    
     params = await request.json()
     offer_sdp = RTCSessionDescription(sdp=params["sdp"], type=params["type"])   # create description of frontend connection
     pc = RTCPeerConnection()                    # create a new peer connection for this client
@@ -153,6 +159,29 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+gets = {"/{element_id}/gain_min": "{element_id}_gain_min", 
+        "/{element_id}/gain_max": "{element_id}_gain_max", 
+        "/{element_id}/gain_step": "{element_id}_gain_step",
+        "/{element_id}/exposure_min": "{element_id}_exposure_min", 
+        "/{element_id}/exposure_max": "{element_id}_exposure_max", 
+        "/{element_id}/exposure_step": "{element_id}_exposure_step"}
+posts = {"/{element_id}/set_gain": "{element_id}_set_gain",
+         "/{element_id}/set_exposure": "{element_id}_set_exposure",
+         "/{element_id}/start_livestream": "{element_id}_start_livestream",
+         "/{element_id}/stop_livestream": "{element_id}_stop_livestream"}
+
+def register_method(call_name, endpoint, method):
+    async def endpoint(element_id: str, kwargs: dict = None, call_name=call_name):
+        call_name = call_name.format(element_id=element_id)
+        return router_client.call_by_name(call_name, kwargs=kwargs)
+    app.add_api_route(path, endpoint, methods=[method])
+
+for path, call_name in posts.items():
+    register_method(call_name, path, "POST")
+
+for path, call_name in gets.items():
+   register_method(call_name, path, "GET")
 
 app.include_router(config_router)
 app.include_router(offer_router)

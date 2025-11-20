@@ -2,129 +2,63 @@ import React, { useState, useRef, useEffect } from "react";
 import { Slider, Text, Button, Group, Card } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { CameraWidgetProps } from "../types/cameraTypes.tsx";
-import { useDataChannelStore,  useVideoStreamStore} from "../../../stores/dataChannelStore.tsx";
+import { useVideoStreamStore } from "../../../stores/dataChannelStore.tsx";
+import { cameraApi } from "../api/cameraApi.tsx";
 
-export default function CameraWidget({
-  cameraId,
-  host,
-  exposureSpecs,
-  gainSpecs,
-}: CameraWidgetProps) {
+export default function CameraWidget({ cameraId }: CameraWidgetProps) {
   const [exposure, setExposure] = useState(1);
+  const [exposureSpecs, setExposureSpecs] = useState({
+    min: 0,
+    max: 0,
+    step: 0,
+  });
+  const [gainSpecs, setGainSpecs] = useState({
+    min: 0,
+    max: 0,
+    step: 0,
+  });
   const [gain, setGain] = useState(1);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const dataChannels = useDataChannelStore((state) => state.channels)
-  const videoStream = useVideoStreamStore(state => state.streams["new_frame"]);
-  const startLivestreamChannelRef = useRef<RTCDataChannel | null>(null);
-  const stopLivestreamChannelRef = useRef<RTCDataChannel | null>(null);
-  const exposureChannelRef = useRef<RTCDataChannel | null>(null);
-  const gainChannelRef = useRef<RTCDataChannel | null>(null);
-  const lastFrameTimeRef = useRef<number | null>(null);
+  const videoStream = useVideoStreamStore(
+    (state) => state.streams["new_frame"],
+  );
 
   // set up livestream
-  useEffect (() => {
+  useEffect(() => {
     if (!videoRef.current || !videoStream) return;
     videoRef.current.srcObject = videoStream;
-
-  //   let lastFrameTime: number | null = null;
-
-  //   const handleFrame = (now: DOMHighResTimeStamp, metadata: VideoFrameCallbackMetadata) => {
-  //   if (lastFrameTime !== null) {
-  //     const delta = now - lastFrameTime; // milliseconds
-  //     console.log(`Time since last frame: ${delta.toFixed(2)} ms`, metadata);
-  //   }
-  //   lastFrameTime = now;
-
-  //   // Schedule next frame callback
-  //   videoRef.current?.requestVideoFrameCallback(handleFrame);
-  // };
-  // videoRef.current.requestVideoFrameCallback(handleFrame);
   }, [videoStream]);
 
-  // set up dataChannels 
+  // populate exposure and gain limits
   useEffect(() => {
-    const startLivestreamChannel = dataChannels["prototome_start_camera"];
-    startLivestreamChannelRef.current = startLivestreamChannel;
-
-    const stopLivestreamChannel = dataChannels["prototome_stop_camera"];
-    stopLivestreamChannelRef.current = stopLivestreamChannel;
-
-
-    const exposureChannel = dataChannels["prototome_exposure"];
-    // update exposure upon message
-    const handleExposeMessage = (evt: MessageEvent) => {
-      const exposure = JSON.parse(evt.data);
-      setExposure(exposure);
-    };
-    exposureChannel.addEventListener('message', handleExposeMessage)
-    exposureChannelRef.current = exposureChannel;
-
-    const gainChannel = dataChannels["prototome_gain"];
-    // update gain upon message
-    const handleGainMessage = (evt: MessageEvent) => {
-      const gain = JSON.parse(evt.data);
-      setGain(gain);
-    };
-    gainChannel.addEventListener('message', handleGainMessage)
-    gainChannelRef.current = gainChannel;
-
-    return () => {
-      startLivestreamChannel.close();
-      stopLivestreamChannel.close();
-      exposureChannel.close();
-      gainChannel.close();
-    };
-  }, [dataChannels]);
-
-  const startCamera = async () => {
-      // send message to start livestream
-      if (startLivestreamChannelRef.current) {
-        startLivestreamChannelRef.current.send(
-          JSON.stringify({
-            obj_name: "window1_ximea_camera",
-            attr_name: "start_imaging"
-          }),
-        );
-     }
-   };
-
-  const stopCamera = () => {
-    if (stopLivestreamChannelRef.current) {
-      stopLivestreamChannelRef.current.send(
-        JSON.stringify({
-            obj_name: "window1_ximea_camera",
-            attr_name: "stop_imaging"
-          }),
-      );
+    async function fetchExposureSpecs() {
+      const [min, max, step] = await Promise.all([
+        cameraApi.getMinExposure(cameraId),
+        cameraApi.getMaxExposure(cameraId),
+        cameraApi.getStepExposure(cameraId),
+      ]);
+      setExposureSpecs({ min, max, step });
     }
-  };
+    async function fetchGainSpecs() {
+      const [min, max, step] = await Promise.all([
+        cameraApi.getMinGain(cameraId),
+        cameraApi.getMaxGain(cameraId),
+        cameraApi.getStepGain(cameraId),
+      ]);
+      setGainSpecs({ min, max, step });
+    }
+    fetchExposureSpecs()
+    fetchGainSpecs()
+  }, []);
 
   const onExposureChange = (val: number) => {
     setExposure(val);
-    if (exposureChannelRef.current) {
-      exposureChannelRef.current.send(
-        JSON.stringify({
-            obj_name: "window1_ximea_camera", 
-            attr_name: "set",
-            key: "exposure",
-            value: val
-        }),
-      );
-    }
+    cameraApi.postExposure(cameraId, val);
   };
 
   const onGainChange = (val: number) => {
     setGain(val);
-    if (gainChannelRef.current) {
-      gainChannelRef.current.send(
-        JSON.stringify({
-            obj_name: "window1_ximea_camera",
-            attr_name: "set",
-            key: "gain",
-            value: val
-        }),
-      );
-    }
+    cameraApi.postGain(cameraId, val);
   };
 
   return (
@@ -147,10 +81,15 @@ export default function CameraWidget({
           style={{ border: "1px solid black" }}
         />
         <Group align="center" mb="xs">
-          <Button variant="light" onClick={startCamera}>
+          <Button
+            variant="light"
+            onClick={() => cameraApi.startLivestream(cameraId)}
+          >
             Start
           </Button>
-          <Button onClick={stopCamera}>Stop</Button>
+          <Button onClick={() => cameraApi.stopLivestream(cameraId)}>
+            Stop
+          </Button>
         </Group>
         <Group mb="xs" style={{ alignItems: "center", gap: "0.5rem" }}>
           <Text size="sm">Exposure: </Text>
@@ -161,7 +100,7 @@ export default function CameraWidget({
             <Slider
               value={exposure}
               onChange={onExposureChange}
-              min={exposureSpecs["min"]}
+              min={exposureSpecs.min}
               max={exposureSpecs.max}
               step={exposureSpecs.step}
             />

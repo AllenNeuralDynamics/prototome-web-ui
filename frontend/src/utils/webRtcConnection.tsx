@@ -5,7 +5,10 @@
  * @param transceiverMapping - map of transceiver to stream name to pass to peer
  */
 
-export async function negotiate(pc: RTCPeerConnection, transceiverMapping: { [key: string]: RTCRtpTransceiver }) {
+export async function negotiate(
+  pc: RTCPeerConnection,
+  transceiverMapping: { [key: string]: RTCRtpTransceiver },
+) {
   // create offer
   const offer = await pc.createOffer();
   // set offer as local description
@@ -32,14 +35,15 @@ export async function negotiate(pc: RTCPeerConnection, transceiverMapping: { [ke
   if (!localDescription) {
     throw new Error("PeerConnection localDescription is not set yet");
   }
-  
+
   // pass in transciever mid to stream name mapping so peer can associate stream name with transciever
-  const transceiverMidMapping: { [key: string]: string | null } = 
-  Object.fromEntries(
-    Object.entries(transceiverMapping).map(
-      ([key, transceiver]) => [transceiver.mid, key]
-    )
-  );
+  const transceiverMidMapping: { [key: string]: string | null } =
+    Object.fromEntries(
+      Object.entries(transceiverMapping).map(([key, transceiver]) => [
+        transceiver.mid,
+        key,
+      ]),
+    );
 
   const response = await fetch(`http://localhost:8000/offer`, {
     method: "POST",
@@ -47,7 +51,7 @@ export async function negotiate(pc: RTCPeerConnection, transceiverMapping: { [ke
     body: JSON.stringify({
       sdp: localDescription.sdp,
       type: localDescription.type,
-      transceiverMidMapping: transceiverMidMapping
+      transceiverMidMapping: transceiverMidMapping,
     }),
   });
 

@@ -1,6 +1,5 @@
 export interface CameraConfig {
   type: "camera";
-  host: string;
   index: number;
   exposure_specs: { min: number; max: number; step: number };
   gain_specs: { min: number; max: number; step: number };
@@ -8,7 +7,6 @@ export interface CameraConfig {
 
 export interface StageConfig {
   type: "stage";
-  host: string;
   axes: string[];
   unit?: string;
 }
@@ -32,9 +30,13 @@ export interface PrototomeConfig {
 }
 
 export interface AppConfig {
-  host: string;
   prototome_config: PrototomeConfig;
   data_channels: string[];
   video_streams: string[];
-  [key: string]: CameraConfig | StageConfig | PrototomeConfig | string | string[];
+  [key: string]:
+    | CameraConfig
+    | StageConfig
+    | PrototomeConfig
+    | string
+    | string[];
 }

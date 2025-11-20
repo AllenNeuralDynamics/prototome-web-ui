@@ -1,6 +1,5 @@
 export type CameraWidgetProps = {
   cameraId: string;
-  host: string;
   exposureSpecs: SliderSpecs;
   gainSpecs: SliderSpecs;
 };

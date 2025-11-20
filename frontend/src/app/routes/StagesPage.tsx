@@ -4,7 +4,7 @@ import { Stack } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { AppConfig, StageConfig } from "../../types/configTypes.tsx";
 
-export const StagesPage = ({ config}: { config: AppConfig }) => {
+export const StagesPage = ({ config }: { config: AppConfig }) => {
   return (
     <Stack align="center">
       {Object.entries(config)
@@ -19,7 +19,6 @@ export const StagesPage = ({ config}: { config: AppConfig }) => {
                 <StageControl
                   stageId={key}
                   axes={value.axes}
-                  host={value.host}
                   unit={value.unit}
                 />
               </div>
