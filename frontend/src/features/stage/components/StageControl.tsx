@@ -11,16 +11,16 @@ import {
   Stack,
 } from "@mantine/core";
 import "@mantine/core/styles.css";
-import { StageControlProps } from "../types/stageTypes.tsx";
+import type { StageControlProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
 import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
 
-export default function StageControl({
+export const StageControl = ({
   stageId,
   axes,
   host,
   unit = "um",
-}: StageControlProps) {
+}: StageControlProps) => {
   const [velocities, setVelocities] = useState<Record<string, number>>({});
   const [posInput, setPosInput] = useState<Record<string, number>>({});
   const [stepSizeInput, setStepSizeInput] = useState<Record<string, number>>(

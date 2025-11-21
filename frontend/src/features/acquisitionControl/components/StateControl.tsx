@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, Button, Group, Stack, Text, Badge } from "@mantine/core";
 
-export default function StateControl() {
+export const StateControl = () => {
   const [currentState, setCurrentState] = useState("Idle");
 
   return (

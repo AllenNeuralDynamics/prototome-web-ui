@@ -15,10 +15,10 @@ type PrototomeConfigProps = {
   setPrototomeConfig: (newConfig: any) => void;
 };
 
-export default function PrototomeConfigForm({
+export const PrototomeConfigForm = ({
   config,
   setPrototomeConfig,
-}: PrototomeConfigProps) {
+}: PrototomeConfigProps) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter") {

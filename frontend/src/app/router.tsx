@@ -2,7 +2,7 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import { HomePage } from "./routes/HomePage.tsx";
 import { StagesPage } from "./routes/StagesPage.tsx";
-import { AppConfig } from "../types/configTypes.tsx";
+import type { AppConfig } from "../types/configTypes.tsx";
 
 type AppRouterProps = {
   config: AppConfig;
