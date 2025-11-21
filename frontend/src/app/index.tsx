@@ -6,7 +6,7 @@ import type { AppConfig } from "../types/configTypes.tsx";
 import { useDataChannelStore, useVideoStreamStore } from "../stores/dataChannelStore.tsx";
 import { negotiate } from "../utils/webRtcConnection.tsx";
 
-function NavBar() {
+const NavBar = () => {
   const location = useLocation();
 
   return (
@@ -33,7 +33,7 @@ function NavBar() {
   );
 }
 
-function App() {
+const App = () => {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const dataChannels = useDataChannelStore((state) => state.channels)
   const addChannel = useDataChannelStore((state) => state.addChannel)
@@ -89,8 +89,6 @@ function App() {
 
   if (!config.data_channels.every((ch) => ch in dataChannels))
     return <div> Connecting data channels </div>;
-
-
 
   return (
     <BrowserRouter>
