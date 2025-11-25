@@ -22,6 +22,7 @@ export default function StageControl({
   unit = "um",
 }: StageControlProps) {
   const [velocities, setVelocities] = useState<Record<string, number>>({});
+  const [maxVelocities, setMaxVelocities] = useState<Record<string, number>>({});
   const [posInput, setPosInput] = useState<Record<string, number>>({});
   const [stepSizeInput, setStepSizeInput] = useState<Record<string, number>>(
     {},
@@ -31,7 +32,7 @@ export default function StageControl({
   const positionChannelRef = useRef<RTCDataChannel | null>(null);
   const dataChannels = useDataChannelStore((state) => state.channels);
 
-  // initialize and negotiate webRTC
+  // initialize and connect position dataChannel
   useEffect(() => {
     // add position channel
     const positionChannel = dataChannels[`prototome_stage_positions`];
@@ -51,16 +52,20 @@ export default function StageControl({
 
   // populate range and velocity
     useEffect(() => {
-      async function fetchVelocity() {
-        const newVelocities = await stageApi.getVelocity(stageId)
-        setVelocities(newVelocities);
+      async function fetchAxisSpecs() {
+
+        for (const axis of axes) {
+          const [ vel, maxVel, range] = await Promise.all([
+                  stageApi.getVelocity(stageId, axis),
+                  stageApi.getMaxVelocity(stageId, axis),
+                  stageApi.getRange(stageId, axis),
+                ]);
+          setVelocities((prev) => ({...prev, ...{[axis]:vel}}))
+          setMaxVelocities((prev) => ({...prev, ...{[axis]:maxVel}}))
+          setRanges((prev) => ({...prev, ...{[axis]:range}}))
+        }
       }
-      async function fetchGainSpecs() {
-        const newRanges = await stageApi.getRange(stageId)
-        setRanges(newRanges);
-      }
-      fetchVelocity()
-      fetchGainSpecs()
+    fetchAxisSpecs()
     }, []);
 
   const onPosRangeChange = (range: [number, number], axis: string) => {
@@ -75,26 +80,26 @@ export default function StageControl({
     ) {
       const newRange = [clampedMin, clampedMax];
       setRanges((prev) => ({ ...prev, [axis]: newRange }));
-      stageApi.postRange(stageId, {axis: newRange})
+      stageApi.postRange(stageId, axis, newRange)
       
     }
   };
 
   const onMoveLowerClick = (axis: string) => {
-    stageApi.postPosition(stageId, {axis: ranges[axis][0]})
+    stageApi.postPosition(stageId, axis, ranges[axis][0])
   };
 
   const onMoveUpperClick = (axis: string) => {
-    stageApi.postPosition(stageId, {axis: ranges[axis][1]})
+    stageApi.postPosition(stageId, axis, ranges[axis][1])
   };
 
   const onMoveMiddleClick = (axis: string) => {
-    stageApi.postPosition(stageId, {axis: Math.round((ranges[axis][0] + ranges[axis][1]) / 2)})
+    stageApi.postPosition(stageId, axis, Math.round((ranges[axis][0] + ranges[axis][1]) / 2))
   };
   const onMoveClick = (val: number, axis: string) => {
-    stageApi.postPosition(stageId, {axis: Math.round((ranges[axis][0] + ranges[axis][1]) / 2)})
+    stageApi.postPosition(stageId, axis, Math.round((ranges[axis][0] + ranges[axis][1]) / 2))
   };
-
+  
   const stagePositions = positions ?? {};
   if (!axes.every((axis) => axis in stagePositions)) return;
 
@@ -168,7 +173,6 @@ export default function StageControl({
             color={getAxisColor(axis)}
             value={[ranges[axis][0] ?? 0, ranges[axis][1] ?? 100]}
             minRange={0}
-            onChange={(val) => onPosRangeChange(val, axis)}
           />
           <Group mb="xs" style={{ marginTop: "10px" }}>
             <Text size="sm">Velocity</Text>
@@ -180,7 +184,8 @@ export default function StageControl({
             color={getAxisColor(axis)}
             value={velocities[axis] || 0}
             onChange={(val) => {
-              stageApi.postVelocity(stageId, {axis:val})
+              stageApi.postVelocity(stageId, axis, val)
+            
             }}
           />
           <Group mt="md">

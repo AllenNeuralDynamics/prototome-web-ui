@@ -2,12 +2,8 @@
   "window1_ximea_camera": {
     "type": "camera"
   },
-  "pt_stage_fine": {
-    "axes": ["Piezo"],
-    "type": "stage"
-  },
-  "pt_stage_coarse": {
-    "axes": ["Y", "Z"],
+  "prototome_stage": {
+    "axes": ["Y", "Z", "Piezo"],
     "type": "stage"
   },
   "prototome_config": {

@@ -4,6 +4,7 @@ import "@mantine/core/styles.css";
 import { StagePosVisProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
 import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
+import { stageApi } from "../api/stageApi.tsx";
 
 export default function StagePosVis({
   stageId,
@@ -14,7 +15,6 @@ export default function StagePosVis({
   const [positions, setPositions] = useState<Record<string, number>>({});
   const [ranges, setRanges] = useState<Record<string, number[]>>({});
   const positionChannelRef = useRef<RTCDataChannel | null>(null);
-  const rangeChannelRef = useRef<RTCDataChannel | null>(null);
   const dataChannels = useDataChannelStore((state) => state.channels);
 
   // access stored dataChannels and add message handlers
@@ -30,28 +30,29 @@ export default function StagePosVis({
     // create reference
     positionChannelRef.current = positionChannel;
 
-    // add range channel
-    const rangeChannel = dataChannels[`prototome_stage_travel`];
-    // update range upon message
-    const handleRangeMessage = (evt: MessageEvent) => {
-      const range = JSON.parse(evt.data);
-      setRanges((prev) => ({ ...prev, ...range }));
-    };
-    rangeChannel.addEventListener("message", handleRangeMessage);
-    // create reference
-    rangeChannelRef.current = rangeChannel;
-
     return () => {
       positionChannel.removeEventListener("message", handlePosMessage);
-      rangeChannel.removeEventListener("message", handleRangeMessage);
     };
   }, [dataChannels]);
+
+  // populate range and velocity
+  useEffect(() => {
+    async function fetchRange() {
+
+      for (const axis of axes) {
+        const range = await stageApi.getRange(stageId, axis)
+        setRanges((prev) => ({...prev, ...{[axis]:range}}))
+      }
+    }
+  fetchRange()
+  }, []);
 
   const stagePositions = positions ?? {};
   if (!axes.every((axis) => axis in stagePositions)) return;
 
   const stageRanges = ranges ?? {};
   if (!axes.every((axis) => axis in stageRanges)) return;
+  
   return (
     <div>
       {axes.map((axis, index) => (

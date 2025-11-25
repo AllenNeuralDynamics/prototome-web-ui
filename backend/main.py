@@ -149,7 +149,6 @@ async def offer(request:Request):
     }
 
 
-
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
@@ -165,23 +164,36 @@ gets = {"/{element_id}/gain_min": "{element_id}_gain_min",
         "/{element_id}/gain_step": "{element_id}_gain_step",
         "/{element_id}/exposure_min": "{element_id}_exposure_min", 
         "/{element_id}/exposure_max": "{element_id}_exposure_max", 
-        "/{element_id}/exposure_step": "{element_id}_exposure_step"}
+        "/{element_id}/exposure_step": "{element_id}_exposure_step", 
+        "/{element_id}/velocity": "get_axis_velocity",
+        "/{element_id}/max_velocity": "get_axis_max_velocity",
+        "/{element_id}/range": "get_axis_travel_range",}
+
 posts = {"/{element_id}/set_gain": "{element_id}_set_gain",
          "/{element_id}/set_exposure": "{element_id}_set_exposure",
          "/{element_id}/start_livestream": "{element_id}_start_livestream",
-         "/{element_id}/stop_livestream": "{element_id}_stop_livestream"}
-
-def register_method(call_name, endpoint, method):
-    async def endpoint(element_id: str, kwargs: dict = None, call_name=call_name):
-        call_name = call_name.format(element_id=element_id)
-        return router_client.call_by_name(call_name, kwargs=kwargs)
-    app.add_api_route(path, endpoint, methods=[method])
+         "/{element_id}/stop_livestream": "{element_id}_stop_livestream", 
+         "/{element_id}/set_position": "set_axis_position",
+         "/{element_id}/set_velocity": "set_axis_velocity",
+         "/cut_one":"cut_one",
+         "/start_cutting":"start_cutting",
+         "/pause_cutting":"pause_cutting",
+         "/stop_cutting_safely":"stop_cutting_safely",
+         "/stop_cutting_now":"stop_cutting_now"
+         }  
 
 for path, call_name in posts.items():
-    register_method(call_name, path, "POST")
+    async def endpoint(element_id: str, kwargs: dict = None, call_name=call_name):
+        call_name = call_name.format(element_id=element_id)
+        router_client.call_by_name(call_name, kwargs=kwargs)
+    app.add_api_route(path, endpoint, methods=["POST"])
 
 for path, call_name in gets.items():
-   register_method(call_name, path, "GET")
+    async def endpoint(element_id: str, request: Request, call_name=call_name):
+        call_name = call_name.format(element_id=element_id)
+        kwargs = dict(request.query_params)
+        return router_client.call_by_name(call_name, kwargs=kwargs)
+    app.add_api_route(path, endpoint, methods=["GET"])
 
 app.include_router(config_router)
 app.include_router(offer_router)

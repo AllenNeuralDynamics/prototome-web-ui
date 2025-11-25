@@ -5,7 +5,7 @@ import {
   uiPrototomeSchema,
 } from "../types/PrototomeConfigTypes.tsx";
 import validator from "@rjsf/validator-ajv8";
-import Form from "@rjsf/mui";
+// import Form from "@rjsf/mui";
 import { Button, FileButton } from "@mantine/core";
 import "../assets/rjsf-spacing.css";
 import { Card } from "@mantine/core";

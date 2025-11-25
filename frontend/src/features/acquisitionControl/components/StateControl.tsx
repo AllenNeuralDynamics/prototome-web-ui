@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Card, Button, Group, Stack, Text, Badge } from "@mantine/core";
+import { stateControlApi } from "../api/stateControlApi.ts";
 
 export default function StateControl() {
   const [currentState, setCurrentState] = useState("Idle");
@@ -22,11 +23,11 @@ export default function StateControl() {
         </Group>
         <Stack>
           <Button>Switch to Facing</Button>
-          <Button color="green">Start Cutting</Button>
+          <Button color="green" onClick={() => stateControlApi.postStartCutting()}>Start Cutting</Button>
           <Button color="yellowgreen">Repeat Cut</Button>
-          <Button color="yellow">Cut One</Button>
-          <Button color="orange">Stop Cutting Safely</Button>
-          <Button color="red">Stop Cutting Now</Button>
+          <Button color="yellow" onClick={() => stateControlApi.postCutOne()}>Cut One</Button>
+          <Button color="orange" onClick={() => stateControlApi.postStopCuttingSafely()}>Stop Cutting Safely</Button>
+          <Button color="red" onClick={() => stateControlApi.postStopCuttingNow()}>Stop Cutting Now</Button>
         </Stack>
       </Stack>
     </Card>

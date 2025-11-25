@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, Link, useLocation } from "react-router-dom";
 import { AppRouter } from "./router.tsx";
-import { Group, Button, Paper } from "@mantine/core";
+import { Group, Button, Card } from "@mantine/core";
 import { AppConfig } from "../types/configTypes.tsx";
 import {
   useDataChannelStore,
@@ -14,7 +14,7 @@ function NavBar() {
   const location = useLocation();
 
   return (
-    <Paper shadow="xs" p="sm" style={{ marginBottom: "1rem" }}>
+    <Card shadow="xs" p="sm" style={{ marginBottom: "1rem" }}>
       <Group>
         <Button
           component={Link}
@@ -33,7 +33,7 @@ function NavBar() {
           Stages
         </Button>
       </Group>
-    </Paper>
+    </Card>
   );
 }
 
