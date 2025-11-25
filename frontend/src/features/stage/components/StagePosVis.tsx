@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, Slider, Badge } from "@mantine/core";
-import "@mantine/core/styles.css";
 import type { StagePosVisProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
 import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
@@ -55,7 +54,7 @@ export const StagePosVis = ({
   
   return (
     <div>
-      {axes.map((axis, index) => (
+      {axes.map((axis) => (
         <Card
           key={axis}
           shadow="xs"

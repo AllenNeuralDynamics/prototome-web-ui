@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   RangeSlider,
   Slider,
@@ -10,7 +10,6 @@ import {
   NumberInput,
   Stack,
 } from "@mantine/core";
-import "@mantine/core/styles.css";
 import type { StageControlProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
 import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
@@ -67,23 +66,24 @@ export const StageControl = ({
       }
     fetchAxisSpecs()
     }, []);
+  
+  // Stub out functionality for now
+  // const onPosRangeChange = (range: [number, number], axis: string) => {
+  //   const position = positions[axis];
 
-  const onPosRangeChange = (range: [number, number], axis: string) => {
-    const position = positions[axis];
+  //   // Clamp range so it must contain current position
+  //   const clampedMin = Math.min(range[0], position);
+  //   const clampedMax = Math.max(range[1], position);
 
-    // Clamp range so it must contain current position
-    const clampedMin = Math.min(range[0], position);
-    const clampedMax = Math.max(range[1], position);
-
-    if (
-      (clampedMin !== ranges[axis][0] || clampedMax !== ranges[axis][1])
-    ) {
-      const newRange = [clampedMin, clampedMax];
-      setRanges((prev) => ({ ...prev, [axis]: newRange }));
-      stageApi.postRange(stageId, axis, newRange)
+  //   if (
+  //     (clampedMin !== ranges[axis][0] || clampedMax !== ranges[axis][1])
+  //   ) {
+  //     const newRange = [clampedMin, clampedMax];
+  //     setRanges((prev) => ({ ...prev, [axis]: newRange }));
+  //     stageApi.postRange(stageId, axis, newRange)
       
-    }
-  };
+  //   }
+  // };
 
   const onMoveLowerClick = (axis: string) => {
     stageApi.postPosition(stageId, axis, ranges[axis][0])
@@ -97,7 +97,7 @@ export const StageControl = ({
     stageApi.postPosition(stageId, axis, Math.round((ranges[axis][0] + ranges[axis][1]) / 2))
   };
   const onMoveClick = (val: number, axis: string) => {
-    stageApi.postPosition(stageId, axis, Math.round((ranges[axis][0] + ranges[axis][1]) / 2))
+    stageApi.postPosition(stageId, axis, val)
   };
   
   const stagePositions = positions ?? {};
@@ -111,7 +111,7 @@ export const StageControl = ({
 
   return (
     <div>
-      {axes.map((axis, index) => (
+      {axes.map((axis) => (
         <Card
           key={axis}
           shadow="xs"
@@ -187,25 +187,26 @@ export const StageControl = ({
               stageApi.postVelocity(stageId, axis, val)
             
             }}
+            max={maxVelocities[axis]}
           />
           <Group mt="md">
             <Button
               color={getAxisColor(axis)}
               variant="light"
-              onClick={(val) => onMoveLowerClick(axis)}
+              onClick={() => onMoveLowerClick(axis)}
             >
               Go to Lower
             </Button>
             <Button
               color={getAxisColor(axis)}
-              onClick={(val) => onMoveMiddleClick(axis)}
+              onClick={() => onMoveMiddleClick(axis)}
             >
               Go to Middle
             </Button>
             <Button
               color={getAxisColor(axis)}
               variant="light"
-              onClick={(val) => onMoveUpperClick(axis)}
+              onClick={() => onMoveUpperClick(axis)}
             >
               Go to Upper
             </Button>

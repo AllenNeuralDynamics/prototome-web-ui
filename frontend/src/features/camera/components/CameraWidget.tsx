@@ -1,23 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Slider, Text, Button, Group, Card } from "@mantine/core";
-<<<<<<< HEAD
-import "@mantine/core/styles.css";
-import { CameraWidgetProps } from "../types/cameraTypes.tsx";
-import { useVideoStreamStore } from "../../../stores/dataChannelStore.tsx";
-import { cameraApi } from "../api/cameraApi.tsx";
-
-export default function CameraWidget({ cameraId }: CameraWidgetProps) {
-=======
 import type { CameraWidgetProps } from "../types/cameraTypes.tsx";
-import { useDataChannelStore,  useVideoStreamStore} from "../../../stores/dataChannelStore.tsx";
+import { useVideoStreamStore } from "../../../stores/dataChannelStore.tsx";
+import { cameraApi } from "../api/cameraApi.tsx"
 
 export const CameraWidget = ({
-  cameraId,
-  host,
-  exposureSpecs,
-  gainSpecs,
+  cameraId
 }: CameraWidgetProps) => {
->>>>>>> feat-refactor-react
   const [exposure, setExposure] = useState(1);
   const [exposureSpecs, setExposureSpecs] = useState({
     min: 0,
