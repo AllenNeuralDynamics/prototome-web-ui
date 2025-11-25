@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
-
+import { useEffect } from "react";
 import {
   prototomeSchema,
   uiPrototomeSchema,
 } from "../types/PrototomeConfigTypes.tsx";
+import type { PrototomeConfig } from "../../../types/configTypes.tsx"
 import validator from "@rjsf/validator-ajv8";
-// import Form from "@rjsf/mui";
-import { Button, FileButton } from "@mantine/core";
+import Form from "@rjsf/mantine";
+import { Button, FileButton, Title } from "@mantine/core";
 import "../assets/rjsf-spacing.css";
 import { Card } from "@mantine/core";
 
 type PrototomeConfigProps = {
-  config: any;
+  config: PrototomeConfig;
   setPrototomeConfig: (newConfig: any) => void;
 };
 
@@ -20,19 +20,13 @@ export const PrototomeConfigForm = ({
   setPrototomeConfig,
 }: PrototomeConfigProps) => {
   useEffect(() => {
+    
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
-        // don't save all form values
-        e.preventDefault();
-
-        const activeEl = document.activeElement as HTMLInputElement | null;
-        if (!activeEl) return;
-        activeEl.classList.remove("edited-field");
-
-        const configKey = activeEl.name.replace(/^root_/, ""); // hacky way to find the corresponding element. Will break if config is not flat
-        const newConfig = config;
-        newConfig[configKey] = Number(activeEl.value);
-        setPrototomeConfig(newConfig);
+        
+        // revert all blue fields
+        const edited = document.querySelectorAll(".edited-field");
+        edited.forEach((el) => el.classList.remove("edited-field"));
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -41,7 +35,7 @@ export const PrototomeConfigForm = ({
     };
   }, [config]);
 
-  const handleChange = (event: any) => {
+  const handleChange = () => {
     const activeEl = document.activeElement as HTMLInputElement | null;
 
     if (!activeEl) return;
@@ -79,6 +73,7 @@ export const PrototomeConfigForm = ({
       className="bg-gray-50"
     >
       <div className="prototome-config-form">
+        <Title style={{ fontWeight: "bold", marginBottom: "0.5rem" }}> Prototome Config </Title>
         <Form
           uiSchema={uiPrototomeSchema}
           schema={prototomeSchema}

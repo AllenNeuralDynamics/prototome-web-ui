@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import { StageControl } from "../../features/stage/index.js";
 import { Stack } from "@mantine/core";
 import "@mantine/core/styles.css";

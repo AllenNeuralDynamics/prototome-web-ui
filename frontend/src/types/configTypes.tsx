@@ -22,11 +22,10 @@ export interface PrototomeConfig {
   retract_piezo_distance: number;
   retract_speed: number;
   retract_time_ok_count: number;
-  safe_bottom_position_mm: number;
-  safe_top_position_mm: number;
   section_thickness: number;
   state_machine: string;
   top_position_mm: number;
+  safe_pause_range: [number, number]
 }
 
 export interface AppConfig {

@@ -1,7 +1,6 @@
-import { RJSFSchema } from "@rjsf/utils";
+import type { RJSFSchema } from "@rjsf/utils";
 
 export const prototomeSchema: RJSFSchema = {
-  title: "Prototome Config",
   type: "object",
   properties: {
     active: {
@@ -40,12 +39,6 @@ export const prototomeSchema: RJSFSchema = {
     retract_time_ok_count: {
       type: "integer",
     },
-    safe_bottom_position_mm: {
-      type: "number",
-    },
-    safe_top_position_mm: {
-      type: "number",
-    },
     section_thickness: {
       type: "number",
     },
@@ -55,6 +48,15 @@ export const prototomeSchema: RJSFSchema = {
     top_position_mm: {
       type: "number",
     },
+    safe_pause_range: {
+      type: "array",
+      title: "Safe Position Range",
+      items: {
+        type: "number",
+      },
+      minItems: 2,
+      maxItems: 2,
+    },  
   },
   required: [
     "active",
@@ -67,8 +69,7 @@ export const prototomeSchema: RJSFSchema = {
     "retract_piezo_distance",
     "retract_speed",
     "retract_time_ok_count",
-    "safe_bottom_position_mm",
-    "safe_top_position_mm",
+    "safe_pause_range",
     "section_thickness",
     "state_machine",
     "top_position_mm",
@@ -85,6 +86,7 @@ export const uiPrototomeSchema = {
       orderable: "false",
       addable: "false",
       removable: "false",
+      clearable: "false"
     },
     "ui:field": "object",
     "ui:widget": "text",
@@ -127,19 +129,20 @@ export const uiPrototomeSchema = {
     "ui:widget": "updown",
     "ui:title": "Section Thickness",
   },
-  safe_bottom_position_mm: {
-    "ui:widget": "updown",
-    "ui:title": "Safe Pause Bottom Position (mm)",
-  },
-  safe_top_position_mm: {
-    "ui:widget": "updown",
-    "ui:title": "Safe Pause Top Position (mm)",
-  },
   state_machine: {
     "ui:widget": "hidden",
   },
   top_position_mm: {
     "ui:widget": "updown",
     "ui:title": "Top Position (mm)",
+  },
+  safe_pause_range: {
+    "ui:title": "Safe Pause Range (mm)",
+    "ui:options": {
+      orderable: "false",
+      addable: "false",
+      removable: "false",
+      clearable: "false",
+    },
   },
 };

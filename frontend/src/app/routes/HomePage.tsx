@@ -1,31 +1,14 @@
-<<<<<<< HEAD
-import CameraWidget from "../../features/camera/index.js";
+import { CameraWidget } from "../../features/camera/index.js";
 import { StagePosVis } from "../../features/stage/index.js";
-import { PrototomeConfigForm } from "../../features/configuration/index.js";
-import { StateControl } from "../../features/acquisitionControl/index.js";
-import { Group, Stack } from "@mantine/core";
-import "@mantine/core/styles.css";
-import { CameraConfig, PrototomeConfig } from "../../types/configTypes.tsx";
-import React, { useEffect } from "react";
-import { StageConfig } from "../../types/configTypes.tsx";
-import { HomePageProps } from "../../types/pageTypes.tsx";
-=======
-import { CameraWidget } from "../../features/camera/index";
-import { StagePosVis } from "../../features/stage/index";
-// TODO: Disabled until MUI library dependency removed
-// import { PrototomeConfigForm } from "../../features/configuration/index";
+import { PrototomeConfigForm } from "../../features/configuration/index";
 import { StateControl } from "../../features/acquisitionControl/index";
 import { Group, Stack } from "@mantine/core";
 import "@mantine/core/styles.css";
 import type { CameraConfig, PrototomeConfig } from "../../types/configTypes.tsx";
 import type { StageConfig } from "../../types/configTypes.tsx";
 import type { HomePageProps } from "../../types/pageTypes.tsx";
->>>>>>> feat-refactor-react
 import { axisVariablesMapping } from "../../types/axisVariableMapping.tsx";
 
-// TODO: remove this when MUI library dependency removed
-// @ts-expect-error will add back later
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const HomePage = ({ config, setConfig }: HomePageProps) => {
   return (
     <div
@@ -40,12 +23,12 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
         align="center"
       >
         <Stack align="stretch">
-          {/* <PrototomeConfigForm
+          <PrototomeConfigForm
             config={config.prototome_config}
             setPrototomeConfig={(cfg) => {
               setConfig((prev) => ({ ...prev, prototome_config: cfg }));
             }}
-          /> */}
+          />
           <StateControl />
         </Stack>
         <Stack align="stretch">

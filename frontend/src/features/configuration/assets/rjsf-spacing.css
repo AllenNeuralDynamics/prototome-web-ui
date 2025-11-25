@@ -1,57 +1,105 @@
-.prototome-config-form input[id^="root"],
-.prototome-config-form select[id^="root"],
-.prototome-config-form textarea[id^="root"] {
+/* Inputs, selects, textareas */
+.prototome-config-form input,
+.prototome-config-form select,
+.prototome-config-form textarea {
+  font-size: 0.65rem !important;
+  height: 1.5rem !important;
+
+}
+
+/* Labels */
+.prototome-config-form label {
   font-size: 0.75rem !important;
-  padding: 0.2rem !important;
-  margin: 0.1rem 0 !important;
-  width: 80% !important;
-  transition: transform 0.2s ease;
-  display: block;
 }
 
-.prototome-config-form [class^="Mui"],
-.prototome-config-form [class$="-root"] {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}
-.prototome-config-form {
-  display: inline-block;
-  max-width: 400px;
-  width: auto;
-  height: auto;
-  padding: 0;
-  margin: "0 auto";
-}
-.prototome-config-form .MuiBox-root {
-  padding-top: 0 !important;
-  padding-left: 0 !important;
-  padding-bottom: 0 !important;
-  margin: 0 !important;
-}
-
-.prototome-config-form .MuiTypography-root {
-  font-size: 0.75rem !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  margin: 0 !important;
-}
-.prototome-config-form .MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation2 {
-  box-shadow: none !important;
-}
-
-.prototome-config-form .MuiGrid-root.MuiGrid-item {
-  padding-top: 0.7rem !important;
-  padding-bottom: 0 !important;
-  margin: 0 !important;
-}
-
-.prototome-config-form .MuiInputLabel-root:not(.MuiInputLabel-shrink) {
-  font-size: 0.75rem !important;
-  transform: translate(14px, 8px) scale(1) !important; /* move label up */
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms !important;
-}
-
+/* highlight edited fields */
 .prototome-config-form .edited-field {
   color: #339af0;
   font-weight: 1000;
+}
+
+/* black text for disabled text box */
+.prototome-config-form input:disabled,
+.prototome-config-form .mantine-Input-input:disabled {
+  color: black !important;    
+}
+
+Compact all form fields
+.prototome-config-form .mantine-TextInput-root,
+.prototome-config-form .mantine-Textarea-root,
+.prototome-config-form .mantine-NumberInput-root,
+.prototome-config-form .mantine-Select-root {
+  height: 1.9rem !important;        
+}
+
+/* shrink titles */
+.prototome-config-form .mantine-Title-root[data-order="3"] {
+  font-size: 1.0rem !important;       
+}
+
+/* Shrink checkbox */
+.prototome-config-form .mantine-Checkbox-input {
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+/*removes minus and plus buttons from axis map*/
+.prototome-config-form .rjsf-array-item-remove, 
+ .prototome-config-form .rjsf-object-property-expand{
+  display: none !important;
+}
+
+.mantine-TextInput-root {
+  height: 1.2rem !important;
+}
+
+/* Shrink the input elements */
+.mantine-Input-input.mantine-TextInput-input {
+  min-height: 1.2rem !important;
+}
+
+/* Shrink the number input elements */
+.mantine-Input-input.mantine-NumberInput-input {
+  min-height: 1.2rem !important;}
+
+  /* removes up and down arrows */
+.prototome-config-form .mantine-NumberInput-control {
+  display: none !important;
+}
+
+/* hide axis map labels */
+.prototome-config-form #root_axis_map_Piezo-key-label,
+.prototome-config-form #root_axis_map_Piezo-label
+{ 
+  display: none !important; 
+}
+.prototome-config-form #root_axis_map_Y-key-label,
+.prototome-config-form #root_axis_map_Y-label
+{ 
+  display: none !important; 
+}
+.prototome-config-form #root_axis_map_Z-key-label,
+.prototome-config-form #root_axis_map_Z-label
+{ 
+  display: none !important; 
+}
+
+/* hide pause range labels */
+.prototome-config-form #root_safe_pause_range_0-label,
+.prototome-config-form #root_safe_pause_range_1-label
+{ 
+  display: none !important; 
+}
+
+/* shrink pause range title */
+.prototome-config-form #root_safe_pause_range__title {
+  font-size: 0.75rem !important;    
+  font-weight: bold !important;
+  margin-top: 0.75rem !important;
+}
+
+.icon-tabler-chevron-up,
+.icon-tabler-chevron-down,
+.mantine-ActionIcon-root {
+  display: none !important;
 }

@@ -12,6 +12,7 @@
   "dependencies": {
     "@mantine/core": "^8.3.8",
     "@mantine/hooks": "^8.3.8",
+    "@rjsf/mantine": "^6.1.2",
     "@rjsf/utils": "^6.1.1",
     "@rjsf/validator-ajv8": "^6.1.1",
     "@tailwindcss/vite": "^4.1.17",
