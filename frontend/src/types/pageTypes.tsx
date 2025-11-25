@@ -1,4 +1,4 @@
-import { AppConfig } from "./configTypes";
+import type { AppConfig } from "./configTypes";
 
 export interface HomePageProps {
   config: AppConfig;

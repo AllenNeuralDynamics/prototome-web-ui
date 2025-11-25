@@ -4,7 +4,7 @@ export type CameraWidgetProps = {
   gainSpecs: SliderSpecs;
 };
 
-class SliderSpecs {
+type SliderSpecs = {
   step: number;
   min: number;
   max: number;

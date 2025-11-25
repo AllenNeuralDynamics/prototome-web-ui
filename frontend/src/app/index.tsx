@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, Link, useLocation } from "react-router-dom";
 import { AppRouter } from "./router.tsx";
+<<<<<<< HEAD:frontend/src/app/App.tsx
 import { Group, Button, Card } from "@mantine/core";
 import { AppConfig } from "../types/configTypes.tsx";
 import {
   useDataChannelStore,
   useVideoStreamStore,
 } from "../stores/dataChannelStore.tsx";
+=======
+import { Group, Button, Paper } from "@mantine/core";
+import type { AppConfig } from "../types/configTypes.tsx";
+import { useDataChannelStore, useVideoStreamStore } from "../stores/dataChannelStore.tsx";
+>>>>>>> feat-refactor-react:frontend/src/app/index.tsx
 import { negotiate } from "../utils/webRtcConnection.tsx";
 import { api } from "../lib/client.tsx";
 
-function NavBar() {
+const NavBar = () => {
   const location = useLocation();
 
   return (
@@ -37,7 +43,7 @@ function NavBar() {
   );
 }
 
-function App() {
+const App = () => {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const dataChannels = useDataChannelStore((state) => state.channels);
   const addChannel = useDataChannelStore((state) => state.addChannel);
