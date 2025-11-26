@@ -28,14 +28,13 @@ export const StagePosVis = ({
       const pos = JSON.parse(evt.data);
       setPositions((prev) => ({ ...prev, ...pos }));
     };
-    positionChannel.removeEventListener("message", handlePosMessage);  
+    positionChannel.removeEventListener("message", handlePosMessage);   // HACK: remove old message handler before adding new one
     positionChannel.addEventListener("message", handlePosMessage)
     
     // create reference
     positionChannelRef.current = positionChannel;
 
     return () => {
-      console.log(location)
       //positionChannel.removeEventListener("message", handlePosMessage); // FIXME: This causes dropping of channel sometimes? Weird
     };
   }, [dataChannels[`prototome_stage_positions`], location]);

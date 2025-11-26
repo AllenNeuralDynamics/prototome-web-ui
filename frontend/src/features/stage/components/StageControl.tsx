@@ -277,7 +277,9 @@ export const StageControl = ({
                 ▼
               </Button>
             </Stack>
+            <Stack>
             <Button
+              size="xs"
               color={getAxisColor(axis)}
               onClick={() => {
                 if (typeof posInput[axis] === "number") {
@@ -287,6 +289,22 @@ export const StageControl = ({
             >
               Move
             </Button>
+            <Button 
+              size="xs" 
+              color={getAxisColor(axis)} 
+              variant="light" 
+              onClick={() => {stageApi.postHomeAxis(stageId, axis)}}
+              >
+                Home
+              </Button>
+            <Button 
+              size="xs" 
+              color={getAxisColor(axis)}
+              onClick={() => {stageApi.postStopAxis(stageId, axis)}}
+              >
+                Stop
+              </Button>
+            </Stack>
           </Group>
         </Card>
       ))}

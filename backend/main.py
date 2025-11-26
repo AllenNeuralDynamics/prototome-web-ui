@@ -195,7 +195,11 @@ posts = {"/{element_id}/set_gain": "{element_id}_set_gain",
          "/pause_cutting":"pause_cutting",
          "/stop_cutting_safely":"stop_cutting_safely",
          "/stop_cutting_now":"stop_cutting_now",
-         "/set_prototome_config": "set_prototome_config"
+         "/set_prototome_config": "set_prototome_config",
+         "/{element_id}/stop_axis": "stop_axis",
+         "/{element_id}/home_axis": "home_axis",
+         "/stop_all_axes": "stop_all_axes",
+         "/home_all_axes": "home_all_axes",
          }  
 
 for path, call_name in posts.items():

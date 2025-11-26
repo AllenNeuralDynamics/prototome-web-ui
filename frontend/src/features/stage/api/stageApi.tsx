@@ -1,6 +1,13 @@
 import { api } from "../../../lib/client.tsx";
 
 export const stageApi = {
+
+  postStopAxis: (stageId: string, axis: string,) =>
+  api.post(`/${stageId}/stop_axis`, { axis }),
+
+  postHomeAxis: (stageId: string, axis: string,) =>
+    api.post(`/${stageId}/home_axis`, { axis }),
+
   postPosition: (stageId: string, axis: string, position: number) =>
     api.post(`/${stageId}/set_position`, { axis, position }),
   
