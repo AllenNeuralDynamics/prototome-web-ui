@@ -41,12 +41,13 @@ const App = () => {
   const addChannel = useDataChannelStore((state) => state.addChannel);
   const addStream = useVideoStreamStore((state) => state.addStream);
 
-  //  fetch config
+  //  fetch ui config and prototome config
   useEffect(() => {
     async function fetchConfig() {
       try {
-        const response = await api.get("/config");
-        setConfig(response.data);
+        const uiConfig = await api.get("/config");
+        const prototomeConfig = await api.get("/get_prototome_config");
+        setConfig({...uiConfig.data, prototome_config:prototomeConfig.data});
       } catch (error) {
         console.error("Error fetching config:", error);
       }
@@ -83,7 +84,7 @@ const App = () => {
     });
 
     negotiate(pc, transceiverMapping);
-  }, [config]);
+  }, [config?.data_channels, config?.video_streams]);
 
   if (!config) return <div>Loading configuration...</div>;
 

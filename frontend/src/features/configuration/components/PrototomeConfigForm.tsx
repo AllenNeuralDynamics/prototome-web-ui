@@ -9,6 +9,7 @@ import Form from "@rjsf/mantine";
 import { Button, FileButton, Title } from "@mantine/core";
 import "../assets/rjsf-spacing.css";
 import { Card } from "@mantine/core";
+import { prototomeConfigApi } from "../api/prototomeConfigApi.ts"
 
 type PrototomeConfigProps = {
   config: PrototomeConfig;
@@ -19,8 +20,14 @@ export const PrototomeConfigForm = ({
   config,
   setPrototomeConfig,
 }: PrototomeConfigProps) => {
+  
+  // post new config when config is updated by user
   useEffect(() => {
-    
+    prototomeConfigApi.postConfig(config)
+  }, [config]);
+  
+  // revert blue edited fields when user presses enter on form 
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         
@@ -30,10 +37,11 @@ export const PrototomeConfigForm = ({
       }
     };
     window.addEventListener("keydown", handleKeyDown);
+    
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [config]);
+  }, []);
 
   const handleChange = () => {
     const activeEl = document.activeElement as HTMLInputElement | null;
@@ -52,7 +60,6 @@ export const PrototomeConfigForm = ({
           const parsedData = JSON.parse(result);
           const validate = validator.ajv.compile(prototomeSchema);
           const valid = validate(parsedData?.prototome_config || parsedData);
-          console.log(valid, parsedData?.prototome_config || parsedData);
           if (!valid) {
             throw new Error("Loaded json is not valid");
           }
@@ -80,17 +87,10 @@ export const PrototomeConfigForm = ({
           validator={validator}
           formData={config}
           onChange={handleChange}
-          onSubmit={({ formData }) => {
-            console;
-            for (const key of Object.keys(formData)) {
-              const el = document.getElementsByName(`root_${key}`)[0] as
-                | HTMLInputElement
-                | undefined;
-              if (!el) continue;
-              el.classList.remove("edited-field");
-              console.log("asdfas");
-              setPrototomeConfig(formData);
-            }
+          onSubmit={(form) => {
+            setPrototomeConfig(form.formData);
+            const edited = document.querySelectorAll(".edited-field");
+            edited.forEach((el) => el.classList.remove("edited-field"));
           }}
         >
           <Button m="xs" type="submit">

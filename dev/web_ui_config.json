@@ -32,6 +32,7 @@
                     "prototome_start_camera", 
                     "prototome_stop_camera", 
                     "prototome_exposure", 
-                    "prototome_gain"],
+                    "prototome_gain", 
+                    "prototome_state"],
   "video_streams": ["new_frame"]
 }

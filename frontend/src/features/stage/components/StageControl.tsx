@@ -30,8 +30,11 @@ export const StageControl = ({
   const [ranges, setRanges] = useState<Record<string, number[]>>({});
   const positionChannelRef = useRef<RTCDataChannel | null>(null);
   const dataChannels = useDataChannelStore((state) => state.channels);
+  
+  // FIXME: Since StagePosVis is also using this dataChannel, we should only send to active page component
+  // right now it is read by both
 
-  // initialize and connect position dataChannel
+  // access stored dataChannels and add message handlers
   useEffect(() => {
     // add position channel
     const positionChannel = dataChannels[`prototome_stage_positions`];
@@ -40,12 +43,14 @@ export const StageControl = ({
       const pos = JSON.parse(evt.data);
       setPositions((prev) => ({ ...prev, ...pos }));
     };
-    positionChannel.addEventListener("message", handlePosMessage);
+    positionChannel.removeEventListener("message", handlePosMessage);  // HACK: remove old message handler before adding new one
+    positionChannel.addEventListener("message", handlePosMessage)
+    
     // create reference
     positionChannelRef.current = positionChannel;
 
     return () => {
-      positionChannel.removeEventListener("message", handlePosMessage);
+      //positionChannel.removeEventListener("message", handlePosMessage); // FIXME: This causes dropping of channel sometimes? Weird
     };
   }, [dataChannels]);
 
@@ -137,6 +142,8 @@ export const StageControl = ({
             </Text>
           </Group>
           <Slider
+            min={Math.min(0, ranges[axis][0])}
+            max={Math.max(100, ranges[axis][1])}
             color={getAxisColor(axis)}
             value={parseFloat(positions[axis].toFixed(3))}
             labelAlwaysOn
@@ -172,7 +179,8 @@ export const StageControl = ({
           <RangeSlider
             color={getAxisColor(axis)}
             value={[ranges[axis][0] ?? 0, ranges[axis][1] ?? 100]}
-            minRange={0}
+            min={Math.min(0, ranges[axis][0])}
+            max={Math.max(100, ranges[axis][1])}
           />
           <Group mb="xs" style={{ marginTop: "10px" }}>
             <Text size="sm">Velocity</Text>

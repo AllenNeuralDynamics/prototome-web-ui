@@ -25,7 +25,7 @@ export interface PrototomeConfig {
   section_thickness: number;
   state_machine: string;
   top_position_mm: number;
-  safe_pause_range: [number, number]
+  
 }
 
 export interface AppConfig {

@@ -4,6 +4,7 @@ import type { StagePosVisProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
 import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
 import { stageApi } from "../api/stageApi.tsx";
+import { useLocation } from "react-router-dom";
 
 export const StagePosVis = ({
   stageId,
@@ -15,26 +16,31 @@ export const StagePosVis = ({
   const [ranges, setRanges] = useState<Record<string, number[]>>({});
   const positionChannelRef = useRef<RTCDataChannel | null>(null);
   const dataChannels = useDataChannelStore((state) => state.channels);
+  const location = useLocation()
 
   // access stored dataChannels and add message handlers
   useEffect(() => {
     // add position channel
     const positionChannel = dataChannels[`prototome_stage_positions`];
+    if (!positionChannel) return; // channel not ready yet
     // update pos upon message
     const handlePosMessage = (evt: MessageEvent) => {
       const pos = JSON.parse(evt.data);
       setPositions((prev) => ({ ...prev, ...pos }));
     };
-    positionChannel.addEventListener("message", handlePosMessage);
+    positionChannel.removeEventListener("message", handlePosMessage);  
+    positionChannel.addEventListener("message", handlePosMessage)
+    
     // create reference
     positionChannelRef.current = positionChannel;
 
     return () => {
-      positionChannel.removeEventListener("message", handlePosMessage);
+      console.log(location)
+      //positionChannel.removeEventListener("message", handlePosMessage); // FIXME: This causes dropping of channel sometimes? Weird
     };
-  }, [dataChannels]);
+  }, [dataChannels[`prototome_stage_positions`], location]);
 
-  // populate range and velocity
+  // populate range
   useEffect(() => {
     async function fetchRange() {
 
@@ -52,6 +58,7 @@ export const StagePosVis = ({
   const stageRanges = ranges ?? {};
   if (!axes.every((axis) => axis in stageRanges)) return;
   
+
   return (
     <div>
       {axes.map((axis) => (
@@ -79,6 +86,8 @@ export const StagePosVis = ({
           <Slider
             color={getAxisColor(axis)}
             value={parseFloat(positions[axis].toFixed(3))}
+            min={Math.min(...Object.values(ranges).map(([min, _]) => min))}
+            max={Math.max(...Object.values(ranges).map(([_, max]) => max))}
             labelAlwaysOn
             marks={[
               {

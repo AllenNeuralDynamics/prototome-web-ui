@@ -67,8 +67,8 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
               // This may change if configurations gets refactored
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const visConfig: Record<string, Record<string, any>> = {};
-
               for (const axis of value.axes) {
+
                 visConfig[axis] = {};
                 const [ptStage, ptAxis] =
                   config.prototome_config.axis_map[axis].split(".");

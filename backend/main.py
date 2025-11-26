@@ -131,6 +131,19 @@ async def offer(request:Request):
             msg = json.loads(message)
             logger.debug(f"Received: {msg}")
             router_client.call(**msg)
+        
+        @channel.on("error")
+        async def error(e):                                          
+           print(e, channel.label)
+        
+        @channel.on("close")
+        async def close():                                          
+           print("close", channel.label)
+        
+        @channel.on("open")
+        async def open():                                          
+           print("open", channel.label)
+
 
     for t in pc.getTransceivers():
         if t.kind == "video":   # configure video sources
@@ -167,7 +180,9 @@ gets = {"/{element_id}/gain_min": "{element_id}_gain_min",
         "/{element_id}/exposure_step": "{element_id}_exposure_step", 
         "/{element_id}/velocity": "get_axis_velocity",
         "/{element_id}/max_velocity": "get_axis_max_velocity",
-        "/{element_id}/range": "get_axis_travel_range",}
+        "/{element_id}/range": "get_axis_travel_range",
+        "/get_prototome_config": "get_prototome_config",
+        "/get_prototome_state":"get_prototome_state"}
 
 posts = {"/{element_id}/set_gain": "{element_id}_set_gain",
          "/{element_id}/set_exposure": "{element_id}_set_exposure",
@@ -179,17 +194,18 @@ posts = {"/{element_id}/set_gain": "{element_id}_set_gain",
          "/start_cutting":"start_cutting",
          "/pause_cutting":"pause_cutting",
          "/stop_cutting_safely":"stop_cutting_safely",
-         "/stop_cutting_now":"stop_cutting_now"
+         "/stop_cutting_now":"stop_cutting_now",
+         "/set_prototome_config": "set_prototome_config"
          }  
 
 for path, call_name in posts.items():
-    async def endpoint(element_id: str, kwargs: dict = None, call_name=call_name):
+    async def endpoint(element_id: str = None, kwargs: dict = None, call_name=call_name):
         call_name = call_name.format(element_id=element_id)
         router_client.call_by_name(call_name, kwargs=kwargs)
     app.add_api_route(path, endpoint, methods=["POST"])
 
 for path, call_name in gets.items():
-    async def endpoint(element_id: str, request: Request, call_name=call_name):
+    async def endpoint(request: Request, element_id: str = None, call_name=call_name):
         call_name = call_name.format(element_id=element_id)
         kwargs = dict(request.query_params)
         return router_client.call_by_name(call_name, kwargs=kwargs)
