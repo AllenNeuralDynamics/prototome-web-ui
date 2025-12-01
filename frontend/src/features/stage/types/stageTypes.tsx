@@ -1,4 +1,4 @@
-import {axisVariablesMapping} from "../../../types/axisVariableMapping.tsx";
+import {axisVariablesMapping} from "@/types/axisVariableMapping.tsx";
 
 export type StageControlProps = {
   stageId: string;

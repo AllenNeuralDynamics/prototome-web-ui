@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Slider, Text, Button, Group, Card } from "@mantine/core";
 import type { CameraWidgetProps } from "../types/cameraTypes.tsx";
-import { useDataChannelStore,  useVideoStreamStore} from "../../../stores/dataChannelStore.tsx";
+import { useDataChannelStore,  useVideoStreamStore} from "@/stores/dataChannelStore.tsx";
 
 export const CameraWidget = ({
   cameraId,

@@ -13,7 +13,7 @@ import {
 import "@mantine/core/styles.css";
 import type { StageControlProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
-import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
+import { useDataChannelStore } from "@/stores/dataChannelStore.tsx";
 
 export const StageControl = ({
   stageId,
