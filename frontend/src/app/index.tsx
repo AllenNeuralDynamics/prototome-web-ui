@@ -1,40 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter, Link, useLocation } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import { AppRouter } from "./router.tsx";
-import { Group, Button, Container } from "@mantine/core";
 import type { AppConfig } from "@/types/configTypes.tsx";
 import { useDataChannelStore, useVideoStreamStore } from "@/stores/dataChannelStore.tsx";
 import { negotiate } from "@/utils/webRtcConnection.tsx";
 import { AppProvider } from "./provider.tsx";
-import { ColorSchemeToggle } from "@/components/ui/color-scheme-toggle/color-scheme-toggle.tsx";
+import { NavBar } from "@/components/ui/NavBar/NavBar.tsx";
 
-const NavBar = () => {
-  const location = useLocation();
-
-  return (
-    <Container fluid className="flex justify-between shadow-xs p-2 mb-[1rem]">
-      <Group>
-        <Button
-          component={Link}
-          to="/"
-          variant={location.pathname === "/" ? "filled" : "outline"}
-          color="blue"
-        >
-          Home
-        </Button>
-        <Button
-          component={Link}
-          to="/stage"
-          variant={location.pathname === "/stage" ? "filled" : "outline"}
-          color="blue"
-        >
-          Stages
-        </Button>
-      </Group>
-      <ColorSchemeToggle />
-    </Container>
-  );
-}
 
 const App = () => {
   const [config, setConfig] = useState<AppConfig | null>(null);
