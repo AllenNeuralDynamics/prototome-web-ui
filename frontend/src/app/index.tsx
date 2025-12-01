@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, Link, useLocation } from "react-router-dom";
 import { AppRouter } from "./router.tsx";
-import { Group, Button, Paper, Container } from "@mantine/core";
+import { Group, Button, Container } from "@mantine/core";
 import type { AppConfig } from "@/types/configTypes.tsx";
 import { useDataChannelStore, useVideoStreamStore } from "@/stores/dataChannelStore.tsx";
 import { negotiate } from "@/utils/webRtcConnection.tsx";
