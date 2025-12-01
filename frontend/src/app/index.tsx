@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, Link, useLocation } from "react-router-dom";
 import { AppRouter } from "./router.tsx";
-import { Group, Button, Paper } from "@mantine/core";
+import { Group, Button, Paper, Container } from "@mantine/core";
 import type { AppConfig } from "@/types/configTypes.tsx";
 import { useDataChannelStore, useVideoStreamStore } from "@/stores/dataChannelStore.tsx";
 import { negotiate } from "@/utils/webRtcConnection.tsx";
+import { AppProvider } from "./provider.tsx";
+import { ColorSchemeToggle } from "@/components/ui/color-scheme-toggle/color-scheme-toggle.tsx";
 
 const NavBar = () => {
   const location = useLocation();
 
   return (
-    <Paper shadow="xs" p="sm" style={{ marginBottom: "1rem" }}>
+    <Container fluid className="flex justify-between shadow-xs p-2 mb-[1rem]">
       <Group>
         <Button
           component={Link}
@@ -29,7 +31,8 @@ const NavBar = () => {
           Stages
         </Button>
       </Group>
-    </Paper>
+      <ColorSchemeToggle />
+    </Container>
   );
 }
 
@@ -91,10 +94,12 @@ const App = () => {
     return <div> Connecting data channels </div>;
 
   return (
-    <BrowserRouter>
-      <NavBar />
-      <AppRouter config={config} setConfig={setConfig as React.Dispatch<React.SetStateAction<AppConfig>>} />
-    </BrowserRouter>
+    <AppProvider>
+      <BrowserRouter>
+        <NavBar />
+        <AppRouter config={config} setConfig={setConfig as React.Dispatch<React.SetStateAction<AppConfig>>} />
+      </BrowserRouter>
+    </AppProvider> 
   );
 }
 
