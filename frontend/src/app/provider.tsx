@@ -45,8 +45,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       <MantineProvider>
         <ErrorBoundary FallbackComponent={MainErrorFallback}>
           <QueryClientProvider client={queryClient}>
-            {import.meta.env.DEV && <ReactQueryDevtools />}
-            {/* <Problem /> */}
+            {/* {import.meta.env.DEV && <ReactQueryDevtools />} */}
             {children}
           </QueryClientProvider>
         </ErrorBoundary>
