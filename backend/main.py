@@ -1,7 +1,6 @@
 from fastapi import FastAPI, APIRouter, Request
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.config import router as config_router
-#from backend.api.camera import router as camera_router
 from contextlib import asynccontextmanager
 import asyncio
 from aiortc import RTCPeerConnection, RTCSessionDescription, RTCDataChannel, VideoStreamTrack
@@ -143,7 +142,6 @@ async def offer(request:Request):
         @channel.on("open")
         async def open():                                          
            print("open", channel.label)
-
 
     for t in pc.getTransceivers():
         if t.kind == "video":   # configure video sources

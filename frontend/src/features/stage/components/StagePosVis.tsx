@@ -4,7 +4,6 @@ import type { StagePosVisProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
 import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
 import { stageApi } from "../api/stageApi.tsx";
-import { useLocation } from "react-router-dom";
 
 export const StagePosVis = ({
   stageId,
@@ -16,28 +15,29 @@ export const StagePosVis = ({
   const [ranges, setRanges] = useState<Record<string, number[]>>({});
   const positionChannelRef = useRef<RTCDataChannel | null>(null);
   const dataChannels = useDataChannelStore((state) => state.channels);
-  const location = useLocation()
 
   // access stored dataChannels and add message handlers
   useEffect(() => {
     // add position channel
     const positionChannel = dataChannels[`prototome_stage_positions`];
     if (!positionChannel) return; // channel not ready yet
+    
     // update pos upon message
     const handlePosMessage = (evt: MessageEvent) => {
       const pos = JSON.parse(evt.data);
-      setPositions((prev) => ({ ...prev, ...pos }));
+      setPositions(prev => ({ ...prev, ...pos }));
     };
-    positionChannel.removeEventListener("message", handlePosMessage);   // HACK: remove old message handler before adding new one
-    positionChannel.addEventListener("message", handlePosMessage)
-    
+    positionChannel.addEventListener("message", handlePosMessage);
+    console.log("attaching event vis")
     // create reference
     positionChannelRef.current = positionChannel;
 
     return () => {
-      //positionChannel.removeEventListener("message", handlePosMessage); // FIXME: This causes dropping of channel sometimes? Weird
+      positionChannel.removeEventListener("message", handlePosMessage);
+      console.log('removing vis')
+
     };
-  }, [dataChannels[`prototome_stage_positions`], location]);
+  }, [!!dataChannels[`prototome_stage_positions`]]);
 
   // populate range
   useEffect(() => {
@@ -57,7 +57,6 @@ export const StagePosVis = ({
   const stageRanges = ranges ?? {};
   if (!axes.every((axis) => axis in stageRanges)) return;
   
-
   return (
     <div>
       {axes.map((axis) => (

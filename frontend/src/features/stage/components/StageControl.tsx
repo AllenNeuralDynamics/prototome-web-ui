@@ -31,28 +31,28 @@ export const StageControl = ({
   const positionChannelRef = useRef<RTCDataChannel | null>(null);
   const dataChannels = useDataChannelStore((state) => state.channels);
   
-  // FIXME: Since StagePosVis is also using this dataChannel, we should only send to active page component
-  // right now it is read by both
-
   // access stored dataChannels and add message handlers
   useEffect(() => {
     // add position channel
     const positionChannel = dataChannels[`prototome_stage_positions`];
+    if (!positionChannel) return; // channel not ready yet
+    
     // update pos upon message
     const handlePosMessage = (evt: MessageEvent) => {
       const pos = JSON.parse(evt.data);
-      setPositions((prev) => ({ ...prev, ...pos }));
+      setPositions(prev => ({ ...prev, ...pos }));
     };
-    positionChannel.removeEventListener("message", handlePosMessage);  // HACK: remove old message handler before adding new one
-    positionChannel.addEventListener("message", handlePosMessage)
-    
+    positionChannel.addEventListener("message", handlePosMessage);
+    console.log("attaching event control")
+
     // create reference
     positionChannelRef.current = positionChannel;
 
     return () => {
-      //positionChannel.removeEventListener("message", handlePosMessage); // FIXME: This causes dropping of channel sometimes? Weird
+      positionChannel.removeEventListener("message", handlePosMessage);
+      console.log('removing control')
     };
-  }, [dataChannels]);
+  }, [!!dataChannels[`prototome_stage_positions`]]);
 
   // populate range and velocity
     useEffect(() => {

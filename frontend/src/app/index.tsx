@@ -84,7 +84,13 @@ const App = () => {
     });
 
     negotiate(pc, transceiverMapping);
-  }, [config?.data_channels, config?.video_streams]);
+
+  return () => {
+    pc.close();
+    console.log("closing") 
+  };
+
+  }, [!!config]);
 
   if (!config) return <div>Loading configuration...</div>;
 
