@@ -5,7 +5,7 @@ import type { AppConfig } from "@/types/configTypes.tsx";
 import { useDataChannelStore, useVideoStreamStore } from "@/stores/dataChannelStore.tsx";
 import { negotiate } from "@/utils/webRtcConnection.tsx";
 import { AppProvider } from "./provider.tsx";
-import { NavBar } from "@/components/ui/NavBar/NavBar.tsx";
+import MainLayout from "@/components/layouts/MainLayout.tsx";
 
 
 const App = () => {
@@ -68,8 +68,9 @@ const App = () => {
   return (
     <AppProvider>
       <BrowserRouter>
-        <NavBar />
-        <AppRouter config={config} setConfig={setConfig as React.Dispatch<React.SetStateAction<AppConfig>>} />
+        <MainLayout>
+          <AppRouter config={config} setConfig={setConfig as React.Dispatch<React.SetStateAction<AppConfig>>} />
+        </MainLayout> 
       </BrowserRouter>
     </AppProvider> 
   );

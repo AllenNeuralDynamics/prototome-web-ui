@@ -2,7 +2,7 @@ import { Button, Container, Group } from "@mantine/core";
 import { ColorSchemeToggle } from "../ColorSchemeToggle";
 import { Link, useLocation } from "react-router-dom";
 
-export const NavBar = () => {
+export const Header = () => {
   const location = useLocation();
 
   return (
