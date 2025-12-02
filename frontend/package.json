@@ -17,12 +17,9 @@
     "@rjsf/validator-ajv8": "^6.1.1",
     "@tabler/icons-react": "^3.35.0",
     "@tailwindcss/vite": "^4.1.17",
-<<<<<<< HEAD
     "axios": "^1.13.2",
-=======
     "@tanstack/react-query": "^5.90.11",
     "@tanstack/react-query-devtools": "^5.91.1",
->>>>>>> feat-refactor-react
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-error-boundary": "^6.0.0",

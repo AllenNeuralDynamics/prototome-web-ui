@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-import { axisVariablesMapping } from "../../../types/axisVariableMapping.tsx";
-=======
-import {axisVariablesMapping} from "@/types/axisVariableMapping.tsx";
->>>>>>> feat-refactor-react
 
 export type StageControlProps = {
   stageId: string;

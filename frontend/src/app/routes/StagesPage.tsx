@@ -1,15 +1,8 @@
-<<<<<<< HEAD
-import { StageControl } from "../../features/stage/index.js";
+import { StageControl } from "@/features/stage/index.js";
 import { Stack, Group, Button } from "@mantine/core";
 import "@mantine/core/styles.css";
-import type { AppConfig, StageConfig } from "../../types/configTypes.tsx";
-import { api } from "../../lib/client.tsx"
-=======
-import { StageControl } from "@/features/stage/index.js";
-import { Stack } from "@mantine/core";
-import "@mantine/core/styles.css";
 import type { AppConfig, StageConfig } from "@/types/configTypes.tsx";
->>>>>>> feat-refactor-react
+import { api } from "../../lib/client.tsx"
 
 export const StagesPage = ({ config }: { config: AppConfig }) => {
   return (

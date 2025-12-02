@@ -103,15 +103,10 @@
   dependencies:
     "@babel/types" "^7.28.0"
 
-<<<<<<< HEAD
-"@babel/runtime@^7.20.13":
-  version "7.28.2"
-=======
 "@babel/runtime@^7.12.5", "@babel/runtime@^7.20.13":
   version "7.28.4"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.28.4.tgz#a70226016fabe25c5783b2f22d3e1c9bc5ca3326"
   integrity sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==
->>>>>>> feat-refactor-react
 
 "@babel/template@^7.27.2":
   version "7.27.2"
@@ -806,9 +801,6 @@
     "@tailwindcss/oxide" "4.1.17"
     tailwindcss "4.1.17"
 
-<<<<<<< HEAD
-"@types/estree@^1.0.6", "@types/estree@1.0.8":
-=======
 "@tanstack/query-core@5.90.11":
   version "5.90.11"
   resolved "https://registry.yarnpkg.com/@tanstack/query-core/-/query-core-5.90.11.tgz#702e2b197a01481cff858045de1e17a634b718c6"
@@ -841,7 +833,6 @@
     tslib "^2.4.0"
 
 "@types/estree@1.0.8", "@types/estree@^1.0.6":
->>>>>>> feat-refactor-react
   version "1.0.8"
   resolved "https://registry.npmjs.org/@types/estree/-/estree-1.0.8.tgz"
   integrity sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==
@@ -1945,19 +1936,12 @@ punycode@^2.1.0:
   dependencies:
     scheduler "^0.27.0"
 
-<<<<<<< HEAD
-react-is@^16.13.1:
-  version "16.13.1"
-  resolved "https://registry.npmjs.org/react-is/-/react-is-16.13.1.tgz"
-  integrity sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==
-=======
 react-error-boundary@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/react-error-boundary/-/react-error-boundary-6.0.0.tgz#a9e552146958fa77d873b587aa6a5e97544ee954"
   integrity sha512-gdlJjD7NWr0IfkPlaREN2d9uUZUlksrfOx7SX62VRerwXbMY6ftGCIZua1VG1aXFNOimhISsTq+Owp725b9SiA==
   dependencies:
     "@babel/runtime" "^7.12.5"
->>>>>>> feat-refactor-react
 
 react-is@^18.3.1:
   version "18.3.1"
