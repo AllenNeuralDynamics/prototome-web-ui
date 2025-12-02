@@ -1,8 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Slider, Text, Button, Group, Card } from "@mantine/core";
 import type { CameraWidgetProps } from "../types/cameraTypes.tsx";
+<<<<<<< HEAD
 import { useVideoStreamStore } from "../../../stores/dataChannelStore.tsx";
 import { cameraApi } from "../api/cameraApi.tsx"
+=======
+import { useDataChannelStore,  useVideoStreamStore} from "@/stores/dataChannelStore.tsx";
+>>>>>>> feat-refactor-react
 
 export const CameraWidget = ({
   cameraId

@@ -1,39 +1,13 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Link, useLocation } from "react-router-dom";
+import { BrowserRouter} from "react-router-dom";
 import { AppRouter } from "./router.tsx";
-import { Group, Button, Card } from "@mantine/core";
-import type { AppConfig } from "../types/configTypes.tsx";
-import { useDataChannelStore, useVideoStreamStore } from "../stores/dataChannelStore.tsx";
-
-import { negotiate } from "../utils/webRtcConnection.tsx";
+import type { AppConfig } from "@/types/configTypes.tsx";
+import { useDataChannelStore, useVideoStreamStore } from "@/stores/dataChannelStore.tsx";
+import { negotiate } from "@/utils/webRtcConnection.tsx";
+import { AppProvider } from "./provider.tsx";
+import MainLayout from "@/components/layouts/MainLayout.tsx";
 import { api } from "../lib/client.tsx";
 
-const NavBar = () => {
-  const location = useLocation();
-
-  return (
-    <Card shadow="xs" p="sm" style={{ marginBottom: "1rem" }}>
-      <Group>
-        <Button
-          component={Link}
-          to="/"
-          variant={location.pathname === "/" ? "filled" : "outline"}
-          color="blue"
-        >
-          Home
-        </Button>
-        <Button
-          component={Link}
-          to="/stage"
-          variant={location.pathname === "/stage" ? "filled" : "outline"}
-          color="blue"
-        >
-          Stages
-        </Button>
-      </Group>
-    </Card>
-  );
-}
 
 const App = () => {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -98,13 +72,13 @@ const App = () => {
     return <div> Connecting data channels </div>;
 
   return (
-    <BrowserRouter>
-      <NavBar />
-      <AppRouter
-        config={config}
-        setConfig={setConfig as React.Dispatch<React.SetStateAction<AppConfig>>}
-      />
-    </BrowserRouter>
+    <AppProvider>
+      <BrowserRouter>
+        <MainLayout>
+          <AppRouter config={config} setConfig={setConfig as React.Dispatch<React.SetStateAction<AppConfig>>} />
+        </MainLayout> 
+      </BrowserRouter>
+    </AppProvider> 
   );
 }
 

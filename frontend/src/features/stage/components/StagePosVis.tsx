@@ -2,8 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { Card, Slider, Badge } from "@mantine/core";
 import type { StagePosVisProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
+<<<<<<< HEAD
 import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
 import { stageApi } from "../api/stageApi.tsx";
+=======
+import { useDataChannelStore } from "@/stores/dataChannelStore.tsx";
+>>>>>>> feat-refactor-react
 
 export const StagePosVis = ({
   stageId,

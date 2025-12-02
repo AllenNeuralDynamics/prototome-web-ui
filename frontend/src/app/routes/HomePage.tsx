@@ -1,13 +1,21 @@
+<<<<<<< HEAD
 import { CameraWidget } from "../../features/camera/index.js";
 import { StagePosVis } from "../../features/stage/index.js";
 import { PrototomeConfigForm } from "../../features/configuration/index";
 import { StateControl } from "../../features/acquisitionControl/index";
+=======
+import { CameraWidget } from "@/features/camera/index";
+import { StagePosVis } from "@/features/stage/index";
+// TODO: Disabled until MUI library dependency removed
+// import { PrototomeConfigForm } from "../../features/configuration/index";
+import { StateControl } from "@/features/acquisitionControl/index";
+>>>>>>> feat-refactor-react
 import { Group, Stack } from "@mantine/core";
 import "@mantine/core/styles.css";
-import type { CameraConfig, PrototomeConfig } from "../../types/configTypes.tsx";
-import type { StageConfig } from "../../types/configTypes.tsx";
-import type { HomePageProps } from "../../types/pageTypes.tsx";
-import { axisVariablesMapping } from "../../types/axisVariableMapping.tsx";
+import type { CameraConfig, PrototomeConfig } from "@/types/configTypes.tsx";
+import type { StageConfig } from "@/types/configTypes.tsx";
+import type { HomePageProps } from "@/types/pageTypes.tsx";
+import { axisVariablesMapping } from "@/types/axisVariableMapping.tsx";
 
 export const HomePage = ({ config, setConfig }: HomePageProps) => {
   return (
