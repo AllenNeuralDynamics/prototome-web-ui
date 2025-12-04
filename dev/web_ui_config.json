@@ -6,27 +6,36 @@
     "axes": ["Y", "Z", "Piezo"],
     "type": "stage"
   },
-  "prototome_config": {
-    "active": true,
-    "axis_map": {
-      "Piezo": "pt_stage_fine.axis1",
-      "Y": "pt_stage_coarse.axis2",
-      "Z": "pt_stage_coarse.axis1"
-    },
-    "bottom_position_mm": 60,
-    "cut_speed": 4,
-    "ep_cut_bottom": 40,
-    "ep_cut_top": 20,
-    "retract_distance": 5,
-    "retract_piezo_distance": 5,
-    "retract_speed": 24.0,
-    "retract_time_ok_count": 4,
-    "safe_pause_range": [15, 50],
-    "section_thickness": 100,
-    "state_machine": "C:\\Users\\micah.woodard\\Documents\\GitHub\\prototome\\pylasso\\devices\\microtome\\prototome_cd\\prototome_cd_facing.scxml",
-    "top_position_mm": 5
-  },
   "data_channels": ["prototome_stage_positions", 
                     "prototome_state"],
-  "video_streams": ["new_frame"]
+  "video_streams": ["new_frame"],
+  "gets": {"/{element_id}/gain_min": "{element_id}_gain_min", 
+        "/{element_id}/gain_max": "{element_id}_gain_max", 
+        "/{element_id}/gain_step": "{element_id}_gain_step",
+        "/{element_id}/exposure_min": "{element_id}_exposure_min", 
+        "/{element_id}/exposure_max": "{element_id}_exposure_max", 
+        "/{element_id}/exposure_step": "{element_id}_exposure_step", 
+        "/{element_id}/velocity": "get_axis_velocity",
+        "/{element_id}/max_velocity": "get_axis_max_velocity",
+        "/{element_id}/range": "get_axis_travel_range",
+        "/get_prototome_config": "get_prototome_config",
+        "/get_prototome_state":"get_prototome_state"},
+
+  "posts": {"/{element_id}/set_gain": "{element_id}_set_gain",
+         "/{element_id}/set_exposure": "{element_id}_set_exposure",
+         "/{element_id}/start_livestream": "{element_id}_start_livestream",
+         "/{element_id}/stop_livestream": "{element_id}_stop_livestream", 
+         "/{element_id}/set_position": "set_axis_position",
+         "/{element_id}/set_velocity": "set_axis_velocity",
+         "/cut_one":"cut_one",
+         "/start_cutting":"start_cutting",
+         "/pause_cutting":"pause_cutting",
+         "/stop_cutting_safely":"stop_cutting_safely",
+         "/stop_cutting_now":"stop_cutting_now",
+         "/set_prototome_config": "set_prototome_config",
+         "/{element_id}/stop_axis": "stop_axis",
+         "/{element_id}/home_axis": "home_axis",
+         "/stop_all_axes": "stop_all_axes",
+         "/home_all_axes": "home_all_axes"
+         }  
 }

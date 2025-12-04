@@ -15,26 +15,17 @@ import zmq
 import zmq.asyncio
 import time
 from fractions import Fraction
-from typing import Union
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# instantiate router client 
-#router_client = RouterClient(interface="10.132.17.9")
-router_client = RouterClient()
-
-# Make it available to all routers
-def get_router_client() -> RouterClient:
-    return router_client
-
-
-stop_event = asyncio.Event()
-tasks: list[asyncio.Task] = []
+router_client = RouterClient()  # instantiate router client 
+stop_event = asyncio.Event()    # event to discontinue polling
+tasks: list[asyncio.Task] = []  # async tasks running during app lifetime
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):   # sup up lifespan function to kill tasks at end of app
+async def lifespan(app: FastAPI):   # lifespan function to kill tasks at end of app
     yield
-
     stop_event.set()
     cancel_tasks(tasks)  # cancel when app shuts down
 
@@ -70,7 +61,7 @@ async def propagate_data_channel(channel: RTCDataChannel) -> None:
             timestamp, msg = router_client.get_stream(channel.label)
             channel.send(json.dumps(msg))   
                         
-# create VideoStreamTrack for livestreams
+
 class ZMQStreamTrack(VideoStreamTrack):
     
     """
@@ -124,24 +115,6 @@ async def offer(request:Request):
     @pc.on("datachannel")
     async def on_datachannel(channel):
         tasks.append(asyncio.create_task(propagate_data_channel(channel)))    # create asyncio task to poll stream for messages
-        
-        @channel.on("message")
-        async def on_message(message):                                          # create handler to send messages from data_channel through stream
-            msg = json.loads(message)
-            logger.debug(f"Received: {msg}")
-            router_client.call(**msg)
-        
-        @channel.on("error")
-        async def error(e):                                          
-           print(e, channel.label)
-        
-        @channel.on("close")
-        async def close():                                          
-           print("close", channel.label)
-        
-        @channel.on("open")
-        async def open():                                          
-           print("open", channel.label)
 
     for t in pc.getTransceivers():
         if t.kind == "video":   # configure video sources
@@ -170,43 +143,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-gets = {"/{element_id}/gain_min": "{element_id}_gain_min", 
-        "/{element_id}/gain_max": "{element_id}_gain_max", 
-        "/{element_id}/gain_step": "{element_id}_gain_step",
-        "/{element_id}/exposure_min": "{element_id}_exposure_min", 
-        "/{element_id}/exposure_max": "{element_id}_exposure_max", 
-        "/{element_id}/exposure_step": "{element_id}_exposure_step", 
-        "/{element_id}/velocity": "get_axis_velocity",
-        "/{element_id}/max_velocity": "get_axis_max_velocity",
-        "/{element_id}/range": "get_axis_travel_range",
-        "/get_prototome_config": "get_prototome_config",
-        "/get_prototome_state":"get_prototome_state"}
+# set up endpoints based on config mapping routes to router_client calls
+# TODO: Grab config from somewhere else
+confg = json.loads(Path("./dev/web_ui_config.json").read_text())
 
-posts = {"/{element_id}/set_gain": "{element_id}_set_gain",
-         "/{element_id}/set_exposure": "{element_id}_set_exposure",
-         "/{element_id}/start_livestream": "{element_id}_start_livestream",
-         "/{element_id}/stop_livestream": "{element_id}_stop_livestream", 
-         "/{element_id}/set_position": "set_axis_position",
-         "/{element_id}/set_velocity": "set_axis_velocity",
-         "/cut_one":"cut_one",
-         "/start_cutting":"start_cutting",
-         "/pause_cutting":"pause_cutting",
-         "/stop_cutting_safely":"stop_cutting_safely",
-         "/stop_cutting_now":"stop_cutting_now",
-         "/set_prototome_config": "set_prototome_config",
-         "/{element_id}/stop_axis": "stop_axis",
-         "/{element_id}/home_axis": "home_axis",
-         "/stop_all_axes": "stop_all_axes",
-         "/home_all_axes": "home_all_axes",
-         }  
-
-for path, call_name in posts.items():
+for path, call_name in confg["posts"].items():
     async def endpoint(element_id: str = None, kwargs: dict = None, call_name=call_name):
         call_name = call_name.format(element_id=element_id)
         router_client.call_by_name(call_name, kwargs=kwargs)
     app.add_api_route(path, endpoint, methods=["POST"])
 
-for path, call_name in gets.items():
+for path, call_name in confg["gets"].items():
     async def endpoint(request: Request, element_id: str = None, call_name=call_name):
         call_name = call_name.format(element_id=element_id)
         kwargs = dict(request.query_params)

@@ -28,13 +28,12 @@ export const StagePosVis = ({
       setPositions(prev => ({ ...prev, ...pos }));
     };
     positionChannel.addEventListener("message", handlePosMessage);
-    console.log("attaching event vis")
+    
     // create reference
     positionChannelRef.current = positionChannel;
 
     return () => {
       positionChannel.removeEventListener("message", handlePosMessage);
-      console.log('removing vis')
 
     };
   }, [!!dataChannels[`prototome_stage_positions`]]);

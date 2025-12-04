@@ -42,13 +42,11 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
                 typeof value === "object" && (value as any).type === "camera"
               );
             })
-            .map(([key, value]) => {
+            .map(([key]) => {
               return (
                 <CameraWidget
                   key={key}
                   cameraId={key}
-                  exposureSpecs={value.exposure_specs}
-                  gainSpecs={value.gain_specs}
                 />
               );
             })}

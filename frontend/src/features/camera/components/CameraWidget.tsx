@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Slider, Text, Button, Group, Card } from "@mantine/core";
 import type { CameraWidgetProps } from "../types/cameraTypes.tsx";
 import { useVideoStreamStore } from "@/stores/dataChannelStore.tsx";
