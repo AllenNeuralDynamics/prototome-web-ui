@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Card, Slider, Badge } from "@mantine/core";
 import "@mantine/core/styles.css";
-import { StagePosVisProps } from "../types/stageTypes.tsx";
+import type { StagePosVisProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
-import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
+import { useDataChannelStore } from "@/stores/dataChannelStore.tsx";
 
-export default function StagePosVis({
+export const StagePosVis = ({
   stageId,
   axes,
   config,
   unit = "mm",
-}: StagePosVisProps) {
+}: StagePosVisProps) => {
   const [positions, setPositions] = useState<Record<string, number>>({});
   const [ranges, setRanges] = useState<Record<string,  number[]>>({});
   const positionChannelRef = useRef<RTCDataChannel | null>(null);

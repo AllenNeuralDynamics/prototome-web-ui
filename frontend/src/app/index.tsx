@@ -1,39 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter, Link, useLocation } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import { AppRouter } from "./router.tsx";
-import { Group, Button, Paper } from "@mantine/core";
-import { AppConfig } from "../types/configTypes.tsx";
-import { useDataChannelStore, useVideoStreamStore } from "../stores/dataChannelStore.tsx";
-import { negotiate } from "../utils/webRtcConnection.tsx";
+import type { AppConfig } from "@/types/configTypes.tsx";
+import { useDataChannelStore, useVideoStreamStore } from "@/stores/dataChannelStore.tsx";
+import { negotiate } from "@/utils/webRtcConnection.tsx";
+import { AppProvider } from "./provider.tsx";
+import MainLayout from "@/components/layouts/MainLayout.tsx";
 
-function NavBar() {
-  const location = useLocation();
 
-  return (
-    <Paper shadow="xs" p="sm" style={{ marginBottom: "1rem" }}>
-      <Group>
-        <Button
-          component={Link}
-          to="/"
-          variant={location.pathname === "/" ? "filled" : "outline"}
-          color="blue"
-        >
-          Home
-        </Button>
-        <Button
-          component={Link}
-          to="/stage"
-          variant={location.pathname === "/stage" ? "filled" : "outline"}
-          color="blue"
-        >
-          Stages
-        </Button>
-      </Group>
-    </Paper>
-  );
-}
-
-function App() {
+const App = () => {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const dataChannels = useDataChannelStore((state) => state.channels)
   const addChannel = useDataChannelStore((state) => state.addChannel)
@@ -90,13 +65,14 @@ function App() {
   if (!config.data_channels.every((ch) => ch in dataChannels))
     return <div> Connecting data channels </div>;
 
-
-
   return (
-    <BrowserRouter>
-      <NavBar />
-      <AppRouter config={config} setConfig={setConfig as React.Dispatch<React.SetStateAction<AppConfig>>} />
-    </BrowserRouter>
+    <AppProvider>
+      <BrowserRouter>
+        <MainLayout>
+          <AppRouter config={config} setConfig={setConfig as React.Dispatch<React.SetStateAction<AppConfig>>} />
+        </MainLayout> 
+      </BrowserRouter>
+    </AppProvider> 
   );
 }
 

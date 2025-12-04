@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { StageControl } from "../../features/stage/index.js";
+import { StageControl } from "@/features/stage/index.js";
 import { Stack } from "@mantine/core";
 import "@mantine/core/styles.css";
-import { AppConfig, StageConfig } from "../../types/configTypes.tsx";
+import type { AppConfig, StageConfig } from "@/types/configTypes.tsx";
 
 export const StagesPage = ({ config}: { config: AppConfig }) => {
   return (

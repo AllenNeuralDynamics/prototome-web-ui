@@ -1,15 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Slider, Text, Button, Group, Card } from "@mantine/core";
-import "@mantine/core/styles.css";
-import { CameraWidgetProps } from "../types/cameraTypes.tsx";
-import { useDataChannelStore,  useVideoStreamStore} from "../../../stores/dataChannelStore.tsx";
+import type { CameraWidgetProps } from "../types/cameraTypes.tsx";
+import { useDataChannelStore,  useVideoStreamStore} from "@/stores/dataChannelStore.tsx";
 
-export default function CameraWidget({
+export const CameraWidget = ({
   cameraId,
   host,
   exposureSpecs,
   gainSpecs,
-}: CameraWidgetProps) {
+}: CameraWidgetProps) => {
   const [exposure, setExposure] = useState(1);
   const [gain, setGain] = useState(1);
   const videoRef = useRef<HTMLVideoElement | null>(null);
