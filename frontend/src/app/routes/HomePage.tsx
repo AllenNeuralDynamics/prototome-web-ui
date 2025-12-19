@@ -7,7 +7,6 @@ import "@mantine/core/styles.css";
 import type { CameraConfig, PrototomeConfig } from "@/types/configTypes.tsx";
 import type { StageConfig } from "@/types/configTypes.tsx";
 import type { HomePageProps } from "@/types/pageTypes.tsx";
-import { axisVariablesMapping } from "@/types/axisVariableMapping.tsx";
 
 export const HomePage = ({ config, setConfig }: HomePageProps) => {
   return (
@@ -71,7 +70,7 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
                 const [ptStage, ptAxis] =
                   config.prototome_config.axis_map[axis].split(".");
                 type ProtoKey = keyof PrototomeConfig;
-                for (const cfgKey of axisVariablesMapping[ptStage][
+                for (const cfgKey of config.axis_variable_mapping[ptStage][
                   ptAxis
                 ] as ProtoKey[]) {
                   visConfig[axis][cfgKey] = config.prototome_config[cfgKey];

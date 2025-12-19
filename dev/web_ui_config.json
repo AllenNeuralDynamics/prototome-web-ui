@@ -37,5 +37,19 @@
          "/{element_id}/home_axis": "home_axis",
          "/stop_all_axes": "stop_all_axes",
          "/home_all_axes": "home_all_axes"
-         }  
+         },
+  "axis_variable_mapping":{
+    "pt_stage_fine": {
+      "axis1": ["retract_piezo_distance"]
+    },
+    "pt_stage_coarse": {
+      "axis1": [
+        "bottom_position_mm",
+        "ep_cut_bottom",
+        "ep_cut_top",
+        "top_position_mm"
+      ],
+      "axis2": ["retract_distance"]
+    }
+  }
 }
