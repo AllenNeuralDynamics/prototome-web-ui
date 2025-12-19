@@ -101,10 +101,15 @@ export const StagePosVis = ({
               })),
             ]}
             mt="70px"
-            mb="-15px"
+            mb="30px"
             ml="-20px"
             mr="20px"
             styles={{
+              label: {
+                top: 'calc(100% + 10px)',   // push label below the thumb
+                transform: 'translateX(-50%)',
+                whiteSpace: 'nowrap',
+              },
               bar: { backgroundColor: "transparent" },
               mark: {
                 backgroundColor: getAxisColor(axis),
