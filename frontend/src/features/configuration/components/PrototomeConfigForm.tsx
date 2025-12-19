@@ -97,7 +97,7 @@ export const PrototomeConfigForm = ({
             Submit
           </Button>
           <FileButton onChange={loadConfig} accept="json">
-            {(props) => <Button {...props}>Upload Config</Button>}
+            {(props) => <Button {...props}>Load Config</Button>}
           </FileButton>
         </Form>
       </div>
