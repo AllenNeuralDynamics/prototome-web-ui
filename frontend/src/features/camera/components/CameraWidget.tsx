@@ -39,6 +39,9 @@ export const CameraWidget = ({
         cameraApi.getStepExposure(cameraId),
       ]);
       setExposureSpecs({ min, max, step });
+
+      const exp = await cameraApi.getExposure(cameraId)
+      setExposure(exp)
     }
     async function fetchGainSpecs() {
       const [min, max, step] = await Promise.all([
@@ -47,6 +50,9 @@ export const CameraWidget = ({
         cameraApi.getStepGain(cameraId),
       ]);
       setGainSpecs({ min, max, step });
+      
+      const gain = await cameraApi.getGain(cameraId)
+      setGain(gain)
     }
     fetchExposureSpecs()
     fetchGainSpecs()
