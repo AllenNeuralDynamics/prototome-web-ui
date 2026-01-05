@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, Slider, Badge } from "@mantine/core";
-import "@mantine/core/styles.css";
 import type { StagePosVisProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
 import { useDataChannelStore } from "@/stores/dataChannelStore.tsx";
+import { stageApi } from "../api/stageApi.tsx";
 
 export const StagePosVis = ({
   stageId,
@@ -12,53 +12,53 @@ export const StagePosVis = ({
   unit = "mm",
 }: StagePosVisProps) => {
   const [positions, setPositions] = useState<Record<string, number>>({});
-  const [ranges, setRanges] = useState<Record<string,  number[]>>({});
+  const [ranges, setRanges] = useState<Record<string, number[]>>({});
   const positionChannelRef = useRef<RTCDataChannel | null>(null);
-  const rangeChannelRef = useRef<RTCDataChannel | null>(null);
-  const dataChannels = useDataChannelStore((state) => state.channels)
-  
+  const dataChannels = useDataChannelStore((state) => state.channels);
 
-  // access stored dataChannels and add message handlers 
+  // access stored dataChannels and add message handlers
   useEffect(() => {
-
     // add position channel
-    const positionChannel = dataChannels[`prototome_stage_positions`]
+    const positionChannel = dataChannels[`prototome_stage_positions`];
+    if (!positionChannel) return; // channel not ready yet
+    
     // update pos upon message
     const handlePosMessage = (evt: MessageEvent) => {
       const pos = JSON.parse(evt.data);
-      setPositions((prev) => ({ ...prev, ...pos }));
-  };
-    positionChannel.addEventListener('message', handlePosMessage)
+      setPositions(prev => ({ ...prev, ...pos }));
+    };
+    positionChannel.addEventListener("message", handlePosMessage);
+    
     // create reference
     positionChannelRef.current = positionChannel;
 
-    // add range channel
-    const rangeChannel = dataChannels[`prototome_stage_travel`];
-    // update range upon message
-    const handleRangeMessage = (evt: MessageEvent) => {
-      const range = JSON.parse(evt.data);
-      setRanges((prev) => ({ ...prev, ...range }));
-    }
-    rangeChannel.addEventListener('message', handleRangeMessage)
-    // create reference
-    rangeChannelRef.current = rangeChannel;
-
     return () => {
-      positionChannel.close();
-      rangeChannel.close();
+      positionChannel.removeEventListener("message", handlePosMessage);
+
     };
-  }, [dataChannels]);
+  }, [!!dataChannels[`prototome_stage_positions`]]);
+
+  // populate range
+  useEffect(() => {
+    async function fetchRange() {
+
+      for (const axis of axes) {
+        const range = await stageApi.getRange(stageId, axis)
+        setRanges((prev) => ({...prev, ...{[axis]:range}}))
+      }
+    }
+  fetchRange()
+  }, []);
 
   const stagePositions = positions ?? {};
-  if (!axes.every((axis) => axis in stagePositions))
-    return <div> Cannot find positions to {stageId} </div>;
+  if (!axes.every((axis) => axis in stagePositions)) return;
 
   const stageRanges = ranges ?? {};
-  if (!axes.every((axis) => axis in stageRanges))
-    return <div> Cannot find ranges for {stageId} </div>;
+  if (!axes.every((axis) => axis in stageRanges)) return;
+  
   return (
     <div>
-      {axes.map((axis, index) => (
+      {axes.map((axis) => (
         <Card
           key={axis}
           shadow="xs"
@@ -83,6 +83,8 @@ export const StagePosVis = ({
           <Slider
             color={getAxisColor(axis)}
             value={parseFloat(positions[axis].toFixed(3))}
+            min={Math.min(...Object.values(ranges).map(([min, _]) => min))}
+            max={Math.max(...Object.values(ranges).map(([_, max]) => max))}
             labelAlwaysOn
             marks={[
               {
@@ -99,10 +101,15 @@ export const StagePosVis = ({
               })),
             ]}
             mt="70px"
-            mb="-15px"
+            mb="30px"
             ml="-20px"
             mr="20px"
             styles={{
+              label: {
+                top: 'calc(100% + 10px)',   // push label below the thumb
+                transform: 'translateX(-50%)',
+                whiteSpace: 'nowrap',
+              },
               bar: { backgroundColor: "transparent" },
               mark: {
                 backgroundColor: getAxisColor(axis),

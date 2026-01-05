@@ -1,6 +1,18 @@
+type NumericConfigKeys<T> = {
+  [K in keyof T]: T[K] extends number ? K : never
+}[keyof T];
+
+type PrototomeNumericKey = NumericConfigKeys<PrototomeConfig>;
+
+type AxisVariablesMapping = Record<
+  string, // device name (pt_stage_fine, pt_stage_coarse, etc.)
+  Record<
+    string, // axis name (axis1, axis2, etc.)
+    PrototomeNumericKey[]
+  >
+>;
 export interface CameraConfig {
   type: "camera";
-  host: string;
   index: number;
   exposure_specs: { min: number; max: number; step: number };
   gain_specs: { min: number; max: number; step: number };
@@ -8,7 +20,6 @@ export interface CameraConfig {
 
 export interface StageConfig {
   type: "stage";
-  host: string;
   axes: string[];
   unit?: string;
 }
@@ -24,17 +35,17 @@ export interface PrototomeConfig {
   retract_piezo_distance: number;
   retract_speed: number;
   retract_time_ok_count: number;
-  safe_bottom_position_mm: number;
-  safe_top_position_mm: number;
   section_thickness: number;
   state_machine: string;
   top_position_mm: number;
+  
 }
 
 export interface AppConfig {
-  host: string;
   prototome_config: PrototomeConfig;
   data_channels: string[];
   video_streams: string[];
-  [key: string]: CameraConfig | StageConfig | PrototomeConfig | string | string[];
+  gets: Record<string, string>;
+  posts: Record<string, string>;
+  axis_variable_mapping: AxisVariablesMapping
 }

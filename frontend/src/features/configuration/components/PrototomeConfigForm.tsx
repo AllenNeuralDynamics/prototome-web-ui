@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
-
+import { useEffect } from "react";
 import {
   prototomeSchema,
   uiPrototomeSchema,
 } from "../types/PrototomeConfigTypes.tsx";
+import type { PrototomeConfig } from "../../../types/configTypes.tsx"
 import validator from "@rjsf/validator-ajv8";
-import Form from "@rjsf/mui";
-import { Button, FileButton } from "@mantine/core";
+import Form from "@rjsf/mantine";
+import { Button, FileButton, Title } from "@mantine/core";
 import "../assets/rjsf-spacing.css";
 import { Card } from "@mantine/core";
+import { prototomeConfigApi } from "../api/prototomeConfigApi.ts"
 
 type PrototomeConfigProps = {
-  config: any;
+  config: PrototomeConfig;
   setPrototomeConfig: (newConfig: any) => void;
 };
 
@@ -19,29 +20,30 @@ export const PrototomeConfigForm = ({
   config,
   setPrototomeConfig,
 }: PrototomeConfigProps) => {
+  
+  // post new config when config is updated by user
+  useEffect(() => {
+    prototomeConfigApi.postConfig(config)
+  }, [config]);
+  
+  // revert blue edited fields when user presses enter on form 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
-        // don't save all form values
-        e.preventDefault();
-
-        const activeEl = document.activeElement as HTMLInputElement | null;
-        if (!activeEl) return;
-        activeEl.classList.remove("edited-field");
-
-        const configKey = activeEl.name.replace(/^root_/, ""); // hacky way to find the corresponding element. Will break if config is not flat
-        const newConfig = config;
-        newConfig[configKey] = Number(activeEl.value);
-        setPrototomeConfig(newConfig);
+        
+        // revert all blue fields
+        const edited = document.querySelectorAll(".edited-field");
+        edited.forEach((el) => el.classList.remove("edited-field"));
       }
     };
     window.addEventListener("keydown", handleKeyDown);
+    
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [config]);
+  }, []);
 
-  const handleChange = (event: any) => {
+  const handleChange = () => {
     const activeEl = document.activeElement as HTMLInputElement | null;
 
     if (!activeEl) return;
@@ -58,7 +60,6 @@ export const PrototomeConfigForm = ({
           const parsedData = JSON.parse(result);
           const validate = validator.ajv.compile(prototomeSchema);
           const valid = validate(parsedData?.prototome_config || parsedData);
-          console.log(valid, parsedData?.prototome_config || parsedData);
           if (!valid) {
             throw new Error("Loaded json is not valid");
           }
@@ -79,30 +80,24 @@ export const PrototomeConfigForm = ({
       className="bg-gray-50"
     >
       <div className="prototome-config-form">
+        <Title style={{ fontWeight: "bold", marginBottom: "0.5rem" }}> Prototome Config </Title>
         <Form
           uiSchema={uiPrototomeSchema}
           schema={prototomeSchema}
           validator={validator}
           formData={config}
           onChange={handleChange}
-          onSubmit={({ formData }) => {
-            console;
-            for (const key of Object.keys(formData)) {
-              const el = document.getElementsByName(`root_${key}`)[0] as
-                | HTMLInputElement
-                | undefined;
-              if (!el) continue;
-              el.classList.remove("edited-field");
-              console.log("asdfas");
-              setPrototomeConfig(formData);
-            }
+          onSubmit={(form) => {
+            setPrototomeConfig(form.formData);
+            const edited = document.querySelectorAll(".edited-field");
+            edited.forEach((el) => el.classList.remove("edited-field"));
           }}
         >
           <Button m="xs" type="submit">
             Submit
           </Button>
           <FileButton onChange={loadConfig} accept="json">
-            {(props) => <Button {...props}>Upload Config</Button>}
+            {(props) => <Button {...props}>Load Config</Button>}
           </FileButton>
         </Form>
       </div>

@@ -5,7 +5,6 @@ from contextlib import asynccontextmanager
 import asyncio
 from aiortc import RTCPeerConnection, RTCSessionDescription, RTCDataChannel, VideoStreamTrack
 from av import VideoFrame
-import numpy as np
 from aiortc.contrib.media import MediaRelay
 import cv2
 import json
@@ -14,23 +13,19 @@ import logging
 from one_liner.client import RouterClient
 import zmq
 import zmq.asyncio
-from threading import Thread
 import time
 from fractions import Fraction
-
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# instantiate router client 
-router_client = RouterClient()
-
-stop_event = asyncio.Event()
-tasks: list[asyncio.Task] = []
+router_client = RouterClient()  # instantiate router client 
+stop_event = asyncio.Event()    # event to discontinue polling
+tasks: list[asyncio.Task] = []  # async tasks running during app lifetime
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):   # sup up lifespan function to kill tasks at end of app
+async def lifespan(app: FastAPI):   # lifespan function to kill tasks at end of app
     yield
-
     stop_event.set()
     cancel_tasks(tasks)  # cancel when app shuts down
 
@@ -47,7 +42,8 @@ def configure_stream_polling(stream_name: str) -> zmq.asyncio.Poller:
         :param stream_name: name for client stream
     """
 
-    router_client.configure_stream(stream_name, storage_type="cache")
+    if stream_name not in router_client.stream_client.sub_sockets.keys():
+        router_client.configure_stream(stream_name, storage_type="cache")
     socket = router_client.stream_client.sub_sockets[stream_name]
     poller = zmq.asyncio.Poller()
     poller.register(socket, zmq.POLLIN)
@@ -65,7 +61,7 @@ async def propagate_data_channel(channel: RTCDataChannel) -> None:
             timestamp, msg = router_client.get_stream(channel.label)
             channel.send(json.dumps(msg))   
                         
-# create VideoStreamTrack for livestreams
+
 class ZMQStreamTrack(VideoStreamTrack):
     
     """
@@ -103,7 +99,7 @@ async def offer(request:Request):
     
     cancel_tasks(tasks) # cancel existing 
     tasks.clear()   # clear all tasks from previous loads
-
+    
     params = await request.json()
     offer_sdp = RTCSessionDescription(sdp=params["sdp"], type=params["type"])   # create description of frontend connection
     pc = RTCPeerConnection()                    # create a new peer connection for this client
@@ -119,12 +115,6 @@ async def offer(request:Request):
     @pc.on("datachannel")
     async def on_datachannel(channel):
         tasks.append(asyncio.create_task(propagate_data_channel(channel)))    # create asyncio task to poll stream for messages
-        
-        @channel.on("message")
-        async def on_message(message):                                          # create handler to send messages from data_channel through stream
-            msg = json.loads(message)
-            logger.debug(f"Received: {msg}")
-            router_client.call(**msg)
 
     for t in pc.getTransceivers():
         if t.kind == "video":   # configure video sources
@@ -143,7 +133,6 @@ async def offer(request:Request):
     }
 
 
-
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
@@ -153,6 +142,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# set up endpoints based on config mapping routes to router_client calls
+# TODO: Grab config from somewhere else
+confg = json.loads(Path("./dev/web_ui_config.json").read_text())
+
+for path, call_name in confg["posts"].items():
+    async def endpoint(element_id: str = None, kwargs: dict = None, call_name=call_name):
+        call_name = call_name.format(element_id=element_id)
+        router_client.call_by_name(call_name, kwargs=kwargs)
+    app.add_api_route(path, endpoint, methods=["POST"])
+
+for path, call_name in confg["gets"].items():
+    async def endpoint(request: Request, element_id: str = None, call_name=call_name):
+        call_name = call_name.format(element_id=element_id)
+        kwargs = dict(request.query_params)
+        return router_client.call_by_name(call_name, kwargs=kwargs)
+    app.add_api_route(path, endpoint, methods=["GET"])
 
 app.include_router(config_router)
 app.include_router(offer_router)
