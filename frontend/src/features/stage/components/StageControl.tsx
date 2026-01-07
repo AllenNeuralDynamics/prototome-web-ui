@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   RangeSlider,
   Slider,
@@ -10,162 +10,113 @@ import {
   NumberInput,
   Stack,
 } from "@mantine/core";
-import "@mantine/core/styles.css";
 import type { StageControlProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
 import { useDataChannelStore } from "@/stores/dataChannelStore.tsx";
+import { stageApi } from "../api/stageApi.tsx";
 
 export const StageControl = ({
   stageId,
   axes,
-  host,
   unit = "um",
 }: StageControlProps) => {
   const [velocities, setVelocities] = useState<Record<string, number>>({});
+  const [maxVelocities, setMaxVelocities] = useState<Record<string, number>>({});
   const [posInput, setPosInput] = useState<Record<string, number>>({});
   const [stepSizeInput, setStepSizeInput] = useState<Record<string, number>>(
     {},
   );
   const [positions, setPositions] = useState<Record<string, number>>({});
-  const [ranges, setRanges] = useState<Record<string,  number[]>>({});
+  const [ranges, setRanges] = useState<Record<string, number[]>>({});
   const positionChannelRef = useRef<RTCDataChannel | null>(null);
-  const rangeChannelRef = useRef<RTCDataChannel | null>(null);
-  const velocityChannelRef = useRef<RTCDataChannel | null>(null);
-  const dataChannels = useDataChannelStore((state) => state.channels)
-
-  // initialize and negotiate webRTC
+  const dataChannels = useDataChannelStore((state) => state.channels);
+  
+  // access stored dataChannels and add message handlers
   useEffect(() => {
-
     // add position channel
-    const positionChannel = dataChannels[`prototome_stage_positions`]
+    const positionChannel = dataChannels[`prototome_stage_positions`];
+    if (!positionChannel) return; // channel not ready yet
+    
     // update pos upon message
     const handlePosMessage = (evt: MessageEvent) => {
       const pos = JSON.parse(evt.data);
-      setPositions((prev) => ({ ...prev, ...pos }));
-  };
-    positionChannel.addEventListener('message', handlePosMessage)
+      setPositions(prev => ({ ...prev, ...pos }));
+    };
+    positionChannel.addEventListener("message", handlePosMessage);
+    console.log("attaching event control")
+
     // create reference
     positionChannelRef.current = positionChannel;
 
-    // add range channel
-    const rangeChannel = dataChannels[`prototome_stage_travel`];
-    // update range upon message
-    const handleRangeMessage = (evt: MessageEvent) => {
-      const range = JSON.parse(evt.data);
-      setRanges((prev) => ({ ...prev, ...range }));
-    }
-    rangeChannel.addEventListener('message', handleRangeMessage)
-    // create reference
-    rangeChannelRef.current = rangeChannel;
-
-    // add velocity channel
-    const velocityChannel = dataChannels[`prototome_stage_velocities`];
-    // update range upon message
-    const handleVelocityMessage = (evt: MessageEvent) => {
-      const velocity = JSON.parse(evt.data);
-      setVelocities((prev) => ({ ...prev, ...velocity }));
-    }
-
-    velocityChannel.addEventListener('message', handleVelocityMessage)
-    // create reference
-    velocityChannelRef.current = velocityChannel;  
-
     return () => {
-      positionChannel.close();
-      rangeChannel.close();
-      velocityChannel.close()
+      positionChannel.removeEventListener("message", handlePosMessage);
+      console.log('removing control')
     };
-  }, [dataChannels]);
+  }, [!!dataChannels[`prototome_stage_positions`]]);
 
-  const onPosRangeChange = (range: [number, number], axis: string) => {
-    const position = positions[axis];
+  // populate range and velocity
+    useEffect(() => {
+      async function fetchAxisSpecs() {
 
-    // Clamp range so it must contain current position
-    const clampedMin = Math.min(range[0], position);
-    const clampedMax = Math.max(range[1], position);
-
-    if (
-      rangeChannelRef.current &&
-      (clampedMin !== ranges[axis][0] ||
-      clampedMax !== ranges[axis][1])
-    ) {
-      const newRange = [clampedMin, clampedMax];
-      setRanges((prev) => ({ ...prev, [axis]: newRange}));
-      // send updated ranges to backend
-      rangeChannelRef.current.send(
-        JSON.stringify({
-          destination: "range",
-          stage_id: stageId,
-          axis: axis,
-          value: newRange
-        }),
-      );
-    }
-    };
+        for (const axis of axes) {
+          const [ vel, maxVel, range] = await Promise.all([
+                  stageApi.getVelocity(stageId, axis),
+                  stageApi.getMaxVelocity(stageId, axis),
+                  stageApi.getRange(stageId, axis),
+                ]);
+          setVelocities((prev) => ({...prev, ...{[axis]:vel}}))
+          setMaxVelocities((prev) => ({...prev, ...{[axis]:maxVel}}))
+          setRanges((prev) => ({...prev, ...{[axis]:range}}))
+        }
+      }
+    fetchAxisSpecs()
+    }, []);
   
+  // Stub out functionality for now
+  // const onPosRangeChange = (range: [number, number], axis: string) => {
+  //   const position = positions[axis];
+
+  //   // Clamp range so it must contain current position
+  //   const clampedMin = Math.min(range[0], position);
+  //   const clampedMax = Math.max(range[1], position);
+
+  //   if (
+  //     (clampedMin !== ranges[axis][0] || clampedMax !== ranges[axis][1])
+  //   ) {
+  //     const newRange = [clampedMin, clampedMax];
+  //     setRanges((prev) => ({ ...prev, [axis]: newRange }));
+  //     stageApi.postRange(stageId, axis, newRange)
+      
+  //   }
+  // };
 
   const onMoveLowerClick = (axis: string) => {
-    if (positionChannelRef.current) {
-      positionChannelRef.current.send(
-        JSON.stringify({
-          destination: "position",
-          stage_id: stageId,
-          axis: axis,
-          value: ranges[axis][0],
-        }))
-      }
+    stageApi.postPosition(stageId, axis, ranges[axis][0])
   };
 
   const onMoveUpperClick = (axis: string) => {
-    if (positionChannelRef.current) {
-      positionChannelRef.current.send(
-        JSON.stringify({
-          destination: "position",
-          stage_id: stageId,
-          axis: axis,
-          value: ranges[axis][1],
-        }))
-      }
+    stageApi.postPosition(stageId, axis, ranges[axis][1])
   };
 
   const onMoveMiddleClick = (axis: string) => {
-    if (positionChannelRef.current) {
-      positionChannelRef.current.send(
-        JSON.stringify({
-          destination: "position",
-          stage_id: stageId,
-          axis: axis,
-          value: Math.round((ranges[axis][0] + ranges[axis][1]) / 2),
-        }))
-      }
+    stageApi.postPosition(stageId, axis, Math.round((ranges[axis][0] + ranges[axis][1]) / 2))
   };
   const onMoveClick = (val: number, axis: string) => {
-    if (positionChannelRef.current) {
-      positionChannelRef.current.send(
-        JSON.stringify({
-          destination: "position",
-          stage_id: stageId,
-          axis: axis,
-          value: val,
-        }))
-      }
+    stageApi.postPosition(stageId, axis, val)
   };
-
+  
   const stagePositions = positions ?? {};
-  if (!axes.every((axis) => axis in stagePositions))
-    return <div> Cannot find positions to {stageId} </div>;
+  if (!axes.every((axis) => axis in stagePositions)) return;
 
   const stageRanges = ranges ?? {};
-  if (!axes.every((axis) => axis in stageRanges))
-    return <div> Cannot find ranges for {stageId} </div>;
+  if (!axes.every((axis) => axis in stageRanges)) return;
 
   const stageVelocities = velocities ?? {};
-  if (!axes.every((axis) => axis in stageVelocities))
-    return <div> Cannot find velocities for {stageId} </div>;
+  if (!axes.every((axis) => axis in stageVelocities)) return;
 
   return (
     <div>
-      {axes.map((axis, index) => (
+      {axes.map((axis) => (
         <Card
           key={axis}
           shadow="xs"
@@ -191,6 +142,8 @@ export const StageControl = ({
             </Text>
           </Group>
           <Slider
+            min={Math.min(0, ranges[axis][0])}
+            max={Math.max(100, ranges[axis][1])}
             color={getAxisColor(axis)}
             value={parseFloat(positions[axis].toFixed(3))}
             labelAlwaysOn
@@ -226,8 +179,8 @@ export const StageControl = ({
           <RangeSlider
             color={getAxisColor(axis)}
             value={[ranges[axis][0] ?? 0, ranges[axis][1] ?? 100]}
-            minRange={0}
-            onChange={(val) => onPosRangeChange(val, axis)}
+            min={Math.min(0, ranges[axis][0])}
+            max={Math.max(100, ranges[axis][1])}
           />
           <Group mb="xs" style={{ marginTop: "10px" }}>
             <Text size="sm">Velocity</Text>
@@ -239,37 +192,29 @@ export const StageControl = ({
             color={getAxisColor(axis)}
             value={velocities[axis] || 0}
             onChange={(val) => {
-              if (velocityChannelRef.current) {
-                setVelocities((prev) => ({ ...prev, [axis]:val }));
-                velocityChannelRef.current.send(
-                  JSON.stringify({
-                    destination: "velocity",
-                    stage_id: stageId,
-                    axis: axis,
-                    value: val,
-                  }),
-                );
-              }
+              stageApi.postVelocity(stageId, axis, val)
+            
             }}
+            max={maxVelocities[axis]}
           />
           <Group mt="md">
             <Button
               color={getAxisColor(axis)}
               variant="light"
-              onClick={(val) => onMoveLowerClick(axis)}
+              onClick={() => onMoveLowerClick(axis)}
             >
               Go to Lower
             </Button>
             <Button
               color={getAxisColor(axis)}
-              onClick={(val) => onMoveMiddleClick(axis)}
+              onClick={() => onMoveMiddleClick(axis)}
             >
               Go to Middle
             </Button>
             <Button
               color={getAxisColor(axis)}
               variant="light"
-              onClick={(val) => onMoveUpperClick(axis)}
+              onClick={() => onMoveUpperClick(axis)}
             >
               Go to Upper
             </Button>
@@ -332,7 +277,9 @@ export const StageControl = ({
                 ▼
               </Button>
             </Stack>
+            <Stack>
             <Button
+              size="xs"
               color={getAxisColor(axis)}
               onClick={() => {
                 if (typeof posInput[axis] === "number") {
@@ -342,6 +289,22 @@ export const StageControl = ({
             >
               Move
             </Button>
+            <Button 
+              size="xs" 
+              color={getAxisColor(axis)} 
+              variant="light" 
+              onClick={() => {stageApi.postHomeAxis(stageId, axis)}}
+              >
+                Home
+              </Button>
+            <Button 
+              size="xs" 
+              color={getAxisColor(axis)}
+              onClick={() => {stageApi.postStopAxis(stageId, axis)}}
+              >
+                Stop
+              </Button>
+            </Stack>
           </Group>
         </Card>
       ))}

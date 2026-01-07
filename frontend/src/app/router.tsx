@@ -10,7 +10,6 @@ type AppRouterProps = {
   setConfig: React.Dispatch<React.SetStateAction<AppConfig>>;
 };
 
-
 export const AppRouter = ({ config, setConfig }: AppRouterProps) => {
   return (
     <Routes>

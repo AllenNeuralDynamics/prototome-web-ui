@@ -1,9 +1,7 @@
-import {axisVariablesMapping} from "@/types/axisVariableMapping.tsx";
 
 export type StageControlProps = {
   stageId: string;
   axes: string[];
-  host: string;
   unit?: string;
 };
 
@@ -19,12 +17,10 @@ type InstrumentStages = {
 };
 
 export type UseStageProps = {
-  host: string;
   instrumentStages: InstrumentStages;
 };
 
 export type fetchApiArgs = {
-  host: string;
   stageId: string;
   axis: string;
 };

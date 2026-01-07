@@ -1,18 +1,13 @@
-import { CameraWidget } from "@/features/camera/index";
-import { StagePosVis } from "@/features/stage/index";
-// TODO: Disabled until MUI library dependency removed
-// import { PrototomeConfigForm } from "../../features/configuration/index";
-import { StateControl } from "@/features/acquisitionControl/index";
+import { CameraWidget } from "../../features/camera/index.js";
+import { StagePosVis } from "../../features/stage/index.js";
+import { PrototomeConfigForm } from "../../features/configuration/index";
+import { StateControl } from "../../features/acquisitionControl/index";
 import { Group, Stack } from "@mantine/core";
 import "@mantine/core/styles.css";
 import type { CameraConfig, PrototomeConfig } from "@/types/configTypes.tsx";
 import type { StageConfig } from "@/types/configTypes.tsx";
 import type { HomePageProps } from "@/types/pageTypes.tsx";
-import { axisVariablesMapping } from "@/types/axisVariableMapping.tsx";
 
-// TODO: remove this when MUI library dependency removed
-// @ts-expect-error will add back later
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const HomePage = ({ config, setConfig }: HomePageProps) => {
   return (
     <div
@@ -27,12 +22,12 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
         align="center"
       >
         <Stack align="stretch">
-          {/* <PrototomeConfigForm
+          <PrototomeConfigForm
             config={config.prototome_config}
             setPrototomeConfig={(cfg) => {
               setConfig((prev) => ({ ...prev, prototome_config: cfg }));
             }}
-          /> */}
+          />
           <StateControl />
         </Stack>
         <Stack align="stretch">
@@ -46,14 +41,11 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
                 typeof value === "object" && (value as any).type === "camera"
               );
             })
-            .map(([key, value]) => {
+            .map(([key]) => {
               return (
                 <CameraWidget
                   key={key}
                   cameraId={key}
-                  host={value.host}
-                  exposureSpecs={value.exposure_specs}
-                  gainSpecs={value.gain_specs}
                 />
               );
             })}
@@ -72,13 +64,13 @@ export const HomePage = ({ config, setConfig }: HomePageProps) => {
               // This may change if configurations gets refactored
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const visConfig: Record<string, Record<string, any>> = {};
-
               for (const axis of value.axes) {
+
                 visConfig[axis] = {};
                 const [ptStage, ptAxis] =
                   config.prototome_config.axis_map[axis].split(".");
                 type ProtoKey = keyof PrototomeConfig;
-                for (const cfgKey of axisVariablesMapping[ptStage][
+                for (const cfgKey of config.axis_variable_mapping[ptStage][
                   ptAxis
                 ] as ProtoKey[]) {
                   visConfig[axis][cfgKey] = config.prototome_config[cfgKey];
