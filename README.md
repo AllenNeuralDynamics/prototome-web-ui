@@ -1,8 +1,6 @@
-# Microscope Control Application
+# Prototome Control Application
 
-> ⚠️ **WARNING: This repository is a _very rough draft_.**  
-> It is under active development, incomplete, and may contain unstable or experimental code.  
-> Use at your own risk, and expect frequent changes.
+React Web app built to control the prototome instrument. 
 
 ---
 
@@ -14,15 +12,17 @@ backend/
 ├── services/           # contains mock zmq agent. Will need to be rewritten or imported
 
 
-dev/                    # Contains temp mock device, configuration, and zmq agent. Only using for testing.
+dev/                    # Contains temp configuration file. Only using for testing.
 
 
 frontend/
 └── src/
     ├── app/            # prototome app
     ├── features/
-    │   ├── camera/     # Camera feature (controls, UI)
-    │   └── stage/      # Stage feature (movement, UI)
+    │   ├── camera/                  # Camera feature (controls, UI)
+    │   └── stage/                   # Stage feature (movement, UI)
+    │   └── acquisitionControl/      # Start/stop acquisition
+    │   └── configuration/           # form to configure acquisition    
     ├── types/
 ```
 
@@ -30,21 +30,25 @@ frontend/
 
 ## Backend
 
-- The backend is responsible for communicating with microscope hardware (simulated by a mock device in development).
-- Communication with the mock device is done via a **ZeroMQ (ZMQ) client** located in the `dev` folder. This will
-  probably change as more discussion is put into how to communicate with prototome later but is a useful way to start
-  creating the web app with minimal rewriting.
-- The backend exposes APIs calls for the frontend to control and configure app. Again, the functions themselves will
-  probably need to be updated/changes for the actual prototome but urls could remain the same so useful way to start
-  creating the web app with minimal rewriting.
+- The backend is expected to be the [prototome instrument](https://github.com/AllenInstitute/prototome/blob/feat-zmq-server/main.py).
+- Communication with the prototome is done via one-liner [RouterServer](https://github.com/AllenInstitute/prototome/blob/feat-zmq-server/pylasso/zmq_server.py). 
 
----
+## Backend -> Frontend link
+
+Communication from the backend to frontend is expected to be done through the one-liner package. On the instrument side, this will be facilitated by the server found in [prototome/main.py](https://github.com/AllenInstitute/prototome/blob/feat-zmq-server/pylasso/zmq_server.py). On the ui side, there is a fastApi layer found in [prototome-web-ui/backend/main.py](https://github.com/AllenNeuralDynamics/prototome-web-ui/blob/main/backend/main.py). This also sets up a one-liner client and propogates messages to and from the instrument. The communication pattern is outlined below. 
+
+```bash
+ __________________________python_______________________                           ____typescript_____
+|                                                       |                         |                   |
+|prototome <---> router_server <---zmq---> router_client| <---http and webrtc---> | prototome-web-ui  |
+|_______________________________________________________|                         |___________________|
+
+```
 
 ## Frontend
 
 - The frontend is built with React and adheres to the **Bulletproof React** project structure.
-- The **camera** and **stage** are implemented as separate features under `/features`
-- This modular approach facilitates independent development and testing of each hardware component interface.
+- The **camera**, **stage** , **acquisition control**, and **configuration** are implemented as separate features under `/features`
 
 ---
 
@@ -73,12 +77,10 @@ yarn install
 
 ### Launch
 
-1. Start dummy instrument in separate process. 
-(In Linux, you will need to run it as root because of the `keyboard` library dependency.)
-From the **dev** folder, run:
+1. Start instrument in separate process. 
 
 ```bash
-uv run instrument_server.py
+uv run main.py
 ```
 
 2. Launch FastAPI app backend with uvicorn in separate process. Web app will be hosted on 8000 so specify 8000
@@ -91,5 +93,5 @@ uv run uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 
 ```bash
 cd frontend
-npm start
+npm run dev
 ```
