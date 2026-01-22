@@ -8,8 +8,7 @@ React Web app built to control the prototome instrument.
 
 ```plaintext
 backend/
-├── api/                # API's config based on dev device. Will need to be refactored for actual prototome.
-├── services/           # contains mock zmq agent. Will need to be rewritten or imported
+├── api/               
 
 
 dev/                    # Contains temp configuration file. Only using for testing.
