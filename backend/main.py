@@ -11,6 +11,7 @@ import json
 import asyncio
 import logging
 from one_liner.client import RouterClient
+import numpy as np
 import zmq
 import zmq.asyncio
 import time
@@ -82,14 +83,22 @@ class ZMQStreamTrack(VideoStreamTrack):
             await self.poller.poll(timeout=-1)
             timestamp, frame = router_client.get_stream(self.stream_name)
             frame = await asyncio.to_thread(cv2.cvtColor, frame, cv2.COLOR_RGB2YUV_I420) # decreases encoding time to frontend
-            video_frame = VideoFrame.from_ndarray(frame, format="yuv420p")
-            # webrtc rtp uses 90kHz as standard clock rate
-            video_frame.pts = int(time.monotonic() * 90000) # presentation timestamp 
-            video_frame.time_base = Fraction(1, 90000)      # duration of one timestamp
-            return video_frame
-            
         except Exception as e:
+            print("--------------")
+            print(self.stream_name)
             print(e)
+            rgb_black = np.zeros((120, 160, 3), dtype=np.uint8)
+            frame = await asyncio.to_thread(
+                cv2.cvtColor, rgb_black, cv2.COLOR_RGB2YUV_I420
+            )
+            # TODO: add reconnect functionality. It dies when a frame isn't received.
+
+        video_frame = VideoFrame.from_ndarray(frame, format="yuv420p")
+        # webrtc rtp uses 90kHz as standard clock rate
+        video_frame.pts = int(time.monotonic() * 90000) # presentation timestamp 
+        video_frame.time_base = Fraction(1, 90000)      # duration of one timestamp
+        return video_frame
+         
         
 
 # wait for offer from client
@@ -119,8 +128,8 @@ async def offer(request:Request):
     for t in pc.getTransceivers():
         if t.kind == "video":   # configure video sources
             stream_name = params["transceiverMidMapping"][t.mid]
-            track = ZMQStreamTrack(stream_name)
             relay = MediaRelay()
+            track = ZMQStreamTrack(stream_name)
             video = relay.subscribe(track)
             pc.addTrack(video)
     
