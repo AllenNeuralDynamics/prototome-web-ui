@@ -116,7 +116,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         </div>
       }
     >
-      <MantineProvider>
+      <MantineProvider forceColorScheme={colorScheme}>
         <ErrorBoundary FallbackComponent={MainErrorFallback}>
           <QueryClientProvider client={queryClient}>
             {/* {import.meta.env.DEV && <ReactQueryDevtools />} */}
