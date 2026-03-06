@@ -12,6 +12,7 @@ export const StateControl = () => {
   useEffect(() => {
     // add state channel
     const stateChannel = dataChannels[`prototome_state`];
+    if (!stateChannel) return;
     // update pos upon message
     const handleStateMessage = (evt: MessageEvent) => {
       const state = JSON.parse(evt.data);

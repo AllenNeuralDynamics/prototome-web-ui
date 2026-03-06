@@ -27,3 +27,4 @@ class PrototomeWebUiConfig(BaseModel):
     posts: dict[str, str] = Field(default_factory=dict)
     stage: Stage = Field()  
     camera: Camera = Field()
+    axis_variable_mapping: dict

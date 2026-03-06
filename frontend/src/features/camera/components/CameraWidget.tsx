@@ -5,7 +5,7 @@ import { useVideoStreamStore } from "@/stores/dataChannelStore.tsx";
 import { cameraApi } from "../api/cameraApi.tsx";
 
 export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
-  console.log("camera!");
+
   const [exposure, setExposure] = useState(1);
   const [exposureSpecs, setExposureSpecs] = useState({
     min: 0,
