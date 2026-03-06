@@ -1,4 +1,4 @@
-import type { PrototomeConfig } from "@/types/prototomeConfig";
+import type { PrototomeConfig } from "@/types/prototomeConfig.ts";
 
 type NumericConfigKeys<T> = {
   [K in keyof T]: T[K] extends number ? K : never;

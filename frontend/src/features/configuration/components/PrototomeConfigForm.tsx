@@ -17,6 +17,7 @@ export const PrototomeConfigForm = () => {
 
   // post new config when config is updated by user
   useEffect(() => {
+    if (!config) return;
     prototomeConfigApi.postConfig(config);
   }, [config]);
 
