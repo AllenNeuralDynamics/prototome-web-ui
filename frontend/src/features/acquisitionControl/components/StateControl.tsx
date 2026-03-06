@@ -7,7 +7,6 @@ export const StateControl = () => {
   const [currentState, setCurrentState] = useState("Paused");
   const dataChannels = useDataChannelStore((state) => state.channels);
   const stateChannelRef = useRef<RTCDataChannel | null>(null);
-  
 
   // initialize and connect prototome state dataChannel
   useEffect(() => {
@@ -55,13 +54,30 @@ export const StateControl = () => {
         </Group>
         <Stack>
           <Button>Switch to Facing</Button>
-          <Button color="green" onClick={() => stateControlApi.postStartCutting()}>Start Cutting</Button>
+          <Button
+            color="green"
+            onClick={() => stateControlApi.postStartCutting()}
+          >
+            Start Cutting
+          </Button>
           <Button color="yellowgreen">Repeat Cut</Button>
-          <Button color="yellow" onClick={() => stateControlApi.postCutOne()}>Cut One</Button>
-          <Button color="orange" onClick={() => stateControlApi.postStopCuttingSafely()}>Stop Cutting Safely</Button>
-          <Button color="red" onClick={() => stateControlApi.postStopCuttingNow()}>Stop Cutting Now</Button>
+          <Button color="yellow" onClick={() => stateControlApi.postCutOne()}>
+            Cut One
+          </Button>
+          <Button
+            color="orange"
+            onClick={() => stateControlApi.postStopCuttingSafely()}
+          >
+            Stop Cutting Safely
+          </Button>
+          <Button
+            color="red"
+            onClick={() => stateControlApi.postStopCuttingNow()}
+          >
+            Stop Cutting Now
+          </Button>
         </Stack>
       </Stack>
     </Card>
   );
-}
+};

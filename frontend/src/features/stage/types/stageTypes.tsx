@@ -1,4 +1,3 @@
-
 export type StageControlProps = {
   stageId: string;
   axes: string[];

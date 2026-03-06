@@ -13,8 +13,12 @@ from fractions import Fraction
 
 from fastapi import Request
 from one_liner.client import RouterClient
+import sys
 
 logger = logging.getLogger(__name__)
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 stop_event: asyncio.Event = asyncio.Event()
 tasks: list[asyncio.Task[Any]] = []
@@ -76,7 +80,7 @@ async def handle_offer(client: RouterClient, request: Request) -> dict[str, str]
     cancel_tasks()
     params = await request.json()
     pc = RTCPeerConnection()
-    await pc.setRemoteDescription(RTCSessionDescription(**params))
+    await pc.setRemoteDescription(RTCSessionDescription(sdp=params["sdp"], type=params["type"]))
 
     @pc.on("connectionstatechange")
     async def on_connectionstatechange() -> None:
@@ -91,7 +95,7 @@ async def handle_offer(client: RouterClient, request: Request) -> dict[str, str]
     for t in pc.getTransceivers():
         if t.kind == "video":   # configure video sources
             stream_name = params["transceiverMidMapping"][t.mid]
-            track = ZMQStreamTrack(stream_name)
+            track = ZMQStreamTrack(client, stream_name)
             relay = MediaRelay()
             video = relay.subscribe(track)
             pc.addTrack(video)

@@ -13,13 +13,12 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from one_liner.client import RouterClient
 
-from .api.routes import make_router
-from .api.webrtc import cancel_tasks, stop_event
-from .prototome_web_ui_config_model import PrototomeWebUiConfig
+from prototome_web_ui.api.routes import make_router
+from prototome_web_ui.api.webrtc import cancel_tasks, stop_event
+from prototome_web_ui.prototome_web_ui_config_model import PrototomeWebUiConfig
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:

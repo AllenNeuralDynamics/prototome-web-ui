@@ -1,10 +1,11 @@
 {
-  "window1_ximea_camera": {
-    "type": "camera"
+  "camera": {
+    "id": "window1_ximea_camera"
   },
-  "prototome_stage": {
+  "stage": {
     "axes": ["Y", "Z", "Piezo"],
-    "type": "stage"
+    "unit": "mm", 
+    "id": "prototome_stage"
   },
   "data_channels": ["prototome_stage_positions", 
                     "prototome_state"],

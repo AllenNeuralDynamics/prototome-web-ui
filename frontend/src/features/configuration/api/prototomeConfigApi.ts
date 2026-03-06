@@ -1,5 +1,5 @@
 import { api } from "../../../lib/client.tsx";
-import type { PrototomeConfig } from "../../../types/configTypes.tsx"
+import type { PrototomeConfig } from "../../../types/configTypes.tsx";
 
 export const prototomeConfigApi = {
   postConfig: (value: PrototomeConfig) =>

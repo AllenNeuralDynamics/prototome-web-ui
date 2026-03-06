@@ -2,11 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { Slider, Text, Button, Group, Card } from "@mantine/core";
 import type { CameraWidgetProps } from "../types/cameraTypes.tsx";
 import { useVideoStreamStore } from "@/stores/dataChannelStore.tsx";
-import { cameraApi } from "../api/cameraApi.tsx"
+import { cameraApi } from "../api/cameraApi.tsx";
 
-export const CameraWidget = ({
-  cameraId
-}: CameraWidgetProps) => {
+export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
+  console.log("camera!");
   const [exposure, setExposure] = useState(1);
   const [exposureSpecs, setExposureSpecs] = useState({
     min: 0,
@@ -40,8 +39,8 @@ export const CameraWidget = ({
       ]);
       setExposureSpecs({ min, max, step });
 
-      const exp = await cameraApi.getExposure(cameraId)
-      setExposure(exp)
+      const exp = await cameraApi.getExposure(cameraId);
+      setExposure(exp);
     }
     async function fetchGainSpecs() {
       const [min, max, step] = await Promise.all([
@@ -50,12 +49,12 @@ export const CameraWidget = ({
         cameraApi.getStepGain(cameraId),
       ]);
       setGainSpecs({ min, max, step });
-      
-      const gain = await cameraApi.getGain(cameraId)
-      setGain(gain)
+
+      const gain = await cameraApi.getGain(cameraId);
+      setGain(gain);
     }
-    fetchExposureSpecs()
-    fetchGainSpecs()
+    fetchExposureSpecs();
+    fetchGainSpecs();
   }, []);
 
   const onExposureChange = (val: number) => {
@@ -131,4 +130,4 @@ export const CameraWidget = ({
       </Card>
     </div>
   );
-}
+};

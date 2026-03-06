@@ -3,7 +3,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request
 from one_liner.client import RouterClient
 
-from prototome_web_ui_config_model import PrototomeWebUiConfig
+from prototome_web_ui.prototome_web_ui_config_model import PrototomeWebUiConfig
 from .webrtc import handle_offer
 
 
