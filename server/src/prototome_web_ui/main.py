@@ -64,7 +64,7 @@ def main():
     app = create_app(config)
 
     if not args.dev:
-        static_path = files("brainslosher_web_ui") / "dist"
+        static_path = files("prototome_web_ui") / "dist"
         ui_dir = Path(static_path)
         app.mount("/assets", StaticFiles(directory=ui_dir / "assets"), name="assets")
 

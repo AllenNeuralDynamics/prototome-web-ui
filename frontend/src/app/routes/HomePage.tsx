@@ -19,7 +19,8 @@ const buildVisConfig = (
 ): Record<string, Record<string, any>> => {
   return Object.fromEntries(
     stage.axes.map((axis) => {
-      const [ptStage, ptAxis] = prototomeConfig.axis_map[axis].split(".");
+    const [ptStage, ...rest] = prototomeConfig.axis_map[axis].split(".");
+    const ptAxis = rest.join(".");
       const cfgKeys = axisVariableMapping[ptStage][
         ptAxis
       ] as (keyof PrototomeConfig)[];
