@@ -5,14 +5,16 @@ import {
 } from "@/features/pylasso/index";
 
 import type { AppConfig } from "@/types/configTypes.tsx";
-import { Container } from "@mantine/core";
+import { Container, Stack } from "@mantine/core";
 
 export const PylassoPage = ({ config }: { config: AppConfig }) => {
   return (
     <Container>
-      <LassoCamera cameraId="window2_web_camera" />
-      {/* <LassoControl />
-      <WaferCalibrationControl /> */}
+      <Stack>
+        <LassoCamera cameraId="window2_web_camera" />
+        {/* <LassoControl /> */}
+        <WaferCalibrationControl />
+      </Stack> 
     </Container>
   );
 };

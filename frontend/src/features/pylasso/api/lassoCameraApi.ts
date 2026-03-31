@@ -16,4 +16,16 @@ import { api } from "@/lib/client";
 export const lassoCameraApi = {
   postAutoWhiteBalance: (cameraId: string, value: number) => 
     api.post(`/${cameraId}/set`, { value }),
+  postUpdateApertureStatus: (aperture_id: string, status: string) => 
+    api.post('/update_aperture_status', { aperture_id, status }),
+  postRemoveAperture: (aperture_id: string) => 
+    api.post('/remove_aperture', { aperture_id }),
+  postSetWorldRefpoint: (key: string) => 
+    api.post('/set_world_refpoint', { key }),
+  postCalibrate: () =>
+    api.post('/calibrate'),
+  getWafer: () => 
+    api.get("/get_wafer").then((res) => res.data),
+  getNavigatorData: () => 
+    api.get("/get_navigator_data").then((res) => res.data), 
 };
