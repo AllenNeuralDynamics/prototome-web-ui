@@ -12,7 +12,7 @@ export const PylassoPage = ({ config }: { config: AppConfig }) => {
     <Container>
       <Stack>
         <LassoCamera cameraId="window2_web_camera" />
-        {/* <LassoControl /> */}
+        <LassoControl />
         <WaferCalibrationControl />
       </Stack> 
     </Container>
