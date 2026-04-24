@@ -3,11 +3,14 @@ import { Stack, Group, Button } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { api } from "../../lib/client.tsx";
 import { useConfigStore } from "@/stores/configStore.ts";
+import { usePrototomeConfigStore } from "@/stores/prototomeConfigStore.tsx";
 
 export const StagesPage = () => {
   const config = useConfigStore((state) => state.config);
+  const prototomeConfig = usePrototomeConfigStore((state) => state.config);
 
-  if (!config) return;
+
+  if (!config || !prototomeConfig) return;
 
   return (
     <Stack align="center">

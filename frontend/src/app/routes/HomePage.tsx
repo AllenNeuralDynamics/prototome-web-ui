@@ -36,14 +36,12 @@ export const HomePage = () => {
   const config = useConfigStore((state) => state.config);
   const prototomeConfig = usePrototomeConfigStore((state) => state.config);
 
-  if (!config || !prototomeConfig) return null;
+  if (!config) return null;
 
   const { stage, camera, axis_variable_mapping } = config;
-  const visConfig = buildVisConfig(
-    stage,
-    prototomeConfig,
-    axis_variable_mapping,
-  );
+  const visConfig = prototomeConfig 
+    ? buildVisConfig(stage, prototomeConfig, axis_variable_mapping)
+    : null;
 
   return (
     <div
@@ -54,7 +52,8 @@ export const HomePage = () => {
         align="center"
       >
         <Stack align="stretch">
-          <PrototomeConfigForm />
+          {/* Render the form only if config exists */}
+          {prototomeConfig && <PrototomeConfigForm />}
           <StateControl />
         </Stack>
         <Stack align="stretch">

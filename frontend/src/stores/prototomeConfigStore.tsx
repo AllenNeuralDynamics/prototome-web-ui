@@ -3,7 +3,7 @@ import type { PrototomeConfig } from "@/types/prototomeConfig";
 
 interface PrototomeConfigState {
   config: PrototomeConfig | null;
-  setConfig: (config: PrototomeConfig) => void;
+  setConfig: (config: PrototomeConfig | null) => void;
 }
 
 export const usePrototomeConfigStore = create<PrototomeConfigState>((set) => ({

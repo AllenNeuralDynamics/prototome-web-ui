@@ -55,6 +55,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         setPrototomeConfig(prototomeConfig.data);
       } catch (error) {
         console.error("Error fetching config:", error);
+        setPrototomeConfig(null)
       }
     }
     fetchConfig();

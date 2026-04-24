@@ -70,7 +70,7 @@ export const StagePosVis = ({
                 value: ranges[axis][1] ?? 100,
                 label: `Max: ${ranges[axis][1]} ${unit}`,
               },
-              ...Object.entries(config[axis]).map(([key, value]) => ({
+              ...Object.entries(config?.[axis] ?? {}).map(([key, value]) => ({
                 value: Number(value),
                 label: `${key}: ${value}`,
               })),
