@@ -1,3 +1,5 @@
+import { api } from "@/lib/client.tsx";
+
 /**
  * negotiate function for establishing sdp and ice with webRTC peer connections
  *
@@ -45,17 +47,13 @@ export async function negotiate(
       ]),
     );
 
-  const response = await fetch(`http://localhost:8000/offer`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sdp: localDescription.sdp,
-      type: localDescription.type,
-      transceiverMidMapping: transceiverMidMapping,
-    }),
+  const response = await api.post("/offer", {
+    sdp: localDescription.sdp,
+    type: localDescription.type,
+    transceiverMidMapping: transceiverMidMapping,
   });
 
   // recieve sdp answer from server
-  const answer = await response.json();
+  const answer = await response.data;
   await pc.setRemoteDescription(answer);
 }

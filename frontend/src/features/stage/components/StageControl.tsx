@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   RangeSlider,
   Slider,
@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import type { StageControlProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
-import { useDataChannelStore } from "@/stores/dataChannelStore.tsx";
+import { useStagePositionStore } from "@/stores/stagePositionStore.tsx";
 import { stageApi } from "../api/stageApi.tsx";
 
 export const StageControl = ({
@@ -21,57 +21,33 @@ export const StageControl = ({
   unit = "um",
 }: StageControlProps) => {
   const [velocities, setVelocities] = useState<Record<string, number>>({});
-  const [maxVelocities, setMaxVelocities] = useState<Record<string, number>>({});
+  const [maxVelocities, setMaxVelocities] = useState<Record<string, number>>(
+    {},
+  );
   const [posInput, setPosInput] = useState<Record<string, number>>({});
   const [stepSizeInput, setStepSizeInput] = useState<Record<string, number>>(
     {},
   );
-  const [positions, setPositions] = useState<Record<string, number>>({});
   const [ranges, setRanges] = useState<Record<string, number[]>>({});
-  const positionChannelRef = useRef<RTCDataChannel | null>(null);
-  const dataChannels = useDataChannelStore((state) => state.channels);
-  
-  // access stored dataChannels and add message handlers
-  useEffect(() => {
-    // add position channel
-    const positionChannel = dataChannels[`prototome_stage_positions`];
-    if (!positionChannel) return; // channel not ready yet
-    
-    // update pos upon message
-    const handlePosMessage = (evt: MessageEvent) => {
-      const pos = JSON.parse(evt.data);
-      setPositions(prev => ({ ...prev, ...pos }));
-    };
-    positionChannel.addEventListener("message", handlePosMessage);
-    console.log("attaching event control")
-
-    // create reference
-    positionChannelRef.current = positionChannel;
-
-    return () => {
-      positionChannel.removeEventListener("message", handlePosMessage);
-      console.log('removing control')
-    };
-  }, [!!dataChannels[`prototome_stage_positions`]]);
+  const positions = useStagePositionStore((state) => state.positions);
 
   // populate range and velocity
-    useEffect(() => {
-      async function fetchAxisSpecs() {
-
-        for (const axis of axes) {
-          const [ vel, maxVel, range] = await Promise.all([
-                  stageApi.getVelocity(stageId, axis),
-                  stageApi.getMaxVelocity(stageId, axis),
-                  stageApi.getRange(stageId, axis),
-                ]);
-          setVelocities((prev) => ({...prev, ...{[axis]:vel}}))
-          setMaxVelocities((prev) => ({...prev, ...{[axis]:maxVel}}))
-          setRanges((prev) => ({...prev, ...{[axis]:range}}))
-        }
+  useEffect(() => {
+    async function fetchAxisSpecs() {
+      for (const axis of axes) {
+        const [vel, maxVel, range] = await Promise.all([
+          stageApi.getVelocity(stageId, axis),
+          stageApi.getMaxVelocity(stageId, axis),
+          stageApi.getRange(stageId, axis),
+        ]);
+        setVelocities((prev) => ({ ...prev, ...{ [axis]: vel } }));
+        setMaxVelocities((prev) => ({ ...prev, ...{ [axis]: maxVel } }));
+        setRanges((prev) => ({ ...prev, ...{ [axis]: range } }));
       }
-    fetchAxisSpecs()
-    }, []);
-  
+    }
+    fetchAxisSpecs();
+  }, []);
+
   // Stub out functionality for now
   // const onPosRangeChange = (range: [number, number], axis: string) => {
   //   const position = positions[axis];
@@ -86,25 +62,29 @@ export const StageControl = ({
   //     const newRange = [clampedMin, clampedMax];
   //     setRanges((prev) => ({ ...prev, [axis]: newRange }));
   //     stageApi.postRange(stageId, axis, newRange)
-      
+
   //   }
   // };
 
   const onMoveLowerClick = (axis: string) => {
-    stageApi.postPosition(stageId, axis, ranges[axis][0])
+    stageApi.postPosition(stageId, axis, ranges[axis][0]);
   };
 
   const onMoveUpperClick = (axis: string) => {
-    stageApi.postPosition(stageId, axis, ranges[axis][1])
+    stageApi.postPosition(stageId, axis, ranges[axis][1]);
   };
 
   const onMoveMiddleClick = (axis: string) => {
-    stageApi.postPosition(stageId, axis, Math.round((ranges[axis][0] + ranges[axis][1]) / 2))
+    stageApi.postPosition(
+      stageId,
+      axis,
+      Math.round((ranges[axis][0] + ranges[axis][1]) / 2),
+    );
   };
   const onMoveClick = (val: number, axis: string) => {
-    stageApi.postPosition(stageId, axis, val)
+    stageApi.postPosition(stageId, axis, val);
   };
-  
+
   const stagePositions = positions ?? {};
   if (!axes.every((axis) => axis in stagePositions)) return;
 
@@ -192,8 +172,7 @@ export const StageControl = ({
             color={getAxisColor(axis)}
             value={velocities[axis] || 0}
             onChange={(val) => {
-              stageApi.postVelocity(stageId, axis, val)
-            
+              stageApi.postVelocity(stageId, axis, val);
             }}
             max={maxVelocities[axis]}
           />
@@ -278,29 +257,33 @@ export const StageControl = ({
               </Button>
             </Stack>
             <Stack>
-            <Button
-              size="xs"
-              color={getAxisColor(axis)}
-              onClick={() => {
-                if (typeof posInput[axis] === "number") {
-                  onMoveClick(posInput[axis], axis);
-                }
-              }}
-            >
-              Move
-            </Button>
-            <Button 
-              size="xs" 
-              color={getAxisColor(axis)} 
-              variant="light" 
-              onClick={() => {stageApi.postHomeAxis(stageId, axis)}}
+              <Button
+                size="xs"
+                color={getAxisColor(axis)}
+                onClick={() => {
+                  if (typeof posInput[axis] === "number") {
+                    onMoveClick(posInput[axis], axis);
+                  }
+                }}
+              >
+                Move
+              </Button>
+              <Button
+                size="xs"
+                color={getAxisColor(axis)}
+                variant="light"
+                onClick={() => {
+                  stageApi.postHomeAxis(stageId, axis);
+                }}
               >
                 Home
               </Button>
-            <Button 
-              size="xs" 
-              color={getAxisColor(axis)}
-              onClick={() => {stageApi.postStopAxis(stageId, axis)}}
+              <Button
+                size="xs"
+                color={getAxisColor(axis)}
+                onClick={() => {
+                  stageApi.postStopAxis(stageId, axis);
+                }}
               >
                 Stop
               </Button>
@@ -310,4 +293,4 @@ export const StageControl = ({
       ))}
     </div>
   );
-}
+};

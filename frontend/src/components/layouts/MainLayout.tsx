@@ -5,10 +5,9 @@ type MainLayoutProps = {
 };
 
 const MainLayout = ({ children }: MainLayoutProps) => {
-
   return (
     <div>
-      <Header/>
+      <Header />
       {children}
     </div>
   );
