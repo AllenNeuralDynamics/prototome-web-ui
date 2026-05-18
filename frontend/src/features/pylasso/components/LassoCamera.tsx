@@ -9,7 +9,6 @@ interface LassoCameraProps {
 }
 
 export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
-  console.log(cameraId);
 
   /***************************************
    *
