@@ -1,20 +1,22 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface ThemeStore {
-  colorScheme: 'light' | 'dark';
+  colorScheme: "light" | "dark";
   toggleColorScheme: () => void;
-  setColorScheme: (scheme: 'light' | 'dark') => void;
+  setColorScheme: (scheme: "light" | "dark") => void;
 }
 
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set) => ({
-      colorScheme: 'light',
+      colorScheme: "light",
       toggleColorScheme: () =>
-        set((state) => ({ colorScheme: state.colorScheme === 'light' ? 'dark' : 'light' })),
-      setColorScheme: (scheme) => set({ colorScheme: scheme })
+        set((state) => ({
+          colorScheme: state.colorScheme === "light" ? "dark" : "light",
+        })),
+      setColorScheme: (scheme) => set({ colorScheme: scheme }),
     }),
-    { name: 'theme-storage' } // stored in localStorage
-  )
+    { name: "theme-storage" }, // stored in localStorage
+  ),
 );

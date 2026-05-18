@@ -56,7 +56,7 @@ export const prototomeSchema: RJSFSchema = {
       },
       minItems: 2,
       maxItems: 2,
-    },  
+    },
   },
   required: [
     "active",
@@ -86,7 +86,7 @@ export const uiPrototomeSchema = {
       orderable: "false",
       addable: "false",
       removable: "false",
-      clearable: "false"
+      clearable: "false",
     },
     "ui:field": "object",
     "ui:widget": "text",

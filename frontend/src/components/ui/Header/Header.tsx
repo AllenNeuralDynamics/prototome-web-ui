@@ -28,4 +28,4 @@ export const Header = () => {
       <ColorSchemeToggle />
     </Container>
   );
-}
+};

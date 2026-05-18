@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card, Slider, Badge } from "@mantine/core";
 import type { StagePosVisProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
-import { useDataChannelStore } from "@/stores/dataChannelStore.tsx";
+import { useStagePositionStore } from "@/stores/stagePositionStore.tsx";
 import { stageApi } from "../api/stageApi.tsx";
 
 export const StagePosVis = ({
@@ -11,43 +11,18 @@ export const StagePosVis = ({
   config,
   unit = "mm",
 }: StagePosVisProps) => {
-  const [positions, setPositions] = useState<Record<string, number>>({});
   const [ranges, setRanges] = useState<Record<string, number[]>>({});
-  const positionChannelRef = useRef<RTCDataChannel | null>(null);
-  const dataChannels = useDataChannelStore((state) => state.channels);
-
-  // access stored dataChannels and add message handlers
-  useEffect(() => {
-    // add position channel
-    const positionChannel = dataChannels[`prototome_stage_positions`];
-    if (!positionChannel) return; // channel not ready yet
-    
-    // update pos upon message
-    const handlePosMessage = (evt: MessageEvent) => {
-      const pos = JSON.parse(evt.data);
-      setPositions(prev => ({ ...prev, ...pos }));
-    };
-    positionChannel.addEventListener("message", handlePosMessage);
-    
-    // create reference
-    positionChannelRef.current = positionChannel;
-
-    return () => {
-      positionChannel.removeEventListener("message", handlePosMessage);
-
-    };
-  }, [!!dataChannels[`prototome_stage_positions`]]);
+  const positions = useStagePositionStore((state) => state.positions);
 
   // populate range
   useEffect(() => {
     async function fetchRange() {
-
       for (const axis of axes) {
-        const range = await stageApi.getRange(stageId, axis)
-        setRanges((prev) => ({...prev, ...{[axis]:range}}))
+        const range = await stageApi.getRange(stageId, axis);
+        setRanges((prev) => ({ ...prev, ...{ [axis]: range } }));
       }
     }
-  fetchRange()
+    fetchRange();
   }, []);
 
   const stagePositions = positions ?? {};
@@ -55,7 +30,7 @@ export const StagePosVis = ({
 
   const stageRanges = ranges ?? {};
   if (!axes.every((axis) => axis in stageRanges)) return;
-  
+
   return (
     <div>
       {axes.map((axis) => (
@@ -95,7 +70,7 @@ export const StagePosVis = ({
                 value: ranges[axis][1] ?? 100,
                 label: `Max: ${ranges[axis][1]} ${unit}`,
               },
-              ...Object.entries(config[axis]).map(([key, value]) => ({
+              ...Object.entries(config?.[axis] ?? {}).map(([key, value]) => ({
                 value: Number(value),
                 label: `${key}: ${value}`,
               })),
@@ -106,9 +81,9 @@ export const StagePosVis = ({
             mr="20px"
             styles={{
               label: {
-                top: 'calc(100% + 10px)',   // push label below the thumb
-                transform: 'translateX(-50%)',
-                whiteSpace: 'nowrap',
+                top: "calc(100% + 10px)", // push label below the thumb
+                transform: "translateX(-50%)",
+                whiteSpace: "nowrap",
               },
               bar: { backgroundColor: "transparent" },
               mark: {
@@ -130,4 +105,4 @@ export const StagePosVis = ({
       ))}
     </div>
   );
-}
+};
