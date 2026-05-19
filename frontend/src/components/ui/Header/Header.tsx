@@ -24,6 +24,15 @@ export const Header = () => {
         >
           Stages
         </Button>
+        <Button
+          component={Link}
+          to="/pylasso"
+          variant={location.pathname === "/pylasso" ? "filled" : "outline"}
+          color="blue"
+        >
+          PyLasso
+        </Button>
+         
       </Group>
       <ColorSchemeToggle />
     </Container>

@@ -9,7 +9,7 @@
   },
   "data_channels": ["prototome_stage_positions", 
                     "prototome_state"],
-  "video_streams": ["new_frame"],
+  "video_streams": ["new_frame", "lasso"],
   "gets": {"/{element_id}/gain": "{element_id}_get_gain",
         "/{element_id}/gain_min": "{element_id}_gain_min", 
         "/{element_id}/gain_max": "{element_id}_gain_max", 
@@ -22,7 +22,11 @@
         "/{element_id}/max_velocity": "get_axis_max_velocity",
         "/{element_id}/range": "get_axis_travel_range",
         "/get_prototome_config": "get_prototome_config",
-        "/get_prototome_state":"get_prototome_state"},
+        "/get_prototome_state":"get_prototome_state",
+        "/get_wafer": "get_wafer",
+        "/get_navigator_data": "get_navigator_data",
+        "/get_lasso_data": "get_lasso_data"
+      },
 
   "posts": {"/{element_id}/set_gain": "{element_id}_set_gain",
          "/{element_id}/set_exposure": "{element_id}_set_exposure",
@@ -31,6 +35,7 @@
          "/{element_id}/set_position": "set_axis_position",
          "/{element_id}/set_velocity": "set_axis_velocity",
          "/cut_one":"cut_one",
+         "/{element_id}/set": "{element_id}_set",
          "/start_cutting":"start_cutting",
          "/pause_cutting":"pause_cutting",
          "/stop_cutting_safely":"stop_cutting_safely",
@@ -39,20 +44,31 @@
          "/{element_id}/stop_axis": "stop_axis",
          "/{element_id}/home_axis": "home_axis",
          "/stop_all_axes": "stop_all_axes",
-         "/home_all_axes": "home_all_axes"
+         "/home_all_axes": "home_all_axes",
+         "/update_aperture_status": "update_aperture_status",
+         "/remove_aperture": "remove_aperture",
+         "/set_world_refpoint": "set_world_refpoint",
+         "/calibrate": "calibrate",
+         "/move_to_state_position": "move_to_state_position",
+         "/store_position": "store_position",
+         "/lasso_home_all_axes": "lasso_home_all_axes",
+         "/lasso_stop_all_axes": "lasso_stop_all_axes",
+         "/home_axis": "home_axis",
+         "/stop_axis": "stop_axis",
+         "/gui_update_speed": "gui_update_speed"
          },
   "axis_variable_mapping":{
     "pt_stage_fine": {
-      "1": ["retract_piezo_distance"]
+      "axis1": ["retract_piezo_distance"]
     },
     "pt_stage_coarse": {
-      "Group1.Pos": [
+      "axis2": [
         "bottom_position_mm",
         "ep_cut_bottom",
         "ep_cut_top",
         "top_position_mm"
       ],
-      "Group2.Pos": ["retract_distance"]
+      "axis1": ["retract_distance"]
     }
   }
 }
