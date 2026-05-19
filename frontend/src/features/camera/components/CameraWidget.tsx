@@ -1,11 +1,19 @@
 import { useState, useRef, useEffect } from "react";
-import { Slider, Text, Button, Group, Card } from "@mantine/core";
+import {
+  Slider,
+  Text,
+  Button,
+  Group,
+  Card,
+  NumberInput,
+  Stack,
+} from "@mantine/core";
 import type { CameraWidgetProps } from "../types/cameraTypes.tsx";
 import { useVideoStreamStore } from "@/stores/dataChannelStore.tsx";
 import { cameraApi } from "../api/cameraApi.tsx";
+import { IconCaretLeftFilled, IconCaretRightFilled } from "@tabler/icons-react";
 
 export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
-
   const [exposure, setExposure] = useState(1);
   const [exposureSpecs, setExposureSpecs] = useState({
     min: 0,
@@ -111,11 +119,35 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
               step={exposureSpecs.step}
             />
           </div>
+          <NumberInput
+            size="xs"
+            value={exposureSpecs["step"]}
+            hideControls
+            prefix="Step size: "
+            onChange={(val) => {
+              if (typeof val === "number") {
+                setExposureSpecs((prev) => ({ ...prev, ["step"]: val }));
+              }
+            }}
+          />
+          <Button
+            variant="light"
+            onClick={() => {
+              const newExposure = Math.max(exposure - exposureSpecs["step"], exposureSpecs["min"]);
+              onExposureChange(newExposure);              
+            }}
+          >
+            {<IconCaretLeftFilled />}
+          </Button>
+          <Button onClick={() => {
+              const newExposure = Math.min(exposure + exposureSpecs["step"], exposureSpecs["max"]);
+              onExposureChange(newExposure);              
+            }}>{<IconCaretRightFilled />}</Button>
         </Group>
         <Group mb="xs" style={{ alignItems: "center", gap: "0.5rem" }}>
           <Text size="sm">Gain: </Text>
           <Text size="sm" c="dimmed">
-            {gain}
+            {gain.toFixed(2)}
           </Text>
           <div style={{ width: 595, padding: "0" }}>
             <Slider
@@ -126,6 +158,30 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
               step={gainSpecs.step}
             />
           </div>
+          <NumberInput
+            size="xs"
+            value={gainSpecs["step"].toFixed(5)}
+            hideControls
+            prefix="Step size: "
+            onChange={(val) => {
+              if (typeof val === "number") {
+                setGainSpecs((prev) => ({ ...prev, ["step"]: val }));
+              }
+            }}
+          />
+          <Button
+            variant="light"
+            onClick={() => {
+              const newGain = Math.max(gain - gainSpecs["step"], gainSpecs["min"]);
+              onGainChange(newGain);              
+            }}
+          >
+            {<IconCaretLeftFilled />}
+          </Button>
+          <Button onClick={() => {
+              const newGain = Math.min(gain + gainSpecs["step"], gainSpecs["max"]);
+              onGainChange(newGain);              
+            }}>{<IconCaretRightFilled />}</Button>
         </Group>
       </Card>
     </div>
