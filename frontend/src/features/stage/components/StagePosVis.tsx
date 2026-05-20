@@ -23,7 +23,7 @@ export const StagePosVis = ({
       }
     }
     fetchRange();
-  }, []);
+  });
 
   const stagePositions = positions ?? {};
   if (!axes.every((axis) => axis in stagePositions)) return;
