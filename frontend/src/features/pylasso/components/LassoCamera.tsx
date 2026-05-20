@@ -9,7 +9,6 @@ interface LassoCameraProps {
 }
 
 export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
-
   /***************************************
    *
    *    STATES
@@ -17,10 +16,8 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
    ***************************************/
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const videoStream = useVideoStreamStore(
-    (state) => state.streams["lasso"],
-  );
-  const [colorSettings, setColorSettings] = useState({
+  const videoStream = useVideoStreamStore((state) => state.streams["lasso"]);
+  const [colorSettings] = useState({
     "saturation derivative": 0,
     red: 0,
     green: 0,
@@ -29,8 +26,6 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
     saturation: 0,
     lightness: 0,
   });
-  const [exposure, setExposure] = useState(1);
-  const [gain, setGain] = useState(1);
 
   // set up livestream
   useEffect(() => {
@@ -127,7 +122,11 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
 
       <Group grow>
         <Button>Enable Auto White Balance</Button>
-        <Button onClick={() => lassoCameraApi.postAutoWhiteBalance(cameraId, 1)}>Save Camera Settings</Button>
+        <Button
+          onClick={() => lassoCameraApi.postAutoWhiteBalance(cameraId, 1)}
+        >
+          Save Camera Settings
+        </Button>
       </Group>
     </Stack>
   );

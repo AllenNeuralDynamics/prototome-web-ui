@@ -20,6 +20,7 @@ from prototome_web_ui.prototome_web_ui_config_model import PrototomeWebUiConfig
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     """Lifespan context: clean up tasks on shutdown"""
