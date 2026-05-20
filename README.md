@@ -63,6 +63,7 @@ Communication from the backend to frontend is expected to be done through the on
 
 1. **Install backend dependencies:**
 ```bash
+cd server
 uv sync
 ```
 
@@ -82,10 +83,11 @@ yarn install
 uv run main.py
 ```
 
-2. Launch FastAPI app backend with uvicorn in separate process. Web app will be hosted on 8000 so specify 8000
+2. Launch FastAPI server. Pass --dev to enable development mode which requires running the Vite dev server separately. Without --dev the app will serve the static frontend files from input path. To build static files at src/prototome_web_ui/dist, run npm run build in frontend folder.
 
 ```bash
-uv run uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+cd server
+uv run prototome_web_ui --config C:\Users\micah.woodard\Documents\GitHub\prototome-web-ui\examples\web_ui_config.json --dev
 ```
 
 3. Start web ui
