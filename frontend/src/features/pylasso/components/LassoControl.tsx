@@ -21,7 +21,6 @@ export const LassoControl = () => {
     lassoCameraApi.getLassoData().then(setLassoData);
   }, []);
 
-
   // These two relate to changing the color in the camera viewer box
   async function handleROI(value: string | null) {
     console.log("ROI", value);
@@ -34,41 +33,41 @@ export const LassoControl = () => {
   // move_to_state_position
   async function handleMove(state: string) {
     console.log("MOVE", state);
-    lassoCameraApi.postMoveToStatePosition(state)
+    lassoCameraApi.postMoveToStatePosition(state);
   }
 
   // store_position
   async function handleStore(state: string) {
     console.log("STORE", state);
-    lassoCameraApi.postStorePosition(state)
+    lassoCameraApi.postStorePosition(state);
   }
 
   // home_all_axes
   async function handleHomeAll() {
     console.log("HOME ALL");
-    lassoCameraApi.postHomeAllAxes()
+    lassoCameraApi.postHomeAllAxes();
   }
   // stop_all_axes
   async function handleStopAll() {
     console.log("STOP ALL");
-    lassoCameraApi.postStopAllAxes()
+    lassoCameraApi.postStopAllAxes();
   }
 
   // home_axis
   async function handleHome(axis: string) {
     console.log("HOME", axis);
-    lassoCameraApi.postHomeAxis(axis)
+    lassoCameraApi.postHomeAxis(axis);
   }
   // stop_axis
   async function handleStop(axis: string) {
     console.log("STOP", axis);
-    lassoCameraApi.postStopAxis(axis)
+    lassoCameraApi.postStopAxis(axis);
   }
 
   // gui_update_speed
   async function handleStageSpeed(axis: "X" | "Y" | "Z", value: number) {
     console.log("SPEED", axis, value);
-    lassoCameraApi.postGuiUpdateSpeed(axis, value)
+    lassoCameraApi.postGuiUpdateSpeed(axis, value);
   }
 
   return (
