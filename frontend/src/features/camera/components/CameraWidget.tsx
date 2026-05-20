@@ -1,17 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import {
-  Slider,
-  Text,
   Button,
   Group,
   Card,
-  NumberInput,
-  Stack,
+  Box,
+  Divider
 } from "@mantine/core";
 import type { CameraWidgetProps } from "../types/cameraTypes.tsx";
 import { useVideoStreamStore } from "@/stores/dataChannelStore.tsx";
 import { cameraApi } from "../api/cameraApi.tsx";
-import { IconCaretLeftFilled, IconCaretRightFilled } from "@tabler/icons-react";
+import { ControlRow } from "../components/ControlRow.tsx"
 
 export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
   const [exposure, setExposure] = useState(1);
@@ -76,15 +74,9 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
   };
 
   return (
-    <div>
-      <Card
-        key={cameraId}
-        shadow="xs"
-        padding="xs"
-        radius="md"
-        withBorder
-        className="bg-gray-50"
-      >
+  <div>
+    <Card key={cameraId} shadow="xs" padding="md" radius="md" withBorder className="bg-gray-50">
+      <Card.Section>
         <video
           ref={videoRef}
           muted
@@ -94,96 +86,43 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
           height={576}
           style={{ border: "1px solid black" }}
         />
-        <Group align="center" mb="xs">
-          <Button
-            variant="light"
-            onClick={() => cameraApi.startLivestream(cameraId)}
-          >
-            Start
-          </Button>
-          <Button onClick={() => cameraApi.stopLivestream(cameraId)}>
-            Stop
-          </Button>
-        </Group>
-        <Group mb="xs" style={{ alignItems: "center", gap: "0.5rem" }}>
-          <Text size="sm">Exposure: </Text>
-          <Text size="sm" c="dimmed">
-            {exposure}
-          </Text>
-          <div style={{ width: 560, padding: "0" }}>
-            <Slider
-              value={exposure}
-              onChange={onExposureChange}
-              min={exposureSpecs.min}
-              max={exposureSpecs.max}
-              step={exposureSpecs.step}
-            />
-          </div>
-          <NumberInput
-            size="xs"
-            value={exposureSpecs["step"]}
-            hideControls
-            prefix="Step size: "
-            onChange={(val) => {
-              if (typeof val === "number") {
-                setExposureSpecs((prev) => ({ ...prev, ["step"]: val }));
-              }
-            }}
-          />
-          <Button
-            variant="light"
-            onClick={() => {
-              const newExposure = Math.max(exposure - exposureSpecs["step"], exposureSpecs["min"]);
-              onExposureChange(newExposure);              
-            }}
-          >
-            {<IconCaretLeftFilled />}
-          </Button>
-          <Button onClick={() => {
-              const newExposure = Math.min(exposure + exposureSpecs["step"], exposureSpecs["max"]);
-              onExposureChange(newExposure);              
-            }}>{<IconCaretRightFilled />}</Button>
-        </Group>
-        <Group mb="xs" style={{ alignItems: "center", gap: "0.5rem" }}>
-          <Text size="sm">Gain: </Text>
-          <Text size="sm" c="dimmed">
-            {gain.toFixed(2)}
-          </Text>
-          <div style={{ width: 595, padding: "0" }}>
-            <Slider
-              value={gain}
-              onChange={onGainChange}
-              min={gainSpecs.min}
-              max={gainSpecs.max}
-              step={gainSpecs.step}
-            />
-          </div>
-          <NumberInput
-            size="xs"
-            value={gainSpecs["step"].toFixed(5)}
-            hideControls
-            prefix="Step size: "
-            onChange={(val) => {
-              if (typeof val === "number") {
-                setGainSpecs((prev) => ({ ...prev, ["step"]: val }));
-              }
-            }}
-          />
-          <Button
-            variant="light"
-            onClick={() => {
-              const newGain = Math.max(gain - gainSpecs["step"], gainSpecs["min"]);
-              onGainChange(newGain);              
-            }}
-          >
-            {<IconCaretLeftFilled />}
-          </Button>
-          <Button onClick={() => {
-              const newGain = Math.min(gain + gainSpecs["step"], gainSpecs["max"]);
-              onGainChange(newGain);              
-            }}>{<IconCaretRightFilled />}</Button>
-        </Group>
-      </Card>
-    </div>
-  );
-};
+      </Card.Section>
+
+      {/* Stream controls */}
+      <Group mt="sm" mb="xs" gap="xs">
+        <Button size="xs" variant="light" onClick={() => cameraApi.startLivestream(cameraId)}>
+          Start
+        </Button>
+        <Button size="xs" onClick={() => cameraApi.stopLivestream(cameraId)}>
+          Stop
+        </Button>
+      </Group>
+
+      <Divider mb="sm" />
+
+      {/* Exposure */}
+      <ControlRow
+        label="Exposure"
+        value={exposure}
+        displayValue={String(exposure)}
+        specs={exposureSpecs}
+        onSliderChange={onExposureChange}
+        onStepChange={(val) => setExposureSpecs((prev) => ({ ...prev, step: val }))}
+      />
+
+      {/* Gain */}
+      <Box mt="sm">
+        <ControlRow
+          label="Gain"
+          value={gain}
+          displayValue={gain.toFixed(2)}
+          specs={gainSpecs}
+          onSliderChange={onGainChange}
+          onStepChange={(val) => setGainSpecs((prev) => ({ ...prev, step: val }))}
+          stepDisplayValue={gainSpecs.step.toFixed(5)}
+        />
+      </Box>
+    </Card>
+  </div>
+);
+}
