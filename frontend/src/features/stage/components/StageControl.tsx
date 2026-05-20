@@ -46,7 +46,7 @@ export const StageControl = ({
       }
     }
     fetchAxisSpecs();
-  });
+  }, []);
 
   // Stub out functionality for now
   // const onPosRangeChange = (range: [number, number], axis: string) => {

@@ -45,7 +45,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       }
     }
     fetchConfig();
-  });
+  }, []);
 
   //  fetch prototome config
   useEffect(() => {
@@ -59,7 +59,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       }
     }
     fetchConfig();
-  });
+  }, []);
 
   //  populate dataChannels and streams
   useEffect(() => {

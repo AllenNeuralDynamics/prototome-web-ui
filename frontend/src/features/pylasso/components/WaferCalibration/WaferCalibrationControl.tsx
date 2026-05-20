@@ -36,7 +36,7 @@ export const WaferCalibrationControl = () => {
     init();
     // lassoCameraApi.getNavigatorData().then(setNavigatorData);
     // getWaferData();
-  });
+  }, []);
 
   function handleReferenceChange(value: string | null) {
     if (value !== null) setReference(value);

@@ -54,7 +54,7 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
     }
     fetchExposureSpecs();
     fetchGainSpecs();
-  });
+  }, []);
 
   const onExposureChange = (val: number) => {
     setExposure(val);
