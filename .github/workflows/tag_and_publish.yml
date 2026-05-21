@@ -4,50 +4,52 @@ on:
     branches:
       - main
       - dev
-jobs:
-  test-lint-and-type-check:
-    uses: ./.github/workflows/test_lint_type.yml
-  tag:
-    runs-on: self-hosted 
-    needs: test-lint-and-type-check
-    env: 
-      UV_PYTHON_INSTALL_DIR: C:\ProgramData\AIBS_MPE\uv_python
-      UV_TOOL_DIR: C:\ProgramData\AIBS_MPE\uv_python
-    steps:
-      - name: Checkout code 
-        uses: actions/checkout@v4
-        with: 
-          repository: ${{ github.event.pull_request.head.repo.full_name }} 
-          ref: ${{ github.event.pull_request.head.ref }} 
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }} 
-          append_to_pre_release_tag: 'dev'
-          pre_release_branches: dev
-          # custom_release_rules: 'fix:patch,feat:minor,breaking:major'
-      - name: Install UV 
-        uses: astral-sh/setup-uv@v5
-      - name: Update Version in pyproject.toml
-        run: uvx --from=toml-cli toml set --toml-path=pyproject.toml project.version ${{ steps.tag_version.outputs.new_version }} 
-      - name: Commit and push pyproject.toml version bump
-        uses: EndBug/add-and-commit@v9
-        with:
-          default_author: github_actions
-          message: "ci: version bump"
-          push: true
-  publish: 
-    runs-on: self-hosted 
-    needs: tag
-    env: 
-      UV_PYTHON_INSTALL_DIR: C:\ProgramData\AIBS_MPE\uv_python
-      UV_TOOL_DIR: C:\ProgramData\AIBS_MPE\uv_python
-    steps:
-      - name: Install UV 
-        uses: astral-sh/setup-uv@v5
-      - name: Build Project
-        run: uv build
-      - name: Publish Project to eng-tools devpi
-        run: uv publish --publish-url http://eng-tools:3141/aibs/packages --username aibs --password aibs
 
+jobs:
+  tag-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from pyproject.toml
+        id: get_version
+        working-directory: server
+        run: |
+          VERSION=$(grep '^version' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create tag
+        run: |
+          git tag v${{ steps.get_version.outputs.version }}
+          git push origin v${{ steps.get_version.outputs.version }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build wheel
+        working-directory: server
+        run: uv build --wheel
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: v${{ steps.get_version.outputs.version }}
+          prerelease: ${{ github.ref == 'refs/heads/dev' }}
+          files: server/dist/*.whl
+        env:
+
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
