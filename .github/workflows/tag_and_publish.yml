@@ -8,7 +8,7 @@ jobs:
   test-lint-and-type-check:
     uses: ./.github/workflows/test_lint_type.yml
   tag:
-    runs-on: self-hosted-good 
+    runs-on: self-hosted 
     needs: test-lint-and-type-check
     env: 
       UV_PYTHON_INSTALL_DIR: C:\ProgramData\AIBS_MPE\uv_python
