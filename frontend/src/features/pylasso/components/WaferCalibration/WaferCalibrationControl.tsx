@@ -1,78 +1,68 @@
 import { Button, Group, Select, Stack, Text } from "@mantine/core";
 import { WaferMap } from "./WaferMap";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { NavigatorData, RefPointStatus, Wafer } from "../../types/wafer";
 import { lassoCameraApi } from "../../api/lassoCameraApi";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
-const waferQueryKey = ["pylasso", "wafer"] as const;
-const navigatorQueryKey = ["pylasso", "navigatorData"] as const;
-
-// This "select" function does two things for us:
-//  1) parses waferData and transforms refpoints for the UI to be used
-//  2) memoizes the wafer data to reduce re-rendering
-function mapWaferData(waferData: Wafer): Wafer {
-  const refpoints = Object.entries(waferData.refpoint).reduce<
-    Record<string, RefPointStatus>
-  >((acc, [id, pos]) => {
-    acc[id] = {
-      position: pos,
-      status: waferData.refpoint_world[id] !== undefined,
-    };
-    return acc;
-  }, {});
-
-  return {
-    ...waferData,
-    refpoints,
-  };
-}
+import { useMutation } from "@tanstack/react-query";
+import { useDataChannelStore } from "@/stores/dataChannelStore";
 
 export const WaferCalibrationControl = () => {
-  const queryClient = useQueryClient();
   const [reference, setReference] = useState<string>("origin");
 
-  // Queries
-  // -------------------------------
+  const [wafer, setWafer] = useState<Wafer>();
+  const [navigatorData, setNavigatorData] = useState<NavigatorData>();
 
-  const { data: wafer, refetch: refetchWafer } = useQuery<Wafer, Error, Wafer>({
-    queryKey: waferQueryKey,
-    queryFn: lassoCameraApi.getWafer,
-    select: mapWaferData,
-    staleTime: 1000,
-    refetchInterval: 3000,
-    refetchIntervalInBackground: false,
-  });
+  const dataChannels = useDataChannelStore((state) => state.channels);
 
-  const { data: navigatorData } = useQuery<NavigatorData>({
-    queryKey: navigatorQueryKey,
-    queryFn: lassoCameraApi.getNavigatorData,
-    staleTime: 0,
-    refetchInterval: 300,
-    refetchIntervalInBackground: false,
-  });
+  // initialize and connect prototome state dataChannel
+  useEffect(() => {
+    // add state channel
+    const waferStateChannel = dataChannels[`pylasso_wafer_data`];
+    const navigatorStateChannel = dataChannels[`pylasso_navigator_data`];
+    if (!waferStateChannel || !navigatorStateChannel) return;
+
+    const handleWaferStateMessage = (evt: MessageEvent) => {
+      const state = JSON.parse(evt.data);
+      state.refpoints = {};
+      Object.entries(state.refpoint).map(([id, pos]) => {
+        const formattedRF: RefPointStatus = {
+          position: pos,
+          status: state.refpoint_world[id] !== undefined ? true : false,
+        };
+        state.refpoints[id] = formattedRF;
+      });
+
+      setWafer(state);
+    };
+    const handleNavigatorStateMessage = (evt: MessageEvent) => {
+      const state = JSON.parse(evt.data);
+      setNavigatorData(state);
+    };
+
+    waferStateChannel.addEventListener("message", handleWaferStateMessage);
+    navigatorStateChannel.addEventListener(
+      "message",
+      handleNavigatorStateMessage,
+    );
+
+    return () => {
+      waferStateChannel.removeEventListener("message", handleWaferStateMessage);
+      navigatorStateChannel.removeEventListener(
+        "message",
+        handleNavigatorStateMessage,
+      );
+    };
+  }, [dataChannels]);
 
   // Mutations
   // -------------------------------
 
   const calibrateWafer = useMutation({
     mutationFn: lassoCameraApi.postCalibrate,
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: waferQueryKey }),
-        queryClient.invalidateQueries({ queryKey: navigatorQueryKey }),
-      ]);
-    },
   });
 
   const setWorldRefpoint = useMutation({
     mutationFn: (key: string) => lassoCameraApi.postSetWorldRefpoint(key),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: waferQueryKey }),
-        queryClient.invalidateQueries({ queryKey: navigatorQueryKey }),
-      ]);
-    },
   });
 
   function handleReferenceChange(value: string | null) {
