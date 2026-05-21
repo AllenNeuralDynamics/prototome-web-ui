@@ -3,20 +3,51 @@ import { Slider, Text, Button, Group, Card } from "@mantine/core";
 import type { CameraWidgetProps } from "../types/cameraTypes.tsx";
 import { useVideoStreamStore } from "@/stores/dataChannelStore.tsx";
 import { cameraApi } from "../api/cameraApi.tsx";
+import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
 
 export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
+  const dataChannels = useDataChannelStore((state) => state.channels);
+
   const [exposure, setExposure] = useState(1);
   const [exposureSpecs, setExposureSpecs] = useState({
     min: 0,
     max: 0,
     step: 0,
   });
+  // initialize and connect exposure dataChannel
+  useEffect(() => {
+    const exposureChannel = dataChannels[`exposure`];
+    if (!exposureChannel) return;
+    const handleStateMessage = (evt: MessageEvent) => {
+      const state = JSON.parse(evt.data);
+      setExposure(state);
+    };
+    exposureChannel.addEventListener("message", handleStateMessage);
+    return () => {
+      exposureChannel.removeEventListener("message", handleStateMessage);
+    };
+  }, [dataChannels]);
+
+  const [gain, setGain] = useState(1);
   const [gainSpecs, setGainSpecs] = useState({
     min: 0,
     max: 0,
     step: 0,
   });
-  const [gain, setGain] = useState(1);
+  // initialize and connect gain dataChannel
+  useEffect(() => {
+    const gainChannel = dataChannels[`gain`];
+    if (!gainChannel) return;
+    const handleStateMessage = (evt: MessageEvent) => {
+      const state = JSON.parse(evt.data);
+      setExposure(state);
+    };
+    gainChannel.addEventListener("message", handleStateMessage);
+    return () => {
+      gainChannel.removeEventListener("message", handleStateMessage);
+    };
+  }, [dataChannels]);
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const videoStream = useVideoStreamStore(
     (state) => state.streams["new_frame"],
