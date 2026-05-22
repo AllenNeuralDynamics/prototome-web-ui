@@ -2,6 +2,7 @@ import { cameraApi } from "@/features/camera/api/cameraApi";
 import { lassoCameraApi } from "@/features/pylasso/api/lassoCameraApi";
 import { useVideoStreamStore } from "@/stores/dataChannelStore";
 import { Button, Group, Select, Slider, Stack, Text } from "@mantine/core";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 interface LassoCameraProps {
@@ -27,11 +28,27 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
     lightness: 0,
   });
 
+  /***************************************
+   *
+   *    FETCH DATA
+   *
+   ***************************************/
+
   // set up livestream
   useEffect(() => {
     if (!videoRef.current || !videoStream) return;
     videoRef.current.srcObject = videoStream;
   }, [videoStream]);
+
+  const { data: exposure } = useQuery({
+    queryKey: ["lasso_camera_exposure"],
+    queryFn: () => cameraApi.getExposure(cameraId),
+  });
+
+  const { data: gain } = useQuery({
+    queryKey: ["lasso_camera_gain"],
+    queryFn: () => cameraApi.getGain(cameraId),
+  });
 
   /***************************************
    *
@@ -42,8 +59,6 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
    *  - exposure change             < update exposure, call api
    *  - gain change                 < update gain, call api
    *  - color setting change        < update color, call api
-   *  - start camera                < direct api call onClick
-   *  - stop camera                 < direct api call onClick
    *  - minimize xy distance        < direct api call onClick
    *  - start automated dropoff     < direct api call onClick
    *  - enable auto white balance   < direct api call onClick
@@ -51,6 +66,16 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
    *  - consumer dropoffimager      < get ROI (format to what prototome saves), call api
    *
    */
+
+  async function handleGainChange(value: number) {
+    console.log("Gain change", value);
+    cameraApi.postGain(cameraId, value);
+  }
+
+  async function handleExposureChange(value: number) {
+    console.log("Exposure change", value);
+    cameraApi.postExposure(cameraId, value);
+  }
 
   return (
     <Stack className="space-y-10">
@@ -93,7 +118,7 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
           <Group gap="xl">
             <Text className="min-w-50 text-right"> Exposure Time (μs)</Text>
             <Slider
-              defaultValue={500000}
+              defaultValue={exposure}
               min={10}
               max={1000000}
               marks={[
@@ -102,12 +127,13 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
                 { value: 1000000, label: "1000000" },
               ]}
               className="flex-1"
+              onChange={handleExposureChange}
             />
           </Group>
           <Group gap="xl">
             <Text className="min-w-50 text-right"> Gain </Text>
             <Slider
-              defaultValue={12}
+              defaultValue={gain}
               min={0}
               max={24}
               marks={[
@@ -115,18 +141,19 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
                 { value: 24, label: "24" },
               ]}
               className="flex-1"
+              onChange={handleGainChange}
             />
           </Group>
         </Stack>
       </Group>
 
       <Group grow>
-        <Button>Enable Auto White Balance</Button>
         <Button
           onClick={() => lassoCameraApi.postAutoWhiteBalance(cameraId, 1)}
         >
-          Save Camera Settings
+          Enable Auto White Balance
         </Button>
+        <Button>Save Camera Settings</Button>
       </Group>
     </Stack>
   );
