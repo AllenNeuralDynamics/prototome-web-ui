@@ -11,7 +11,7 @@ export const stageApi = {
     api.post(`/${stageId}/set_position`, { axis, position }),
 
   postVelocity: (stageId: string, axis: string, speed: number) =>
-    api.post(`/${stageId}/set_velocity`, { axis, speed }),
+    api.post(`/${stageId}/set_velocity`, { logical_axis:axis, speed }),
 
   postRange: (stageId: string, axis: string, range: number[]) =>
     api.post(`/${stageId}/set_range`, { axis, range }),
