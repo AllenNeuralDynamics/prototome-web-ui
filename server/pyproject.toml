@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "prototome-web-ui"
-version = "0.1.0"
+version = "0.1.1"
 readme = "README.md"
 description = "FastApi layer for React app."
 requires-python = ">=3.12"

@@ -1,6 +1,6 @@
 import { Button, Group, Select, Stack, Text } from "@mantine/core";
 import { WaferMap } from "./WaferMap";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import type { NavigatorData, RefPointStatus, Wafer } from "../../types/wafer";
 import { lassoCameraApi } from "../../api/lassoCameraApi";
 import { useMutation } from "@tanstack/react-query";
@@ -24,7 +24,7 @@ export const WaferCalibrationControl = () => {
     const handleWaferStateMessage = (evt: MessageEvent) => {
       const state = JSON.parse(evt.data);
       state.refpoints = {};
-      Object.entries(state.refpoint).map(([id, pos]) => {
+      Object.entries(state.refpoint as Record<string, [number, number, number]>).map(([id, pos]) => {
         const formattedRF: RefPointStatus = {
           position: pos,
           status: state.refpoint_world[id] !== undefined ? true : false,
@@ -53,6 +53,20 @@ export const WaferCalibrationControl = () => {
       );
     };
   }, [dataChannels]);
+
+  const getWaferData = useCallback(async () => {
+    const waferData: Wafer = await lassoCameraApi.getWafer();
+    waferData.refpoints = {};
+    Object.entries(waferData.refpoint).map(([id, pos]) => {
+      const formattedRF: RefPointStatus = {
+        position: pos,
+        status: waferData.refpoint_world[id] !== undefined ? true : false,
+      };
+      waferData.refpoints[id] = formattedRF;
+    });
+
+    setWafer(waferData);
+  }, []);
 
   // Mutations
   // -------------------------------
@@ -127,9 +141,7 @@ export const WaferCalibrationControl = () => {
       <WaferMap
         wafer={wafer}
         nextApertureId={navigatorData?.next_aperture_id}
-        onRefresh={async () => {
-          await refetchWafer();
-        }}
+        onRefresh={getWaferData}
         refreshKey={aperturesSignature ?? "initial"}
       />
     </Stack>
