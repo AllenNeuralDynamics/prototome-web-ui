@@ -82,10 +82,11 @@ yarn install
 uv run main.py
 ```
 
-2. Launch FastAPI app backend with uvicorn in separate process. Web app will be hosted on 8000 so specify 8000
+2. Launch FastAPI app backend with uvicorn in separate process.
 
 ```bash
-uv run uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+cd server
+uv run prototome_web_ui --config path_to_config --dev
 ```
 
 3. Start web ui
