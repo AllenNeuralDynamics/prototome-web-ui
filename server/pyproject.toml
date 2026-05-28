@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "prototome-web-ui"
-version = "0.1.0"
+version = "0.2.0"
 readme = "README.md"
 description = "FastApi layer for React app."
 requires-python = ">=3.12"
@@ -22,6 +22,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "ruff",
+    "mypy"
 ]
 
 [project.scripts]
@@ -35,7 +36,7 @@ line-length = 120
 target-version = "py312"
 
 [tool.uv.sources]
-one-liner = { git = "https://github.com/AllenNeuralDynamics/one-liner.git", rev = "22aa37370c3678726ebacb2f0a2e8ae263a94704" }
+one-liner = { git = "https://github.com/AllenNeuralDynamics/one-liner.git", tag = "v0.1.1.dev2" }
 
 [tool.uv.build-backend]
 source-include = ["src/prototome_web_ui/dist/**"]
