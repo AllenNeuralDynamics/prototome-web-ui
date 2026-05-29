@@ -14,7 +14,6 @@ export const WaferCalibrationControl = () => {
 
   const dataChannels = useDataChannelStore((state) => state.channels);
 
-  // initialize and connect prototome state dataChannel
   useEffect(() => {
     // add state channel
     const waferStateChannel = dataChannels[`pylasso_wafer_data`];
