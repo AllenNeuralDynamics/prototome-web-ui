@@ -170,8 +170,10 @@ export const StageControl = ({
           </Group>
           <Slider
             color={getAxisColor(axis)}
+            step={.01}
             value={velocities[axis] || 0}
             onChange={(val) => {
+              setVelocities((prev) => ({ ...prev, ...{ [axis]: val } }));
               stageApi.postVelocity(stageId, axis, val);
             }}
             max={maxVelocities[axis]}

@@ -46,14 +46,14 @@ async def stream_to_channel(client: RouterClient, channel: RTCDataChannel) -> No
             _, msg = client.get_stream(channel.label)
             channel.send(json.dumps(msg))
 
-class ZMQStreamTrack(VideoStreamTrack):
-    
-    """
-        VideoStreamTrack that streams frames received asynchronously from queue through aiortc to a WebRTC client.
 
-        :param queue: queue containing RGB numpt arrays frames to be streamed.
+class ZMQStreamTrack(VideoStreamTrack):
     """
-    
+    VideoStreamTrack that streams frames received asynchronously from queue through aiortc to a WebRTC client.
+
+    :param queue: queue containing RGB numpt arrays frames to be streamed.
+    """
+
     kind = "video"
 
     def __init__(self, client: RouterClient, stream_name: str):
@@ -61,20 +61,23 @@ class ZMQStreamTrack(VideoStreamTrack):
         self.stream_name = stream_name
         self.client = client
         self.poller = get_stream_poller(client, stream_name)
-    
+
     async def recv(self):
-        try: 
+        try:
             await self.poller.poll(timeout=-1)
             timestamp, frame = self.client.get_stream(self.stream_name)
-            frame = await asyncio.to_thread(cv2.cvtColor, frame, cv2.COLOR_RGB2YUV_I420) # decreases encoding time to frontend
+            frame = await asyncio.to_thread(
+                cv2.cvtColor, frame, cv2.COLOR_RGB2YUV_I420
+            )  # decreases encoding time to frontend
             video_frame = VideoFrame.from_ndarray(frame, format="yuv420p")
             # webrtc rtp uses 90kHz as standard clock rate
-            video_frame.pts = int(time.monotonic() * 90000) # presentation timestamp 
-            video_frame.time_base = Fraction(1, 90000)      # duration of one timestamp
+            video_frame.pts = int(time.monotonic() * 90000)  # presentation timestamp
+            video_frame.time_base = Fraction(1, 90000)  # duration of one timestamp
             return video_frame
-            
+
         except Exception as e:
             print(e)
+
 
 async def handle_offer(client: RouterClient, request: Request) -> dict[str, str]:
     cancel_tasks()
@@ -93,7 +96,7 @@ async def handle_offer(client: RouterClient, request: Request) -> dict[str, str]
         tasks.append(asyncio.create_task(stream_to_channel(client, channel)))
 
     for t in pc.getTransceivers():
-        if t.kind == "video":   # configure video sources
+        if t.kind == "video":  # configure video sources
             stream_name = params["transceiverMidMapping"][t.mid]
             track = ZMQStreamTrack(client, stream_name)
             relay = MediaRelay()

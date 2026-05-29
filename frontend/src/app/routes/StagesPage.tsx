@@ -9,7 +9,6 @@ export const StagesPage = () => {
   const config = useConfigStore((state) => state.config);
   const prototomeConfig = usePrototomeConfigStore((state) => state.config);
 
-
   if (!config || !prototomeConfig) return;
 
   return (

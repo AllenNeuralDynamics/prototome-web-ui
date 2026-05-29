@@ -32,7 +32,6 @@ export const Header = () => {
         >
           PyLasso
         </Button>
-         
       </Group>
       <ColorSchemeToggle />
     </Container>

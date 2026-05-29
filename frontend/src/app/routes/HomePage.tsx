@@ -19,8 +19,8 @@ const buildVisConfig = (
 ): Record<string, Record<string, any>> => {
   return Object.fromEntries(
     stage.axes.map((axis) => {
-    const [ptStage, ...rest] = prototomeConfig.axis_map[axis].split(".");
-    const ptAxis = rest.join(".");
+      const [ptStage, ...rest] = prototomeConfig.axis_map[axis].split(".");
+      const ptAxis = rest.join(".");
       const cfgKeys = axisVariableMapping[ptStage][
         ptAxis
       ] as (keyof PrototomeConfig)[];
@@ -39,7 +39,7 @@ export const HomePage = () => {
   if (!config) return null;
 
   const { stage, camera, axis_variable_mapping } = config;
-  const visConfig = prototomeConfig 
+  const visConfig = prototomeConfig
     ? buildVisConfig(stage, prototomeConfig, axis_variable_mapping)
     : null;
 

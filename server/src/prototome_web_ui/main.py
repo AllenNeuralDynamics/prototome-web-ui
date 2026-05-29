@@ -20,6 +20,7 @@ from prototome_web_ui.prototome_web_ui_config_model import PrototomeWebUiConfig
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     """Lifespan context: clean up tasks on shutdown"""
@@ -72,7 +73,7 @@ def main():
         async def serve_frontend(full_path: str) -> FileResponse:
             return FileResponse(ui_dir / "index.html")
 
-    uvicorn.run(app, port=config.port, log_level=args.log_level.lower())
+    uvicorn.run(app, host="0.0.0.0", port=config.port, log_level=args.log_level.lower())
 
 
 if __name__ == "__main__":
