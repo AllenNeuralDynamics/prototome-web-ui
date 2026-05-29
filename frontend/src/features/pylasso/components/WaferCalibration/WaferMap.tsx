@@ -5,29 +5,16 @@ import { RefPointPlus } from "./RefPoints";
 interface WaferMapProps {
   wafer: Wafer;
   nextApertureId: string | undefined;
-  refreshCount: number;
+  refreshKey: string;
   onRefresh: () => Promise<void>;
 }
 
 export const WaferMap = ({
   wafer,
   nextApertureId,
-  refreshCount,
+  refreshKey,
   onRefresh,
 }: WaferMapProps) => {
-  /**
-   *
-   * TODO:  might need to adjust how data is fetched
-   *  - Setting reference points will require RefPoints to redraw
-   *
-   * TODO: display wafer status
-   *  - Wafer status (used)
-   *  - Wafer calibration status: (calibration failed, etc)
-   *
-   * INVESTIGATE: is there any other functionality that triggers changes to aperture or reference points?
-   *
-   */
-
   // Aperture settings, this is later used to determine width of plus symbol for ref points
   const radius = 5;
 
@@ -60,7 +47,7 @@ export const WaferMap = ({
           preserveAspectRatio="xMidYMid meet"
         >
           <g
-            key={refreshCount}
+            key={refreshKey}
             transform={`translate(${viewMinX * 2 + viewWidth}, 0) scale(-1, 1)`}
           >
             {Object.entries(wafer.apertures).map(([uid, aperture]) => (

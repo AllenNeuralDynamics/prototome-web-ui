@@ -11,15 +11,33 @@ import {
 import { useEffect, useState } from "react";
 import { lassoCameraApi } from "../api/lassoCameraApi";
 import type { LassoData } from "../types/lasso";
+import { useDataChannelStore } from "@/stores/dataChannelStore";
 
 export const LassoControl = () => {
   const [lassoData, setLassoData] = useState<LassoData>();
+  const dataChannels = useDataChannelStore((state) => state.channels);
   const statePositions = Object.entries(lassoData?.state_positions || {});
   const axes: Array<"X" | "Y" | "Z"> = ["X", "Y", "Z"];
 
   useEffect(() => {
-    lassoCameraApi.getLassoData().then(setLassoData);
-  }, []);
+    // add state channel
+    const stateChannel = dataChannels[`pylasso_data`];
+    if (!stateChannel) return;
+    // update pos upon message
+    const handleStateMessage = (evt: MessageEvent) => {
+      const state = JSON.parse(evt.data);
+      setLassoData(state);
+    };
+    stateChannel.addEventListener("message", handleStateMessage);
+
+    return () => {
+      stateChannel.removeEventListener("message", handleStateMessage);
+    };
+  }, [dataChannels]);
+
+  // useEffect(() => {
+  //   lassoCameraApi.getLassoData().then(setLassoData);
+  // }, []);
 
   // These two relate to changing the color in the camera viewer box
   async function handleROI(value: string | null) {

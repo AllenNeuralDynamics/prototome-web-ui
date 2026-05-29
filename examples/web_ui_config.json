@@ -8,7 +8,10 @@
     "id": "prototome_stage"
   },
   "data_channels": ["prototome_stage_positions", 
-                    "prototome_state"],
+                    "prototome_state",
+                    "pylasso_wafer_data",
+                    "pylasso_navigator_data",
+                    "pylasso_data"],
   "video_streams": ["new_frame", "lasso"],
   "gets": {"/{element_id}/gain": "{element_id}_get_gain",
         "/{element_id}/gain_min": "{element_id}_gain_min", 
