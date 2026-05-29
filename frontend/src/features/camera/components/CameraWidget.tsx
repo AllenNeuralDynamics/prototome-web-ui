@@ -43,7 +43,7 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
         cameraApi.getMaxExposure(cameraId),
         cameraApi.getStepExposure(cameraId),
       ]);
-      setExposureSpecs({ "min": min ?? 0, "max": max ?? 0, "step": step ?? 0});
+      setExposureSpecs({ min, max, step});
 
       const exp = await cameraApi.getExposure(cameraId);
       setExposure(exp);
@@ -54,7 +54,7 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
         cameraApi.getMaxGain(cameraId),
         cameraApi.getStepGain(cameraId),
       ]);
-      setGainSpecs({ "min": min ?? 0, "max": max ?? 0, "step": step ?? 0});
+      setExposureSpecs({ min, max, step});
 
       const gain = await cameraApi.getGain(cameraId);
       setGain(gain);
@@ -119,7 +119,6 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
           specs={gainSpecs}
           onSliderChange={onGainChange}
           onStepChange={(val) => setGainSpecs((prev) => ({ ...prev, step: val }))}
-          stepDisplayValue={gainSpecs.step.toFixed(5)}
         />
       </Box>
     </Card>
