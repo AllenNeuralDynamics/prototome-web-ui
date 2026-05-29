@@ -82,15 +82,13 @@ yarn install
 uv run main.py
 ```
 
-2. Launch FastAPI server. Pass --dev to enable development mode which requires running the Vite dev server separately. Without --dev the app will serve the static frontend files from input path. To build static files at src/prototome_web_ui/dist, run npm run build in frontend folder.
-
+2. Launch FastAPI server. Pass `--dev` to enable development mode which requires running the Vite dev server separately. Without `--dev` the app will serve the static frontend files found in release versions. To build static files at src/brainslosher_web_ui/dist, run `npm run build` in frontend folder.
 ```bash
 cd server
-uv run prototome_web_ui --config C:\Users\micah.woodard\Documents\GitHub\prototome-web-ui\examples\web_ui_config.json --dev
+uv run prototome_web_ui --config path_to_config [--dev] [--log_level INFO|DEBUG]
 ```
 
-3. Start web ui
-
+3. **Dev mode only** — start the Vite dev server in a separate terminal:
 ```bash
 cd frontend
 npm run dev
