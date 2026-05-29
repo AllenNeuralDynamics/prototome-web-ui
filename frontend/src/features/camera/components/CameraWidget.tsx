@@ -54,7 +54,7 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
         cameraApi.getMaxGain(cameraId),
         cameraApi.getStepGain(cameraId),
       ]);
-      setExposureSpecs({ min, max, step});
+      setGainSpecs({ min, max, step});
 
       const gain = await cameraApi.getGain(cameraId);
       setGain(gain);
