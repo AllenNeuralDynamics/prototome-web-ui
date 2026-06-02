@@ -17,7 +17,7 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
    ***************************************/
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const videoStream = useVideoStreamStore((state) => state.streams["lasso"]);
+  const videoStream = useVideoStreamStore((state) => state.streams["lasso_camera"]);
   const [colorSettings] = useState({
     "saturation derivative": 0,
     red: 0,
