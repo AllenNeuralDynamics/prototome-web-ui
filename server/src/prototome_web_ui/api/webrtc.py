@@ -65,7 +65,7 @@ class ZMQStreamTrack(VideoStreamTrack):
     async def recv(self):
         try:
             await self.poller.poll(timeout=-1)
-            timestamp, (frame,) = self.client.get_stream(self.stream_name)
+            timestamp, frame = self.client.get_stream(self.stream_name)
             frame = await asyncio.to_thread(
                 cv2.cvtColor, frame, cv2.COLOR_RGB2YUV_I420
             )  # decreases encoding time to frontend
