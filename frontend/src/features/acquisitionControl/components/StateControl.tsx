@@ -16,7 +16,7 @@ export const StateControl = () => {
     // update pos upon message
     const handleStateMessage = (evt: MessageEvent) => {
       const state = JSON.parse(evt.data);
-      setCurrentState(state);
+      setCurrentState(state[1]);
     };
     stateChannel.addEventListener("message", handleStateMessage);
     // create reference
