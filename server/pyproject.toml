@@ -36,8 +36,7 @@ line-length = 120
 target-version = "py312"
 
 [tool.uv.sources]
-#one-liner = { git = "https://github.com/AllenNeuralDynamics/one-liner.git", tag = "v0.1.1.dev3" }
-one-liner = { git = "https://github.com/AllenNeuralDynamics/one-liner.git", branch = "fix-ambiguous-timestamping" }
+one-liner = { git = "https://github.com/AllenNeuralDynamics/one-liner.git", tag = "v0.1.1.dev6" }
 
 [tool.uv.build-backend]
 source-include = ["src/prototome_web_ui/dist/**"]
