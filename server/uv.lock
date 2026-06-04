@@ -623,7 +623,7 @@ wheels = [
 
 [[package]]
 name = "prototome-web-ui"
-version = "0.2.2.dev0"
+version = "0.2.2.dev2"
 source = { editable = "." }
 dependencies = [
     { name = "aiortc" },

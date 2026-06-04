@@ -26,7 +26,7 @@ def make_router(config: PrototomeWebUiConfig, client: RouterClient) -> APIRouter
                     return client.call_by_name(
                         cn.format(element_id=element_id),
                         kwargs=dict(request.query_params),
-                    )[1] # omit timestamp
+                    )[1]  # omit timestamp
                 except Exception as e:
                     raise HTTPException(status_code=400, detail=str(e))
 
@@ -42,7 +42,7 @@ def make_router(config: PrototomeWebUiConfig, client: RouterClient) -> APIRouter
                     client.call_by_name(
                         cn.format(element_id=element_id),
                         kwargs=kwargs,
-                    )[1] # omit timestamp
+                    )[1]  # omit timestamp
                 except Exception as e:
                     raise HTTPException(status_code=400, detail=str(e))
 
