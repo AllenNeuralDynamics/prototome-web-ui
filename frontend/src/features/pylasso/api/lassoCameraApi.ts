@@ -29,8 +29,8 @@ export const lassoCameraApi = {
     api.post("/store_position", { condition }),
   postHomeAllAxes: () => api.post("/lasso_home_all_axes"),
   postStopAllAxes: () => api.post("/lasso_stop_all_axes"),
-  postHomeAxis: (axis: string) => api.post("/home_axis", { axis }),
-  postStopAxis: (axis: string) => api.post("/stop_axis", { axis }),
+  postHomeAxis: (axis: string) => api.post("/lasso_home_axis", { axis }),
+  postStopAxis: (axis: string) => api.post("/lasso_stop_axis", { axis }),
   postGuiUpdateSpeed: (axis: "X" | "Y" | "Z", speed: number) =>
     api.post("/gui_update_speed", { axis, speed }),
   getWafer: () => api.get("/get_wafer").then((res) => res.data),

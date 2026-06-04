@@ -12,7 +12,7 @@
                     "pylasso_wafer_data",
                     "pylasso_navigator_data",
                     "pylasso_data"],
-  "video_streams": ["new_frame", "lasso"],
+  "video_streams": ["new_frame", "lasso_camera"],
   "gets": {"/{element_id}/gain": "{element_id}_get_gain",
         "/{element_id}/gain_min": "{element_id}_gain_min", 
         "/{element_id}/gain_max": "{element_id}_gain_max", 
@@ -56,8 +56,8 @@
          "/store_position": "store_position",
          "/lasso_home_all_axes": "lasso_home_all_axes",
          "/lasso_stop_all_axes": "lasso_stop_all_axes",
-         "/home_axis": "home_axis",
-         "/stop_axis": "stop_axis",
+         "/lasso_home_axis": "lasso_home_axis",
+         "/lasso_stop_axis": "lasso_stop_axis",
          "/gui_update_speed": "gui_update_speed"
          },
   "axis_variable_mapping":{
