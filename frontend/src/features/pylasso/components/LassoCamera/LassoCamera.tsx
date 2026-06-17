@@ -3,7 +3,9 @@ import { lassoCameraApi } from "@/features/pylasso/api/lassoCameraApi";
 import { useVideoStreamStore } from "@/stores/dataChannelStore";
 import { Button, Group, Select, Slider, Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { DrawableCamera } from "./DrawableCamera";
+import { useRoiStore } from "@/stores/roiStore";
 
 interface LassoCameraProps {
   cameraId: string;
@@ -17,7 +19,7 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
    ***************************************/
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const videoStream = useVideoStreamStore((state) => state.streams["lasso_camera"]);
+  const videoStream = useVideoStreamStore((state) => state.streams["lasso"]);
   const [colorSettings] = useState({
     "saturation derivative": 0,
     red: 0,
@@ -54,18 +56,7 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
    *
    *    HANDLERS
    *
-   ***************************************
-   *
-   *  - exposure change             < update exposure, call api
-   *  - gain change                 < update gain, call api
-   *  - color setting change        < update color, call api
-   *  - minimize xy distance        < direct api call onClick
-   *  - start automated dropoff     < direct api call onClick
-   *  - enable auto white balance   < direct api call onClick
-   *  - save camera settings        < direct api call onClick (maybe handler to format setting)
-   *  - consumer dropoffimager      < get ROI (format to what prototome saves), call api
-   *
-   */
+   ***************************************/
 
   async function handleGainChange(value: number) {
     console.log("Gain change", value);
@@ -77,6 +68,49 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
     cameraApi.postExposure(cameraId, value);
   }
 
+  /***************************************
+   *
+   *    ROI STATES/HANDLERS
+   *
+   ***************************************/
+
+  const selectedRoi = useRoiStore((state) => state.rois);
+  const dropoffActiveColorIndex = useRoiStore(
+    (state) => state.dropoffActiveColorIndex,
+  );
+  const lassoActiveColorIndex = useRoiStore(
+    (state) => state.lassoActiveColorIndex,
+  );
+
+  const [roiState, setRoiState] = useState({
+    Consumer_dropoffimager: {
+      name: "Dropoff Imager",
+      colorIndex: dropoffActiveColorIndex,
+      positions: null,
+    },
+    Consumer_lassorecorder: {
+      name: "Lasso Recorder",
+      colorIndex: lassoActiveColorIndex,
+      positions: null,
+    },
+  });
+
+  const rois = useMemo(
+    () => ({
+      Consumer_dropoffimager: {
+        name: roiState.Consumer_dropoffimager.name,
+        colorIndex: dropoffActiveColorIndex,
+        positions: roiState.Consumer_dropoffimager.positions,
+      },
+      Consumer_lassorecorder: {
+        name: roiState.Consumer_lassorecorder.name,
+        colorIndex: lassoActiveColorIndex,
+        positions: roiState.Consumer_lassorecorder.positions,
+      },
+    }),
+    [dropoffActiveColorIndex, lassoActiveColorIndex, roiState],
+  );
+
   return (
     <Stack className="space-y-10">
       <Group grow>
@@ -85,7 +119,27 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
       </Group>
 
       <Stack>
-        <video ref={videoRef} muted autoPlay playsInline className="border" />
+        <DrawableCamera
+          video={
+            <video
+              ref={videoRef}
+              muted
+              autoPlay
+              playsInline
+              height={400}
+              width={600}
+              className="border"
+            />
+          }
+          onRoiStateChange={(key, roiState) => {
+            setRoiState((prev) => ({
+              ...prev,
+              [key]: roiState,
+            }));
+          }}
+          rois={rois}
+          selectedRoi={selectedRoi}
+        />
         <Group>
           <Button onClick={() => cameraApi.startLivestream(cameraId)}>
             Start Camera

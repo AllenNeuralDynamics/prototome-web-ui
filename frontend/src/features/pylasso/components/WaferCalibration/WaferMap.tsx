@@ -6,14 +6,12 @@ interface WaferMapProps {
   wafer: Wafer;
   nextApertureId: string | undefined;
   refreshKey: string;
-  onRefresh: () => Promise<void>;
 }
 
 export const WaferMap = ({
   wafer,
   nextApertureId,
   refreshKey,
-  onRefresh,
 }: WaferMapProps) => {
   // Aperture settings, this is later used to determine width of plus symbol for ref points
   const radius = 5;
@@ -58,7 +56,6 @@ export const WaferMap = ({
                 }
                 apertureInput={aperture}
                 radius={radius}
-                onRefresh={onRefresh}
               />
             ))}
             {Object.entries(wafer.refpoints).map(([id, refPoint]) => (

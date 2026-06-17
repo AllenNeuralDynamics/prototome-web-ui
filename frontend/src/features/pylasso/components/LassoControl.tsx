@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { lassoCameraApi } from "../api/lassoCameraApi";
 import type { LassoData } from "../types/lasso";
 import { useDataChannelStore } from "@/stores/dataChannelStore";
+import { useRoiStore } from "@/stores/roiStore";
 
 export const LassoControl = () => {
   const [lassoData, setLassoData] = useState<LassoData>();
@@ -35,18 +36,30 @@ export const LassoControl = () => {
     };
   }, [dataChannels]);
 
-  // useEffect(() => {
-  //   lassoCameraApi.getLassoData().then(setLassoData);
-  // }, []);
-
   // These two relate to changing the color in the camera viewer box
   async function handleROI(value: string | null) {
     console.log("ROI", value);
+    useRoiStore
+      .getState()
+      .setRois(value as "Consumer_dropoffimager" | "Consumer_lassorecorder");
   }
+
   async function handleToggleColor() {
     console.log("TOGGLE COLOR");
+    if (useRoiStore.getState().rois === "Consumer_dropoffimager") {
+      useRoiStore
+        .getState()
+        .setDropoffActiveColorIndex(
+          (useRoiStore.getState().dropoffActiveColorIndex + 1) % 5,
+        );
+    } else if (useRoiStore.getState().rois === "Consumer_lassorecorder") {
+      useRoiStore
+        .getState()
+        .setLassoActiveColorIndex(
+          (useRoiStore.getState().lassoActiveColorIndex + 1) % 5,
+        );
+    }
   }
-  //---------------------------------------------
 
   // move_to_state_position
   async function handleMove(state: string) {
