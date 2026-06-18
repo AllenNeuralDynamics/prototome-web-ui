@@ -57,6 +57,15 @@ class ZMQStreamTrack(VideoStreamTrack):
     kind = "video"
 
     def __init__(self, client: RouterClient, stream_name: str):
+        """
+        Parameters
+        ----------
+        client:
+            a `RouterClient` that is receiving camera data.
+        stream_name:
+            a stream from the associated `RouterClient` that returns a frame as
+            a numpy ndarray.
+        """
         super().__init__()
         self.stream_name = stream_name
         self.client = client
@@ -76,7 +85,7 @@ class ZMQStreamTrack(VideoStreamTrack):
             return video_frame
 
         except Exception as e:
-            print(e)
+            logger.error(e)
 
 
 async def handle_offer(client: RouterClient, request: Request) -> dict[str, str]:
