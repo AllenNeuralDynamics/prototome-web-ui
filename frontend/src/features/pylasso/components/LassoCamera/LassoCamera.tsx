@@ -4,7 +4,7 @@ import { useVideoStreamStore } from "@/stores/dataChannelStore";
 import { Button, Group, Select, Slider, Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DrawableCamera } from "./DrawableCamera";
+import { DrawableCamera } from "@/components/ui/DrawableCamera/DrawableCamera";
 import { useRoiStore } from "@/stores/roiStore";
 
 interface LassoCameraProps {
