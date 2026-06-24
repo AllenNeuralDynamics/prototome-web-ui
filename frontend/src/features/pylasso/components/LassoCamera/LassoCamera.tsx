@@ -3,7 +3,7 @@ import { lassoCameraApi } from "@/features/pylasso/api/lassoCameraApi";
 import { useVideoStreamStore } from "@/stores/dataChannelStore";
 import { Button, Group, Select, Slider, Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DrawableCamera } from "@/components/ui/DrawableCamera/DrawableCamera";
 import { useRoiStore } from "@/stores/roiStore";
 
@@ -74,42 +74,7 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
    *
    ***************************************/
 
-  const selectedRoi = useRoiStore((state) => state.rois);
-  const dropoffActiveColorIndex = useRoiStore(
-    (state) => state.dropoffActiveColorIndex,
-  );
-  const lassoActiveColorIndex = useRoiStore(
-    (state) => state.lassoActiveColorIndex,
-  );
-
-  const [roiState, setRoiState] = useState({
-    Consumer_dropoffimager: {
-      name: "Dropoff Imager",
-      colorIndex: dropoffActiveColorIndex,
-      positions: null,
-    },
-    Consumer_lassorecorder: {
-      name: "Lasso Recorder",
-      colorIndex: lassoActiveColorIndex,
-      positions: null,
-    },
-  });
-
-  const rois = useMemo(
-    () => ({
-      Consumer_dropoffimager: {
-        name: roiState.Consumer_dropoffimager.name,
-        colorIndex: dropoffActiveColorIndex,
-        positions: roiState.Consumer_dropoffimager.positions,
-      },
-      Consumer_lassorecorder: {
-        name: roiState.Consumer_lassorecorder.name,
-        colorIndex: lassoActiveColorIndex,
-        positions: roiState.Consumer_lassorecorder.positions,
-      },
-    }),
-    [dropoffActiveColorIndex, lassoActiveColorIndex, roiState],
-  );
+  const { rois, selectedRoi, updateRoi } = useRoiStore();
 
   return (
     <Stack className="space-y-10">
@@ -131,14 +96,11 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
               className="border"
             />
           }
-          onRoiStateChange={(key, roiState) => {
-            setRoiState((prev) => ({
-              ...prev,
-              [key]: roiState,
-            }));
+          selectedRoi={selectedRoi}
+          onRoiStateChange={(id, newRoi) => {
+            updateRoi(id, newRoi);
           }}
           rois={rois}
-          selectedRoi={selectedRoi}
         />
         <Group>
           <Button onClick={() => cameraApi.startLivestream(cameraId)}>

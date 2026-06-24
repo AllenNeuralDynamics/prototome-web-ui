@@ -1,20 +1,41 @@
 import { create } from "zustand";
 
-interface RoiState {
-  rois: "Consumer_dropoffimager" | "Consumer_lassorecorder";
-  setRois: (rois: "Consumer_dropoffimager" | "Consumer_lassorecorder") => void;
-  dropoffActiveColorIndex: number;
-  setDropoffActiveColorIndex: (index: number) => void;
-  lassoActiveColorIndex: number;
-  setLassoActiveColorIndex: (index: number) => void;
+type Roi = {
+  id: string;
+  name: string;
+  colorIndex: number;
+  positions: RoiBoxPosition | null;
+};
+
+interface RoiBoxPosition {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
 }
 
-export const useRoiStore = create<RoiState>((set) => ({
-  rois: "Consumer_dropoffimager",
-  dropoffActiveColorIndex: 0,
-  lassoActiveColorIndex: 2,
-  setRois: (rois) => set({ rois }),
-  setDropoffActiveColorIndex: (index) =>
-    set({ dropoffActiveColorIndex: index }),
-  setLassoActiveColorIndex: (index) => set({ lassoActiveColorIndex: index }),
+interface RoiStore {
+  rois: Roi[];
+  selectedRoi: string;
+  setSelectedRoi: (id: string) => void;
+  addRoi: (roi: Roi) => void;
+  updateRoi: (id: string, updatedRoi: Partial<Roi>) => void;
+}
+
+export const useRoiStore = create<RoiStore>((set) => ({
+  rois: [],
+  selectedRoi: "",
+  setSelectedRoi: (id) => set({ selectedRoi: id }),
+  addRoi: (roi) =>
+    set((state) =>
+      state.rois.some((r) => r.id === roi.id)
+        ? state
+        : { rois: [...state.rois, roi] },
+    ),
+  updateRoi: (id, updatedRoi) =>
+    set((state) => ({
+      rois: state.rois.map((roi) =>
+        roi.id === id ? { ...roi, ...updatedRoi } : roi,
+      ),
+    })),
 }));

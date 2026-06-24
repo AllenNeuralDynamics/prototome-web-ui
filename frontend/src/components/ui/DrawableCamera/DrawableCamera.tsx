@@ -2,18 +2,19 @@ import { useRef, useState, type ReactNode } from "react";
 
 type DrawableCameraProps = {
   video: ReactNode;
-  rois: RoiBox;
+  rois: Roi[];
   selectedRoi?: string;
-  onRoiStateChange: (key: string, roiState: RoiState) => void;
+  onRoiStateChange: (id: string, newRoi: Roi) => void;
   colors?: string[];
 };
 
-type RoiBox = Record<string, RoiState>;
-type RoiState = {
+type Roi = {
+  id: string;
   name: string;
   colorIndex: number;
   positions: RoiBoxPosition | null;
 };
+
 interface RoiBoxPosition {
   left: number;
   top: number;
@@ -24,7 +25,7 @@ interface RoiBoxPosition {
 export const DrawableCamera = ({
   video,
   rois,
-  onRoiStateChange: onBoxChange,
+  onRoiStateChange: onRoiChange,
   selectedRoi = (Object.keys(rois)[0] as string) || "",
   colors = ["#2ed573", "#ff6b6b", "#54a0ff", "#ff9f43", "#a55eea"],
 }: DrawableCameraProps) => {
@@ -32,6 +33,13 @@ export const DrawableCamera = ({
   const [isDragging, setIsDragging] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const [currentPos, setCurrentPos] = useState({ x: 0, y: 0 });
+
+  const roi = rois.find((r) => r.id === selectedRoi) || rois[0];
+  if (!roi) {
+    console.warn(
+      `Selected ROI with id ${selectedRoi} not found. Falling back to the first ROI.`,
+    );
+  }
 
   // Helper to get mouse coordinates relative to the container
   const getRelativeCoords = (
@@ -73,9 +81,9 @@ export const DrawableCamera = ({
 
     // Only save if it's an actual drag, not a tiny accidental click
     if (width > 5 && height > 5) {
-      if (selectedRoi in rois) {
-        onBoxChange(selectedRoi, {
-          ...rois[selectedRoi],
+      if (roi) {
+        onRoiChange(roi.id, {
+          ...roi,
           positions: { left, top, width, height },
         });
       }
@@ -110,8 +118,8 @@ export const DrawableCamera = ({
           <div
             style={{
               position: "absolute",
-              border: `2px dashed ${colors[rois[selectedRoi]?.colorIndex % colors.length] ?? colors[0]}`,
-              backgroundColor: `${colors[rois[selectedRoi]?.colorIndex % colors.length] ?? colors[0]}33`,
+              border: `2px dashed ${colors[roi.colorIndex % colors.length] ?? colors[0]}`,
+              backgroundColor: `${colors[roi.colorIndex % colors.length] ?? colors[0]}33`,
               left: `${previewLeft}px`,
               top: `${previewTop}px`,
               width: `${previewWidth}px`,
@@ -120,12 +128,12 @@ export const DrawableCamera = ({
             }}
           />
         )}
-
-        {Object.entries(rois).map(([key, box]: [string, RoiState]) => {
+        {rois.map((box) => {
           if (box === null || box === undefined) return;
           return (
             box.positions !== null &&
-            ((!isDragging && selectedRoi === key) || selectedRoi !== key) && (
+            ((!isDragging && selectedRoi === box.id) ||
+              selectedRoi !== box.id) && (
               <div
                 className="text-center"
                 style={{
