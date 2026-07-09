@@ -1,25 +1,20 @@
 import { cameraApi } from "@/features/camera/api/cameraApi";
-import { lassoCameraApi } from "@/features/pylasso/api/lassoCameraApi";
 import { useVideoStreamStore } from "@/stores/dataChannelStore";
 import { Button, Group, Select, Slider, Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { DrawableCamera } from "@/components/ui/DrawableCamera/DrawableCamera";
 import { useRoiStore } from "@/stores/roiStore";
+import { useRPCAction } from "@/lib/one-liner-router/call-rpc";
 
 interface LassoCameraProps {
   cameraId: string;
 }
 
 export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
-  /***************************************
-   *
-   *    STATES
-   *
-   ***************************************/
-
+  // Local state
+  // -------------------------------
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const videoStream = useVideoStreamStore((state) => state.streams["lasso"]);
   const [colorSettings] = useState({
     "saturation derivative": 0,
     red: 0,
@@ -30,18 +25,19 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
     lightness: 0,
   });
 
-  /***************************************
-   *
-   *    FETCH DATA
-   *
-   ***************************************/
+  // Store state
+  // -------------------------------
+  const videoStream = useVideoStreamStore((state) => state.streams["lasso"]);
+  const { rois, selectedRoi, updateRoi } = useRoiStore();
 
-  // set up livestream
-  useEffect(() => {
-    if (!videoRef.current || !videoStream) return;
-    videoRef.current.srcObject = videoStream;
-  }, [videoStream]);
+  // Hook - RPC Action 
+  // -------------------------------
+  const start_livestream = useRPCAction("window2_web_camera_start_livestream");
+  const stop_livestream = useRPCAction("window2_web_camera_stop_livestream");
+  const webcameraSet = useRPCAction("window2_web_camera_set");
 
+  // Hook - Query (TODO: REMOVE THESE)
+  // -------------------------------
   const { data: exposure } = useQuery({
     queryKey: ["lasso_camera_exposure"],
     queryFn: () => cameraApi.getExposure(cameraId),
@@ -52,12 +48,16 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
     queryFn: () => cameraApi.getGain(cameraId),
   });
 
-  /***************************************
-   *
-   *    HANDLERS
-   *
-   ***************************************/
+  // Effects
+  // -------------------------------
+  // set up livestream
+  useEffect(() => {
+    if (!videoRef.current || !videoStream) return;
+    videoRef.current.srcObject = videoStream;
+  }, [videoStream]);
 
+  // Handlers
+  // -------------------------------
   async function handleGainChange(value: number) {
     console.log("Gain change", value);
     cameraApi.postGain(cameraId, value);
@@ -67,14 +67,6 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
     console.log("Exposure change", value);
     cameraApi.postExposure(cameraId, value);
   }
-
-  /***************************************
-   *
-   *    ROI STATES/HANDLERS
-   *
-   ***************************************/
-
-  const { rois, selectedRoi, updateRoi } = useRoiStore();
 
   return (
     <Stack className="space-y-10">
@@ -103,12 +95,10 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
           rois={rois}
         />
         <Group>
-          <Button onClick={() => cameraApi.startLivestream(cameraId)}>
+          <Button onClick={() => start_livestream.call({})}>
             Start Camera
           </Button>
-          <Button onClick={() => cameraApi.stopLivestream(cameraId)}>
-            Stop Camera
-          </Button>
+          <Button onClick={() => stop_livestream.call({})}>Stop Camera</Button>
         </Group>
       </Stack>
 
@@ -165,7 +155,9 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
 
       <Group grow>
         <Button
-          onClick={() => lassoCameraApi.postAutoWhiteBalance(cameraId, 1)}
+          onClick={() =>
+            webcameraSet.call({ key: "enable_auto_white_balance", value: 1 })
+          }
         >
           Enable Auto White Balance
         </Button>

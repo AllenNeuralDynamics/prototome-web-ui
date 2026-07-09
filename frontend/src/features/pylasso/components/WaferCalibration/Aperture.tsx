@@ -2,7 +2,7 @@ import { useDisclosure } from "@mantine/hooks";
 import type { Aperture, ApertureStatus } from "../../types/wafer";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Popover, Select, Stack } from "@mantine/core";
-import { lassoCameraApi } from "../../api/lassoCameraApi";
+import { useRPCAction } from "@/lib/one-liner-router/call-rpc";
 
 interface ApertureCircleProps {
   uid: number;
@@ -17,13 +17,29 @@ export const ApertureCircle = ({
   nextAperture,
   radius,
 }: ApertureCircleProps) => {
-  const [opened, { close, open }] = useDisclosure(false);
-  const [clicked, setClicked] = useState(false);
+  // Local state
+  // -------------------------------
   const [aperture, setAperture] = useState<Aperture>(apertureInput);
+  const [clicked, setClicked] = useState(false);
+  const [opened, { close, open }] = useDisclosure(false);
   const circleRef = useRef<SVGCircleElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const isPopoverOpen = opened || clicked;
+  const statusTailwindClass: Record<ApertureStatus, string> = {
+    available: "fill-blue-100 hover:fill-blue-50",
+    scheduled: "fill-blue-100 hover:fill-blue-50",
+    used: "fill-zinc-300 hover:fill-zinc-200",
+    damaged: "fill-red-300 hover:fill-red-200",
+  };
 
+  // Hook - RPC Action
+  // -------------------------------
+
+  const updateApertureStatus = useRPCAction("update_aperture_status");
+  const removeAperture = useRPCAction("remove_aperture");
+
+  // Memoize functions
+  // -------------------------------
   const handleClose = useCallback(() => {
     setTimeout(() => {
       close(); // close hover popover
@@ -31,20 +47,8 @@ export const ApertureCircle = ({
     }, 10);
   }, [close]);
 
-  async function handleStatusChange(value: string | null) {
-    const status = value?.toLowerCase() as ApertureStatus;
-    await lassoCameraApi.postUpdateApertureStatus(uid.toString(), status);
-    setAperture({
-      ...aperture,
-      status: status,
-    });
-  }
-
-  async function handleRemoveAperture() {
-    handleClose();
-    await lassoCameraApi.postRemoveAperture(uid.toString());
-  }
-
+  // Effects
+  // -------------------------------
   useEffect(() => {
     if (!isPopoverOpen) {
       return;
@@ -72,12 +76,24 @@ export const ApertureCircle = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [handleClose, isPopoverOpen]);
 
-  const statusTailwindClass: Record<ApertureStatus, string> = {
-    available: "fill-blue-100 hover:fill-blue-50",
-    scheduled: "fill-blue-100 hover:fill-blue-50",
-    used: "fill-zinc-300 hover:fill-zinc-200",
-    damaged: "fill-red-300 hover:fill-red-200",
-  };
+  // Handlers
+  // -------------------------------
+  async function handleStatusChange(value: string | null) {
+    const status = value?.toLowerCase() as ApertureStatus;
+    await updateApertureStatus.call({
+      aperture_id: String(uid),
+      status: status,
+    });
+    setAperture({
+      ...aperture,
+      status: status,
+    });
+  }
+
+  async function handleRemoveAperture() {
+    handleClose();
+    await removeAperture.call({ aperture_id: String(uid) });
+  }
 
   return (
     <Popover

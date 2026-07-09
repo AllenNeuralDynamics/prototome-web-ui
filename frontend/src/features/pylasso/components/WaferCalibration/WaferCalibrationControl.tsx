@@ -2,18 +2,39 @@ import { Button, Group, Select, Stack, Text } from "@mantine/core";
 import { WaferMap } from "./WaferMap";
 import { useEffect, useMemo, useState } from "react";
 import type { NavigatorData, RefPointStatus, Wafer } from "../../types/wafer";
-import { lassoCameraApi } from "../../api/lassoCameraApi";
-import { useMutation } from "@tanstack/react-query";
 import { useDataChannelStore } from "@/stores/dataChannelStore";
+import { useRPCAction } from "@/lib/one-liner-router/call-rpc";
 
 export const WaferCalibrationControl = () => {
+  // Local state
+  // -------------------------------
   const [reference, setReference] = useState<string>("origin");
-
   const [wafer, setWafer] = useState<Wafer>();
   const [navigatorData, setNavigatorData] = useState<NavigatorData>();
 
+  // Store state
+  // -------------------------------
   const dataChannels = useDataChannelStore((state) => state.channels);
 
+  // Hook - RPC Action
+  // -------------------------------
+  const calibrateWafer = useRPCAction("calibrate");
+  const setWorldRefpoint = useRPCAction("set_word_refpoint");
+
+  // Memoized functions
+  // -------------------------------
+  const aperturesSignature = useMemo(() => {
+    if (!wafer) return null;
+
+    return JSON.stringify(
+      Object.entries(wafer.apertures)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([uid, aperture]) => [uid, aperture]),
+    );
+  }, [wafer]);
+
+  // Effects
+  // -------------------------------
   useEffect(() => {
     // add state channel
     const waferStateChannel = dataChannels[`pylasso_wafer_data`];
@@ -23,7 +44,9 @@ export const WaferCalibrationControl = () => {
     const handleWaferStateMessage = (evt: MessageEvent) => {
       const state = JSON.parse(evt.data);
       state.refpoints = {};
-      Object.entries(state.refpoint as Record<string, [number, number, number]>).map(([id, pos]) => {
+      Object.entries(
+        state.refpoint as Record<string, [number, number, number]>,
+      ).map(([id, pos]) => {
         const formattedRF: RefPointStatus = {
           position: pos,
           status: state.refpoint_world[id] !== undefined ? true : false,
@@ -53,30 +76,11 @@ export const WaferCalibrationControl = () => {
     };
   }, [dataChannels]);
 
-  // Mutations
+  // Handlers
   // -------------------------------
-
-  const calibrateWafer = useMutation({
-    mutationFn: lassoCameraApi.postCalibrate,
-  });
-
-  const setWorldRefpoint = useMutation({
-    mutationFn: (key: string) => lassoCameraApi.postSetWorldRefpoint(key),
-  });
-
   function handleReferenceChange(value: string | null) {
     if (value !== null) setReference(value);
   }
-
-  const aperturesSignature = useMemo(() => {
-    if (!wafer) return null;
-
-    return JSON.stringify(
-      Object.entries(wafer.apertures)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([uid, aperture]) => [uid, aperture]),
-    );
-  }, [wafer]);
 
   if (wafer === undefined) return;
 
@@ -87,9 +91,9 @@ export const WaferCalibrationControl = () => {
         <Button>Toggle Camera Crosshair</Button>
         <Button
           onClick={async () => {
-            await calibrateWafer.mutateAsync();
+            await calibrateWafer.callAsync({});
           }}
-          loading={calibrateWafer.isPending}
+          loading={calibrateWafer.isLoading}
         >
           Calibrate Wafer
         </Button>
@@ -109,9 +113,9 @@ export const WaferCalibrationControl = () => {
         </Text>
         <Button
           onClick={async () => {
-            await setWorldRefpoint.mutateAsync(reference);
+            await setWorldRefpoint.callAsync({ key: reference });
           }}
-          loading={setWorldRefpoint.isPending}
+          loading={setWorldRefpoint.isLoading}
         >
           {" "}
           Set{" "}
