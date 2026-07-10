@@ -34,13 +34,24 @@ export const LassoControl = () => {
 
   // Hook - RPC Action
   // -------------------------------
-  const moveToStatePosition = useRPCAction("move_to_state_position");
-  const storePosition = useRPCAction("store_position");
+  const moveToStatePosition = useRPCAction<void, { state_name: string }>(
+    "move_to_state_position",
+  );
+  const storePosition = useRPCAction<void, { condition: string }>(
+    "store_position",
+  );
   const homeAllAxes = useRPCAction("lasso_home_all_axes");
   const stopAllAxes = useRPCAction("lasso_stop_all_axes");
-  const homeAxis = useRPCAction("lasso_home_axis");
-  const stopAxis = useRPCAction("lasso_stop_axis");
-  const guiUpdateSpeed = useRPCAction("gui_update_speed");
+  const homeAxis = useRPCAction<void, { axis: "X" | "Y" | "Z" }>(
+    "lasso_home_axis",
+  );
+  const stopAxis = useRPCAction<void, { axis: "X" | "Y" | "Z" }>(
+    "lasso_stop_axis",
+  );
+  const guiUpdateSpeed = useRPCAction<
+    void,
+    { axis: "X" | "Y" | "Z"; speed: number }
+  >("gui_update_speed");
 
   // Effects
   // -------------------------------
@@ -208,12 +219,12 @@ export const LassoControl = () => {
               ))}
               <Table.Th key="current">Current</Table.Th>
               <Table.Th>
-                <Button fullWidth onClick={() => homeAllAxes.call({})}>
+                <Button fullWidth onClick={() => homeAllAxes.call()}>
                   Home All Axes
                 </Button>
               </Table.Th>
               <Table.Th>
-                <Button fullWidth onClick={() => stopAllAxes.call({})}>
+                <Button fullWidth onClick={() => stopAllAxes.call()}>
                   Stop All Axes
                 </Button>
               </Table.Th>
@@ -232,12 +243,18 @@ export const LassoControl = () => {
                   {lassoData?.axes[axis].position.toFixed(3)}
                 </Table.Td>
                 <Table.Td>
-                  <Button fullWidth onClick={() => homeAxis.call({ axis })}>
+                  <Button
+                    fullWidth
+                    onClick={() => homeAxis.call({ axis: axis })}
+                  >
                     Home
                   </Button>
                 </Table.Td>
                 <Table.Td>
-                  <Button fullWidth onClick={() => stopAxis.call({ axis })}>
+                  <Button
+                    fullWidth
+                    onClick={() => stopAxis.call({ axis: axis })}
+                  >
                     Stop
                   </Button>
                 </Table.Td>

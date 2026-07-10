@@ -1,13 +1,32 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, Group, Stack, Text, Badge } from "@mantine/core";
-import { stateControlApi } from "../api/stateControlApi.ts";
 import { useDataChannelStore } from "../../../stores/dataChannelStore.tsx";
+import { useRPCAction } from "@/lib/one-liner-router/call-rpc.ts";
 
 export const StateControl = () => {
+  // Local state
+  // -------------------------------
   const [currentState, setCurrentState] = useState("Paused");
-  const dataChannels = useDataChannelStore((state) => state.channels);
   const stateChannelRef = useRef<RTCDataChannel | null>(null);
 
+  // Store state
+  // -------------------------------
+  const dataChannels = useDataChannelStore((state) => state.channels);
+
+  // Hook - RPC Action
+  // -------------------------------
+
+  // TODO: one-liner bug
+  //  If args or kwargs are defined in the zmq RouterServer config
+  //  The argument will still be required in the call here
+  //  If I provide the arguments here, it will throw a "multiple values for argument" error
+  const startCutting = useRPCAction<void, { state: string }>("start_cutting");
+  const cutOne = useRPCAction("cut_one");
+  const stopCuttingSafely = useRPCAction("stop_cutting_safely");
+  const stopCuttingNow = useRPCAction("stop_cutting_now");
+
+  // Effects
+  // -------------------------------
   // initialize and connect prototome state dataChannel
   useEffect(() => {
     // add state channel
@@ -26,16 +45,6 @@ export const StateControl = () => {
       stateChannel.removeEventListener("message", handleStateMessage);
     };
   }, [dataChannels]);
-
-  // query instrument for initial state
-  // useEffect(() => {
-  //   async function fetchInitState () {
-  //     const state = await stateControlApi.getState()
-  //     setCurrentState(state)
-  //   }
-  //   fetchInitState()
-
-  // }, []);
 
   return (
     <Card
@@ -57,24 +66,27 @@ export const StateControl = () => {
           <Button>Switch to Facing</Button>
           <Button
             color="green"
-            onClick={() => stateControlApi.postStartCutting()}
+            onClick={() =>
+              startCutting.call(
+                { state: "Run" },
+                {
+                  onError: (err) => {
+                    console.error("Error starting cutting:", err);
+                  },
+                },
+              )
+            }
           >
             Start Cutting
           </Button>
           <Button color="yellowgreen">Repeat Cut</Button>
-          <Button color="yellow" onClick={() => stateControlApi.postCutOne()}>
+          <Button color="yellow" onClick={() => cutOne.call()}>
             Cut One
           </Button>
-          <Button
-            color="orange"
-            onClick={() => stateControlApi.postStopCuttingSafely()}
-          >
+          <Button color="orange" onClick={() => stopCuttingSafely.call()}>
             Stop Cutting Safely
           </Button>
-          <Button
-            color="red"
-            onClick={() => stateControlApi.postStopCuttingNow()}
-          >
+          <Button color="red" onClick={() => stopCuttingNow.call()}>
             Stop Cutting Now
           </Button>
         </Stack>

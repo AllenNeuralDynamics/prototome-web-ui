@@ -1,7 +1,5 @@
-import { cameraApi } from "@/features/camera/api/cameraApi";
 import { useVideoStreamStore } from "@/stores/dataChannelStore";
 import { Button, Group, Select, Slider, Stack, Text } from "@mantine/core";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { DrawableCamera } from "@/components/ui/DrawableCamera/DrawableCamera";
 import { useRoiStore } from "@/stores/roiStore";
@@ -11,6 +9,8 @@ interface LassoCameraProps {
   cameraId: string;
 }
 
+// TODO: do we need to pass in cameraId?
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
   // Local state
   // -------------------------------
@@ -30,23 +30,19 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
   const videoStream = useVideoStreamStore((state) => state.streams["lasso"]);
   const { rois, selectedRoi, updateRoi } = useRoiStore();
 
-  // Hook - RPC Action 
+  // Hook - RPC Action
   // -------------------------------
   const start_livestream = useRPCAction("window2_web_camera_start_livestream");
   const stop_livestream = useRPCAction("window2_web_camera_stop_livestream");
-  const webcameraSet = useRPCAction("window2_web_camera_set");
+  const webcameraSet = useRPCAction<void, { key: string; value: number }>(
+    "window2_web_camera_set",
+  );
 
-  // Hook - Query (TODO: REMOVE THESE)
-  // -------------------------------
-  const { data: exposure } = useQuery({
-    queryKey: ["lasso_camera_exposure"],
-    queryFn: () => cameraApi.getExposure(cameraId),
-  });
-
-  const { data: gain } = useQuery({
-    queryKey: ["lasso_camera_gain"],
-    queryFn: () => cameraApi.getGain(cameraId),
-  });
+  // TODO: In prototome config to load RouterServer
+  //  - Declare get_exposure for window2 camera
+  //  - Declare get_gain for window2 camera
+  const exposure = 10000;
+  const gain = 0;
 
   // Effects
   // -------------------------------
@@ -60,12 +56,14 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
   // -------------------------------
   async function handleGainChange(value: number) {
     console.log("Gain change", value);
-    cameraApi.postGain(cameraId, value);
+    // TODO: In prototome config to load RouterServer
+    //  - Declare set_gain for window2 camera
   }
 
   async function handleExposureChange(value: number) {
     console.log("Exposure change", value);
-    cameraApi.postExposure(cameraId, value);
+    // TODO: In prototome config to load RouterServer
+    //  - Declare set_exposure for window2 camera
   }
 
   return (
@@ -95,10 +93,8 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
           rois={rois}
         />
         <Group>
-          <Button onClick={() => start_livestream.call({})}>
-            Start Camera
-          </Button>
-          <Button onClick={() => stop_livestream.call({})}>Stop Camera</Button>
+          <Button onClick={() => start_livestream.call()}>Start Camera</Button>
+          <Button onClick={() => stop_livestream.call()}>Stop Camera</Button>
         </Group>
       </Stack>
 

@@ -19,7 +19,9 @@ export const WaferCalibrationControl = () => {
   // Hook - RPC Action
   // -------------------------------
   const calibrateWafer = useRPCAction("calibrate");
-  const setWorldRefpoint = useRPCAction("set_word_refpoint");
+  const setWorldRefpoint = useRPCAction<void, { key: string }>(
+    "set_word_refpoint",
+  );
 
   // Memoized functions
   // -------------------------------
@@ -91,7 +93,7 @@ export const WaferCalibrationControl = () => {
         <Button>Toggle Camera Crosshair</Button>
         <Button
           onClick={async () => {
-            await calibrateWafer.callAsync({});
+            await calibrateWafer.callAsync();
           }}
           loading={calibrateWafer.isLoading}
         >

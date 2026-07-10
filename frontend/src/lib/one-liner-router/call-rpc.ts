@@ -35,7 +35,7 @@ function useRPCMetadata(name: string) {
 }
 
 // ACTION hook: Wraps a mutation for user-triggered calls (forms, buttons)
-export const useRPCAction = <TResult = unknown, TParams = unknown>(
+export const useRPCAction = <TResult = unknown, TParams = void>(
   name: string,
 ) => {
   const { rpcMetadata } = useRPCMetadata(name);
@@ -43,8 +43,9 @@ export const useRPCAction = <TResult = unknown, TParams = unknown>(
   const mutation = useMutation<TResult, Error, TParams>({
     mutationFn: (params) => {
       if (!rpcMetadata) throw new Error(`RPC function "${name}" not found`);
-      assertParamsValid(name, params, rpcMetadata.params_schema);
-      return callRPC(rpcMetadata.route, params) as Promise<TResult>;
+      const payload = params ?? {};
+      assertParamsValid(name, payload, rpcMetadata.params_schema);
+      return callRPC(rpcMetadata.route, payload) as Promise<TResult>;
     },
   });
 

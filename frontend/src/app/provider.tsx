@@ -51,7 +51,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   useEffect(() => {
     async function fetchConfig() {
       try {
-        const prototomeConfig = await api.get("/get_prototome_config");
+        const prototomeConfig = await api.post("/get_prototome_config");
         setPrototomeConfig(prototomeConfig.data);
       } catch (error) {
         console.error("Error fetching config:", error);
