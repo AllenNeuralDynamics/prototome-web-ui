@@ -1,15 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { z } from "zod";
+import { useConfigStore } from "@/stores/configStore.ts";
 
 // --------------------------------------------------------------------------------
 //  Constants
 // --------------------------------------------------------------------------------
 
-// TODO: configure this in web_ui_config
-export const FASTAPI_BASE_URL = "http://localhost:8000";
-const RPC_METADATA_URL = `${FASTAPI_BASE_URL}/api/rpcs`;
-const STREAM_METADATA_URL = `${FASTAPI_BASE_URL}/api/streams`;
+export const FASTAPI_BASE_URL =
+  useConfigStore.getState().config?.FASTAPI_BASE_URL || "http://localhost:8000";
+const RPC_METADATA_URL = `${FASTAPI_BASE_URL}${useConfigStore.getState().config?.RPC_METADATA_ENDPOINT || "/api/rpcs"}`;
+const STREAM_METADATA_URL = `${FASTAPI_BASE_URL}${useConfigStore.getState().config?.STREAM_METADATA_ENDPOINT || "/api/streams"}`;
 
 // --------------------------------------------------------------------------------
 //  Schemas
@@ -34,12 +35,8 @@ export const StreamMetadataSchema = z.object({
 });
 export type StreamMetadata = z.infer<typeof StreamMetadataSchema>;
 
-export const StreamsMetadataSchema = z.record(
-  z.string(),
-  StreamMetadataSchema,
-);
+export const StreamsMetadataSchema = z.record(z.string(), StreamMetadataSchema);
 export type StreamsMetadata = z.infer<typeof StreamsMetadataSchema>;
-
 
 // --------------------------------------------------------------------------------
 //  API
@@ -64,15 +61,20 @@ export async function fetchStreamMetadata(): Promise<StreamsMetadata> {
   return StreamsMetadataSchema.parse(await res.json());
 }
 
-
 // --------------------------------------------------------------------------------
 //  Hook
 // --------------------------------------------------------------------------------
 
 // Hook to fetch all RPC metadata
 export const useFetchRPCMetadata = () =>
-  useQuery<RPCsMetadata>({ queryKey: ["rpc-metadata"], queryFn: fetchRPCMetadata });
+  useQuery<RPCsMetadata>({
+    queryKey: ["rpc-metadata"],
+    queryFn: fetchRPCMetadata,
+  });
 
 // Hook to fetch all Stream metadata
 export const useFetchStreamMetadata = () =>
-  useQuery<StreamsMetadata>({ queryKey: ["stream-metadata"], queryFn: fetchStreamMetadata });
+  useQuery<StreamsMetadata>({
+    queryKey: ["stream-metadata"],
+    queryFn: fetchStreamMetadata,
+  });

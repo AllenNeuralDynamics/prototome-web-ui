@@ -1,4 +1,7 @@
 {
+  "FASTAPI_BASE_URL": "http://localhost:8000",
+  "RPC_METADATA_ENDPOINT": "/api/rpcs",
+  "STREAM_METADATA_ENDPOINT": "/api/streams",
   "camera": {
     "id": "window1_ximea_camera"
   },

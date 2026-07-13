@@ -24,6 +24,9 @@ export interface StageConfig {
 }
 
 export interface AppConfig {
+  FASTAPI_BASE_URL: string;
+  STREAM_METADATA_ENDPOINT: string;
+  RPC_METADATA_ENDPOINT: string;
   data_channels: string[];
   video_streams: string[];
   gets: Record<string, string>;
