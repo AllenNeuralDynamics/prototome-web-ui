@@ -12,7 +12,7 @@ class RouteMetadata(BaseModel):
 class StreamModel(RouteMetadata):
     frequency_hz: float | None = None
     encoding: str
-    enabled: bool
+    enabled: bool | None = None
 
 
 class RPCModel(RouteMetadata):

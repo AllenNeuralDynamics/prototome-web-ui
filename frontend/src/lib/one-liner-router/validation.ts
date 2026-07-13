@@ -1,6 +1,6 @@
 import Ajv2020, { type ValidateFunction } from "ajv/dist/2020";
 import addFormats from "ajv-formats";
-import type { FunctionMetadata } from "./registry.ts";
+import type { RPCMetadata } from "./registry.ts";
 
 // Pydantic v2 emits JSON Schema Draft 2020-12; use the matching Ajv build.
 const ajv = new Ajv2020({ allErrors: true, strict: false });
@@ -19,7 +19,7 @@ export class RPCParamsError extends Error {
 export function assertParamsValid(
   rpcName: string,
   params: unknown,
-  paramsSchema: FunctionMetadata["params_schema"],
+  paramsSchema: RPCMetadata["params_schema"],
 ): void {
   // Ignore if no schema is provided (no validation needed)
   if (!paramsSchema) return;

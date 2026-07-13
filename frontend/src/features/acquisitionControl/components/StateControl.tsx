@@ -16,11 +16,7 @@ export const StateControl = () => {
   // Hook - RPC Action
   // -------------------------------
 
-  // TODO: one-liner bug
-  //  If args or kwargs are defined in the zmq RouterServer config
-  //  The argument will still be required in the call here
-  //  If I provide the arguments here, it will throw a "multiple values for argument" error
-  const startCutting = useRPCAction<void, { state: string }>("start_cutting");
+  const startCutting = useRPCAction("start_cutting");
   const cutOne = useRPCAction("cut_one");
   const stopCuttingSafely = useRPCAction("stop_cutting_safely");
   const stopCuttingNow = useRPCAction("stop_cutting_now");
@@ -64,19 +60,7 @@ export const StateControl = () => {
         </Group>
         <Stack>
           <Button>Switch to Facing</Button>
-          <Button
-            color="green"
-            onClick={() =>
-              startCutting.call(
-                { state: "Run" },
-                {
-                  onError: (err) => {
-                    console.error("Error starting cutting:", err);
-                  },
-                },
-              )
-            }
-          >
+          <Button color="green" onClick={() => startCutting.call()}>
             Start Cutting
           </Button>
           <Button color="yellowgreen">Repeat Cut</Button>
