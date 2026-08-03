@@ -543,7 +543,7 @@ wheels = [
 [[package]]
 name = "one-liner"
 version = "0.1.1.dev8"
-source = { git = "https://github.com/AllenNeuralDynamics/one-liner.git?branch=feat-rpc-schema#145933c60d9b48830610379611719d7dbf778212" }
+source = { git = "https://github.com/AllenNeuralDynamics/one-liner.git?branch=fix-default-args-kwargs#9301978590a10e1f4160d33aea9435c200e23d45" }
 dependencies = [
     { name = "orjson" },
     { name = "pydantic" },
@@ -657,7 +657,7 @@ requires-dist = [
     { name = "aiortc", specifier = ">=1.13.0" },
     { name = "fastapi", specifier = ">=0.128.0" },
     { name = "jsonref", specifier = ">=1.1.0" },
-    { name = "one-liner", git = "https://github.com/AllenNeuralDynamics/one-liner.git?branch=feat-rpc-schema" },
+    { name = "one-liner", git = "https://github.com/AllenNeuralDynamics/one-liner.git?branch=fix-default-args-kwargs" },
     { name = "opencv-python", specifier = ">=4.13.0.92" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "tornado", specifier = ">=6.5.4" },

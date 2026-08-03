@@ -29,15 +29,14 @@ const AxisControlCard = ({ axis, position, unit }: AxisControlCardProps) => {
 
   // Hook - RPC Data
   // -------------------------------
-  const { result: velocity } = useRPCData<number>("get_axis_velocity", {
-    axis: axis,
-  });
+  const { result: velocities } = useRPCData<Record<string, number>>(
+    "get_axis_velocities",
+    {},
+  );
   const { result: maxVelocity } = useRPCData<number>("get_axis_max_velocity", {
-    axis: axis,
+    logical_axis: axis,
   });
-  const { result: range } = useRPCData<number[]>("get_axis_travel_range", {
-    axis: axis,
-  });
+  const { result: ranges } = useRPCData<Record<string, number[]>>("get_axis_travel_ranges", {});
 
   // Hook - RPC Action
   // -------------------------------
@@ -53,13 +52,13 @@ const AxisControlCard = ({ axis, position, unit }: AxisControlCardProps) => {
   const stopAxis = useRPCAction<void, { axis: string }>("stop_axis");
 
   // Wait until reads are populated
-  if (!range || velocity === undefined || maxVelocity === undefined)
-    return null;
+  if (!ranges || velocities === undefined || maxVelocity === undefined)
+    return <></>;
 
   // Derived state
   // -------------------------------
-  const [min, max] = range;
-  const displayVelocity = velocityOverride ?? velocity;
+  const [min, max] = ranges[axis] ?? [0, 100];
+  const displayVelocity = velocityOverride ?? velocities[axis] ?? 0;
 
   // Handlers
   // -------------------------------

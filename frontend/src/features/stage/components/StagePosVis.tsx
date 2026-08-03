@@ -13,13 +13,11 @@ type AxisCardProps = {
 const AxisCard = ({ axis, position, config, unit }: AxisCardProps) => {
   // Hook - RPC Data
   // -------------------------------
-  const { result: range } = useRPCData<number[]>("get_axis_travel_range", {
-    axis: axis,
-  });
+  const { result: ranges } = useRPCData<Record<string, number[]>>("get_axis_travel_ranges", {});
 
-  if (!range) return null;
+  if (!ranges) return null;
 
-  const [min, max] = range;
+  const [min, max] = ranges[axis];
 
   return (
     <Card

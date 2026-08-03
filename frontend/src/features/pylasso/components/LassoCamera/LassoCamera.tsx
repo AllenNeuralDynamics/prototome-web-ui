@@ -32,10 +32,10 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
 
   // Hook - RPC Action
   // -------------------------------
-  const start_livestream = useRPCAction("window2_web_camera_start_livestream");
-  const stop_livestream = useRPCAction("window2_web_camera_stop_livestream");
-  const webcameraSet = useRPCAction<void, { key: string; value: number }>(
-    "window2_web_camera_set",
+  const start_livestream = useRPCAction("camera_lasso_start_livestream");
+  const stop_livestream = useRPCAction("camera_lasso_stop_livestream");
+  const webcamera_set_auto_wb = useRPCAction<void, { key: string; value: number }>(
+    "camera_lasso_set_auto_wb",
   );
 
   // TODO: In prototome config to load RouterServer
@@ -152,7 +152,7 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
       <Group grow>
         <Button
           onClick={() =>
-            webcameraSet.call({ key: "enable_auto_white_balance", value: 1 })
+            webcamera_set_auto_wb.call({ key: "enable_auto_white_balance", value: 1 })
           }
         >
           Enable Auto White Balance

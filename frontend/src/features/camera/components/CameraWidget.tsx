@@ -25,51 +25,51 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
   // Hook - RPC Data
   // -------------------------------
   const { result: camExposure } = useRPCData<number>(
-    "window2_web_camera_get_exposure",
+    "camera_prototome_get_exposure",
     {},
   );
   const { result: camExposureMax } = useRPCData<number>(
-    "window2_web_camera_get_exposure_max",
+    "camera_prototome_get_exposure_max",
     {},
   );
   const { result: camExposureMin } = useRPCData<number>(
-    "window2_web_camera_get_exposure_min",
+    "camera_prototome_get_exposure_min",
     {},
   );
   const { result: camExposureStep } = useRPCData<number>(
-    "window2_web_camera_get_exposure_step",
+    "camera_prototome_get_exposure_step",
     {},
   );
   const { result: camGain } = useRPCData<number>(
-    "window2_web_camera_get_gain",
+    "camera_prototome_get_gain",
     {},
   );
   const { result: camGainMax } = useRPCData<number>(
-    "window2_web_camera_get_gain_max",
+    "camera_prototome_get_gain_max",
     {},
   );
   const { result: camGainMin } = useRPCData<number>(
-    "window2_web_camera_get_gain_min",
+    "camera_prototome_get_gain_min",
     {},
   );
   const { result: camGainStep } = useRPCData<number>(
-    "window2_web_camera_get_gain_step",
+    "camera_prototome_get_gain_step",
     {},
   );
 
   // Hook - RPC Action
   // -------------------------------
   const startLivestream = useRPCAction<void, { key: string }>(
-    "window2_web_camera_start_livestream",
+    "camera_prototome_start_livestream",
   );
   const stopLivestream = useRPCAction<void, { key: string }>(
-    "window2_web_camera_stop_livestream",
+    "camera_prototome_stop_livestream",
   );
   const setCameraExposure = useRPCAction<void, { key: string; value: number }>(
-    "window2_web_camera_set_exposure",
+    "camera_prototome_set_exposure",
   );
   const setCameraGain = useRPCAction<void, { key: string; value: number }>(
-    "window2_web_camera_set_gain",
+    "camera_prototome_set_gain",
   );
 
   // Derived values
