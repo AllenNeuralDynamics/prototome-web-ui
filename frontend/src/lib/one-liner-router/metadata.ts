@@ -20,7 +20,6 @@ export const StreamMetadataSchema = z.object({
   name: z.string(),
   encoding: z.string(),
   route: z.string(),
-  params_schema: z.record(z.string(), z.unknown()).nullish(),
   return_schema: z.record(z.string(), z.unknown()).nullish(),
   description: z.string().nullish(),
 });
