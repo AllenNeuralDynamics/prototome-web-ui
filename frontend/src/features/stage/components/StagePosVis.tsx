@@ -81,15 +81,12 @@ const AxisCard = ({ axis, position, config, unit }: AxisCardProps) => {
 // StagePosVis: renders one AxisCard per axis.
 
 export type StagePosVisProps = {
-  stageId: string;
   axes: string[];
   config: Record<string, Record<string, string[]>> | null;
   unit?: string;
 };
 
 export const StagePosVis = ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  stageId,
   axes,
   config,
   unit = "mm",

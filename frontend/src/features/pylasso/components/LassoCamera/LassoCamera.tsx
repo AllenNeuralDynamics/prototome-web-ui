@@ -5,13 +5,9 @@ import { DrawableCamera } from "@/components/ui/DrawableCamera/DrawableCamera";
 import { useRoiStore } from "@/stores/roiStore";
 import { useRPCAction, useRPCData } from "@/lib/one-liner-router/call-rpc";
 
-interface LassoCameraProps {
-  cameraId: string;
-}
-
 // TODO: do we need to pass in cameraId?
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
+ 
+export const LassoCamera = () => {
   // Local state
   // -------------------------------
   const videoRef = useRef<HTMLVideoElement | null>(null);

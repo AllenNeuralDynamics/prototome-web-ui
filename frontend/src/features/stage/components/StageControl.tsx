@@ -261,14 +261,11 @@ const AxisControlCard = ({ axis, position, unit }: AxisControlCardProps) => {
 // StageControl: renders one AxisControlCard per axis.
 
 export type StageControlProps = {
-  stageId: string;
   axes: string[];
   unit?: string;
 };
 
 export const StageControl = ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  stageId,
   axes,
   unit = "um",
 }: StageControlProps) => {

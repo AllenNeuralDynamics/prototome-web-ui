@@ -14,7 +14,6 @@ export const StagesPage = () => {
   return (
     <Stack align="center">
       <StageControl
-        stageId={config.stage.id}
         axes={config.stage.axes}
         unit={config.stage.unit}
       />

@@ -103,12 +103,18 @@ function buildRPCCallback(metadata: RPCMetadata | undefined, name: string) {
   };
 }
 
+type ParamsArg<T> = unknown extends T
+  ? [params?: T]
+  : object extends T
+    ? [params?: T]
+    : [params: T];
+
 // --------------------------------------------------------------------------------
 //  Hook
 // --------------------------------------------------------------------------------
 
 // ACTION hook: Wraps a mutation for user-triggered calls (forms, buttons)
-export const useRPCAction = <TResult = unknown, TParams = void>(
+export const useRPCAction = <TResult = unknown, TParams = unknown>(
   name: string,
 ) => {
   const rpcsMetadata = useRPCsMetadata();
@@ -132,8 +138,9 @@ export const useRPCAction = <TResult = unknown, TParams = void>(
   return {
     metadata: rpcMetadata,
     // triggers
-    call: mutation.mutate,
-    callAsync: mutation.mutateAsync,
+    call: (...rest: ParamsArg<TParams>) => mutation.mutate(rest[0] as TParams),
+    callAsync: (...rest: ParamsArg<TParams>) =>
+      mutation.mutateAsync(rest[0] as TParams),
     // output fields
     result: mutation.data,
     error: mutation.error,

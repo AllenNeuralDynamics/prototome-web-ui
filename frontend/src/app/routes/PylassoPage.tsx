@@ -10,7 +10,7 @@ export const PylassoPage = () => {
   return (
     <Container>
       <Stack>
-        <LassoCamera cameraId="window2_web_camera" />
+        <LassoCamera />
         <LassoControl />
         <WaferCalibrationControl />
       </Stack>
