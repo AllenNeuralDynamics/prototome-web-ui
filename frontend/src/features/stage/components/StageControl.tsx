@@ -42,14 +42,14 @@ const AxisControlCard = ({ axis, position, unit }: AxisControlCardProps) => {
   // -------------------------------
   const setAxisPosition = useRPCAction<
     void,
-    { axis: string; position: number }
+    { logical_axis: string; position: number }
   >("set_axis_position");
   const setAxisMaxVelocity = useRPCAction<
     void,
     { logical_axis: string; speed: number }
   >("set_axis_max_velocity");
-  const homeAxis = useRPCAction<void, { axis: string }>("home_axis");
-  const stopAxis = useRPCAction<void, { axis: string }>("stop_axis");
+  const homeAxis = useRPCAction<void, { logical_axis: string }>("home_axis");
+  const stopAxis = useRPCAction<void, { logical_axis: string }>("stop_axis");
 
   // Wait until reads are populated
   if (!ranges || velocities === undefined || maxVelocity === undefined)
@@ -63,7 +63,7 @@ const AxisControlCard = ({ axis, position, unit }: AxisControlCardProps) => {
   // Handlers
   // -------------------------------
   const moveTo = (value: number) =>
-    setAxisPosition.call({ axis: axis, position: value });
+    setAxisPosition.call({ logical_axis: axis, position: value });
 
   const onMoveLowerClick = () => moveTo(min);
   const onMoveUpperClick = () => moveTo(max);
@@ -241,14 +241,14 @@ const AxisControlCard = ({ axis, position, unit }: AxisControlCardProps) => {
             size="xs"
             color={getAxisColor(axis)}
             variant="light"
-            onClick={() => homeAxis.call({ axis })}
+            onClick={() => homeAxis.call({ logical_axis: axis })}
           >
             Home
           </Button>
           <Button
             size="xs"
             color={getAxisColor(axis)}
-            onClick={() => stopAxis.call({ axis })}
+            onClick={() => stopAxis.call({ logical_axis: axis })}
           >
             Stop
           </Button>

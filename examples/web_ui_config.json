@@ -10,7 +10,7 @@
     "unit": "mm", 
     "id": "prototome_stage"
   },
-  "video_streams": ["new_frame", "camera_lasso"],
+  "video_streams": ["camera_prototome", "camera_lasso"],
   "axis_variable_mapping":{
     "pt_stage_fine": {
       "axis1": ["retract_piezo_distance"]

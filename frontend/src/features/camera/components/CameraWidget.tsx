@@ -19,7 +19,8 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
   // Store state
   // -------------------------------
   const videoStream = useVideoStreamStore(
-    (state) => state.streams["new_frame"],
+    (state) => state.streams["camera_prototome"],
+    
   );
 
   // Hook - RPC Data
@@ -59,10 +60,10 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
 
   // Hook - RPC Action
   // -------------------------------
-  const startLivestream = useRPCAction<void, { key: string }>(
+  const startLivestream = useRPCAction<void>(
     "camera_prototome_start_livestream",
   );
-  const stopLivestream = useRPCAction<void, { key: string }>(
+  const stopLivestream = useRPCAction<void>(
     "camera_prototome_stop_livestream",
   );
   const setCameraExposure = useRPCAction<void, { key: string; value: number }>(
@@ -132,13 +133,13 @@ export const CameraWidget = ({ cameraId }: CameraWidgetProps) => {
           <Button
             size="xs"
             variant="light"
-            onClick={() => startLivestream.call({ key: cameraId })}
+            onClick={() => startLivestream.call()}
           >
             Start
           </Button>
           <Button
             size="xs"
-            onClick={() => stopLivestream.call({ key: cameraId })}
+            onClick={() => stopLivestream.call()}
           >
             Stop
           </Button>

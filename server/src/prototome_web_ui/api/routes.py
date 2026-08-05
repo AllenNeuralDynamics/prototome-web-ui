@@ -19,7 +19,7 @@ def make_router(config: PrototomeWebUiConfig, client: RouterClient) -> APIRouter
     # Get stream and RPC configurations from the RouterServer
     streams = client.get_stream_configurations(as_dict=True)[1]
     periodic_streams = streams["periodic_streams"]  # only include periodic streams for now
-    manual_streams = streams["manual_streams"]  
+    manual_streams = streams["manual_streams"]
     rpcs = client.get_rpc_configurations(as_dict=True)[1]
 
     def create_rpc_post_endpoint(
@@ -85,7 +85,7 @@ def make_router(config: PrototomeWebUiConfig, client: RouterClient) -> APIRouter
             params_schema=rpcs[call_name].get("params_schema"),
         )
         logging.info(f"Added RPC endpoint: /api/{call_name}")
-    
+
     for call_name in manual_streams:
         # Stream model with schema and the endpoint corresponding to the stream
         stream_models[call_name] = StreamModel(
