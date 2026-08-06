@@ -4,6 +4,8 @@ import { useVideoStreamStore } from "@/stores/dataChannelStore";
 import { Button, Group, Select, Slider, Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { DrawableCamera } from "@/components/ui/DrawableCamera/DrawableCamera";
+import { useRoiStore } from "@/stores/roiStore";
 
 interface LassoCameraProps {
   cameraId: string;
@@ -17,7 +19,7 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
    ***************************************/
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const videoStream = useVideoStreamStore((state) => state.streams["lasso_camera"]);
+  const videoStream = useVideoStreamStore((state) => state.streams["lasso"]);
   const [colorSettings] = useState({
     "saturation derivative": 0,
     red: 0,
@@ -54,18 +56,7 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
    *
    *    HANDLERS
    *
-   ***************************************
-   *
-   *  - exposure change             < update exposure, call api
-   *  - gain change                 < update gain, call api
-   *  - color setting change        < update color, call api
-   *  - minimize xy distance        < direct api call onClick
-   *  - start automated dropoff     < direct api call onClick
-   *  - enable auto white balance   < direct api call onClick
-   *  - save camera settings        < direct api call onClick (maybe handler to format setting)
-   *  - consumer dropoffimager      < get ROI (format to what prototome saves), call api
-   *
-   */
+   ***************************************/
 
   async function handleGainChange(value: number) {
     console.log("Gain change", value);
@@ -77,6 +68,14 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
     cameraApi.postExposure(cameraId, value);
   }
 
+  /***************************************
+   *
+   *    ROI STATES/HANDLERS
+   *
+   ***************************************/
+
+  const { rois, selectedRoi, updateRoi } = useRoiStore();
+
   return (
     <Stack className="space-y-10">
       <Group grow>
@@ -85,7 +84,24 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
       </Group>
 
       <Stack>
-        <video ref={videoRef} muted autoPlay playsInline className="border" />
+        <DrawableCamera
+          video={
+            <video
+              ref={videoRef}
+              muted
+              autoPlay
+              playsInline
+              height={400}
+              width={600}
+              className="border"
+            />
+          }
+          selectedRoi={selectedRoi}
+          onRoiStateChange={(id, newRoi) => {
+            updateRoi(id, newRoi);
+          }}
+          rois={rois}
+        />
         <Group>
           <Button onClick={() => cameraApi.startLivestream(cameraId)}>
             Start Camera

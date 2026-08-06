@@ -9,7 +9,6 @@ interface ApertureCircleProps {
   apertureInput: Aperture;
   nextAperture: boolean;
   radius: number;
-  onRefresh: () => Promise<void>;
 }
 
 export const ApertureCircle = ({
@@ -17,7 +16,6 @@ export const ApertureCircle = ({
   apertureInput,
   nextAperture,
   radius,
-  onRefresh,
 }: ApertureCircleProps) => {
   const [opened, { close, open }] = useDisclosure(false);
   const [clicked, setClicked] = useState(false);
@@ -40,13 +38,11 @@ export const ApertureCircle = ({
       ...aperture,
       status: status,
     });
-    await onRefresh();
   }
 
   async function handleRemoveAperture() {
     handleClose();
     await lassoCameraApi.postRemoveAperture(uid.toString());
-    await onRefresh();
   }
 
   useEffect(() => {

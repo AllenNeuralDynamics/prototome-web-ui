@@ -12,12 +12,15 @@ import { useEffect, useState } from "react";
 import { lassoCameraApi } from "../api/lassoCameraApi";
 import type { LassoData } from "../types/lasso";
 import { useDataChannelStore } from "@/stores/dataChannelStore";
+import { useRoiStore } from "@/stores/roiStore";
 
 export const LassoControl = () => {
   const [lassoData, setLassoData] = useState<LassoData>();
   const dataChannels = useDataChannelStore((state) => state.channels);
   const statePositions = Object.entries(lassoData?.state_positions || {});
   const axes: Array<"X" | "Y" | "Z"> = ["X", "Y", "Z"];
+
+  const [roiId, setRoiId] = useState<string>("Consumer_dropoffimager");
 
   useEffect(() => {
     // add state channel
@@ -35,18 +38,38 @@ export const LassoControl = () => {
     };
   }, [dataChannels]);
 
-  // useEffect(() => {
-  //   lassoCameraApi.getLassoData().then(setLassoData);
-  // }, []);
+  const { rois, addRoi, updateRoi, setSelectedRoi } = useRoiStore();
+  
+  // This list can be move to a generic configuration once that is established
+  const listOfRois = [
+    { id: "Consumer_dropoffimager", name: "Dropoff Imager" },
+    { id: "Consumer_lassorecorder", name: "Lasso Recorder" },
+  ];
 
-  // These two relate to changing the color in the camera viewer box
-  async function handleROI(value: string | null) {
-    console.log("ROI", value);
+  // Initialize ROIs if none exist (since the list of ROI exist here)
+  if (rois.length === 0) {
+    listOfRois.forEach((roiId) => {
+      addRoi({
+        id: roiId.id,
+        name: roiId.name,
+        colorIndex: 0,
+        positions: null,
+      });
+    });
+    setSelectedRoi(roiId);
   }
+
+  async function handleROI(value: string) {
+    setRoiId(value); // local roi value
+    setSelectedRoi(value); // global selected roi value in store
+  }
+
   async function handleToggleColor() {
-    console.log("TOGGLE COLOR");
+    const currentColorIndex = rois.find((r) => r.id === roiId)?.colorIndex || 0;
+    updateRoi(roiId, {
+      colorIndex: (currentColorIndex + 1),
+    });
   }
-  //---------------------------------------------
 
   // move_to_state_position
   async function handleMove(state: string) {
@@ -109,9 +132,12 @@ export const LassoControl = () => {
           </Grid.Col>
           <Grid.Col span={1}>
             <Select
-              defaultValue={"Consumer_dropoffimager"}
-              data={["Consumer_dropoffimager", "Consumer_lassorecorder"]}
-              onChange={(value) => handleROI(value)}
+              defaultValue={listOfRois[0].id}
+              data={listOfRois.map((roi) => ({ value: roi.id, label: roi.name }))}
+              onChange={(value) => {
+                if (value !== null) handleROI(value);
+              }}
+              clearable={false}
               allowDeselect={false}
             />
           </Grid.Col>
