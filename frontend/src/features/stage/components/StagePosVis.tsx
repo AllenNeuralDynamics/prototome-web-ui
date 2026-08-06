@@ -6,19 +6,13 @@ import { useRPCData } from "@/lib/one-liner-router/call-rpc.ts";
 type AxisCardProps = {
   axis: string;
   position: number;
+  range: number[] | undefined;
   config: Record<string, string[]> | undefined;
   unit: string;
 };
 
-const AxisCard = ({ axis, position, config, unit }: AxisCardProps) => {
-  // Hook - RPC Data
-  // -------------------------------
-  const { result: ranges } = useRPCData<Record<string, number[]>>("get_axis_travel_ranges", {});
-
-  if (!ranges) return null;
-
-  const [min, max] = ranges[axis];
-
+const AxisCard = ({ axis, position, range, config, unit }: AxisCardProps) => {
+  const [min, max] = range ?? [0, 0];
   return (
     <Card
       shadow="xs"
@@ -95,9 +89,14 @@ export const StagePosVis = ({
   // -------------------------------
   const positions = useStagePositionStore((state) => state.positions);
 
-  if (!axes.every((axis) => axis in positions)) return null;
+  // Hook - RPC Data
+  // -------------------------------
+  const { result: ranges } = useRPCData<Record<string, number[]>>(
+    "get_axis_travel_ranges",
+    {},
+  );
 
-  // TODO: Do we still need stageId
+  if (!axes.every((axis) => axis in positions)) return null;
 
   return (
     <div>
@@ -105,6 +104,7 @@ export const StagePosVis = ({
         <AxisCard
           key={axis}
           axis={axis}
+          range={ranges?.[axis]}
           position={positions[axis]}
           config={config?.[axis]}
           unit={unit}
