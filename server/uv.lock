@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -542,8 +542,8 @@ wheels = [
 
 [[package]]
 name = "one-liner"
-version = "0.1.1.dev8"
-source = { git = "https://github.com/AllenNeuralDynamics/one-liner.git?branch=feat-rpc-schema#eaa6b282dba18041fc4ee27d8fdfdb4222ec88b5" }
+version = "0.1.1.dev9"
+source = { git = "https://github.com/AllenNeuralDynamics/one-liner.git?tag=v0.1.1.dev9#30dd61245cef1b14a2fe9396f0d62b84a6f2c5e6" }
 dependencies = [
     { name = "orjson" },
     { name = "pydantic" },
@@ -657,7 +657,7 @@ requires-dist = [
     { name = "aiortc", specifier = ">=1.13.0" },
     { name = "fastapi", specifier = ">=0.128.0" },
     { name = "jsonref", specifier = ">=1.1.0" },
-    { name = "one-liner", git = "https://github.com/AllenNeuralDynamics/one-liner.git?branch=feat-rpc-schema" },
+    { name = "one-liner", git = "https://github.com/AllenNeuralDynamics/one-liner.git?tag=v0.1.1.dev9" },
     { name = "opencv-python", specifier = ">=4.13.0.92" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "tornado", specifier = ">=6.5.4" },
