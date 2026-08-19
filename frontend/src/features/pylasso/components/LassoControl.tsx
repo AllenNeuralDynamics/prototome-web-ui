@@ -9,18 +9,61 @@ import {
   Text,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
-import { lassoCameraApi } from "../api/lassoCameraApi";
 import type { LassoData } from "../types/lasso";
 import { useDataChannelStore } from "@/stores/dataChannelStore";
 import { useRoiStore } from "@/stores/roiStore";
+import { useRPCAction } from "@/lib/one-liner-router/call-rpc";
 
 export const LassoControl = () => {
+  // Local state
+  // -------------------------------
   const [lassoData, setLassoData] = useState<LassoData>();
-  const dataChannels = useDataChannelStore((state) => state.channels);
+  const [roiId, setRoiId] = useState<string>("Consumer_dropoffimager");
+  // This list can be move to a generic configuration once that is established
+  const listOfRois = [
+    { id: "Consumer_dropoffimager", name: "Dropoff Imager" },
+    { id: "Consumer_lassorecorder", name: "Lasso Recorder" },
+  ];
   const statePositions = Object.entries(lassoData?.state_positions || {});
   const axes: Array<"X" | "Y" | "Z"> = ["X", "Y", "Z"];
 
-  const [roiId, setRoiId] = useState<string>("Consumer_dropoffimager");
+  // Store state
+  // -------------------------------
+  const dataChannels = useDataChannelStore((state) => state.channels);
+  const { rois, addRoi, updateRoi, setSelectedRoi } = useRoiStore();
+
+  // Hook - RPC Action
+  // -------------------------------
+  const moveToStatePosition = useRPCAction<void, { state_name: string }>(
+    "move_to_state_position",
+  );
+  const storePosition = useRPCAction<void, { condition: string }>(
+    "store_position",
+  );
+  const homeAllAxes = useRPCAction("lasso_home_all_axes");
+  const stopAllAxes = useRPCAction("lasso_stop_all_axes");
+  const homeAxis = useRPCAction<void, { axis: "X" | "Y" | "Z" }>(
+    "lasso_home_axis",
+  );
+  const stopAxis = useRPCAction<void, { axis: "X" | "Y" | "Z" }>(
+    "lasso_stop_axis",
+  );
+  const guiUpdateSpeed = useRPCAction<
+    void,
+    { axis: "X" | "Y" | "Z"; speed: number }
+  >("gui_update_speed");
+
+  // Effects
+  // -------------------------------
+  useEffect(() => {
+    // Initialize ROIs if none exist (since the list of ROI exist here)
+    if (rois.length > 0) return;
+    for (const r of listOfRois) {
+      addRoi({ id: r.id, name: r.name, colorIndex: 0, positions: null });
+    }
+    setSelectedRoi(roiId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount
 
   useEffect(() => {
     // add state channel
@@ -38,26 +81,8 @@ export const LassoControl = () => {
     };
   }, [dataChannels]);
 
-  const { rois, addRoi, updateRoi, setSelectedRoi } = useRoiStore();
-  
-  // This list can be move to a generic configuration once that is established
-  const listOfRois = [
-    { id: "Consumer_dropoffimager", name: "Dropoff Imager" },
-    { id: "Consumer_lassorecorder", name: "Lasso Recorder" },
-  ];
-
-  // Initialize ROIs if none exist (since the list of ROI exist here)
-  if (rois.length === 0) {
-    listOfRois.forEach((roiId) => {
-      addRoi({
-        id: roiId.id,
-        name: roiId.name,
-        colorIndex: 0,
-        positions: null,
-      });
-    });
-    setSelectedRoi(roiId);
-  }
+  // Handlers
+  // -------------------------------
 
   async function handleROI(value: string) {
     setRoiId(value); // local roi value
@@ -67,48 +92,8 @@ export const LassoControl = () => {
   async function handleToggleColor() {
     const currentColorIndex = rois.find((r) => r.id === roiId)?.colorIndex || 0;
     updateRoi(roiId, {
-      colorIndex: (currentColorIndex + 1),
+      colorIndex: currentColorIndex + 1,
     });
-  }
-
-  // move_to_state_position
-  async function handleMove(state: string) {
-    console.log("MOVE", state);
-    lassoCameraApi.postMoveToStatePosition(state);
-  }
-
-  // store_position
-  async function handleStore(state: string) {
-    console.log("STORE", state);
-    lassoCameraApi.postStorePosition(state);
-  }
-
-  // home_all_axes
-  async function handleHomeAll() {
-    console.log("HOME ALL");
-    lassoCameraApi.postHomeAllAxes();
-  }
-  // stop_all_axes
-  async function handleStopAll() {
-    console.log("STOP ALL");
-    lassoCameraApi.postStopAllAxes();
-  }
-
-  // home_axis
-  async function handleHome(axis: string) {
-    console.log("HOME", axis);
-    lassoCameraApi.postHomeAxis(axis);
-  }
-  // stop_axis
-  async function handleStop(axis: string) {
-    console.log("STOP", axis);
-    lassoCameraApi.postStopAxis(axis);
-  }
-
-  // gui_update_speed
-  async function handleStageSpeed(axis: "X" | "Y" | "Z", value: number) {
-    console.log("SPEED", axis, value);
-    lassoCameraApi.postGuiUpdateSpeed(axis, value);
   }
 
   return (
@@ -133,7 +118,10 @@ export const LassoControl = () => {
           <Grid.Col span={1}>
             <Select
               defaultValue={listOfRois[0].id}
-              data={listOfRois.map((roi) => ({ value: roi.id, label: roi.name }))}
+              data={listOfRois.map((roi) => ({
+                value: roi.id,
+                label: roi.name,
+              }))}
               onChange={(value) => {
                 if (value !== null) handleROI(value);
               }}
@@ -146,43 +134,73 @@ export const LassoControl = () => {
           </Grid.Col>
 
           <Grid.Col span={1}>
-            <Button fullWidth onClick={() => handleMove("dropoff")}>
+            <Button
+              fullWidth
+              onClick={() =>
+                moveToStatePosition.call({ state_name: "dropoff" })
+              }
+            >
               Move To Drop-off
             </Button>
           </Grid.Col>
           <Grid.Col span={1}>
-            <Button fullWidth onClick={() => handleMove("midpoint")}>
+            <Button
+              fullWidth
+              onClick={() =>
+                moveToStatePosition.call({ state_name: "midpoint" })
+              }
+            >
               Move To Midpoint
             </Button>
           </Grid.Col>
           <Grid.Col span={1}>
-            <Button fullWidth onClick={() => handleMove("pickup")}>
+            <Button
+              fullWidth
+              onClick={() => moveToStatePosition.call({ state_name: "pickup" })}
+            >
               Move To Pickup
             </Button>
           </Grid.Col>
           <Grid.Col span={1}>
-            <Button fullWidth onClick={() => handleMove("post_pickup")}>
+            <Button
+              fullWidth
+              onClick={() =>
+                moveToStatePosition.call({ state_name: "post_pickup" })
+              }
+            >
               Move To Post Pickup
             </Button>
           </Grid.Col>
 
           <Grid.Col span={1}>
-            <Button fullWidth onClick={() => handleStore("dropoff")}>
+            <Button
+              fullWidth
+              onClick={() => storePosition.call({ condition: "dropoff" })}
+            >
               Store Drop-off
             </Button>
           </Grid.Col>
           <Grid.Col span={1}>
-            <Button fullWidth onClick={() => handleStore("midpoint")}>
+            <Button
+              fullWidth
+              onClick={() => storePosition.call({ condition: "midpoint" })}
+            >
               Store Midpoint
             </Button>
           </Grid.Col>
           <Grid.Col span={1}>
-            <Button fullWidth onClick={() => handleStore("pickup")}>
+            <Button
+              fullWidth
+              onClick={() => storePosition.call({ condition: "pickup" })}
+            >
               Store Pickup
             </Button>
           </Grid.Col>
           <Grid.Col span={1}>
-            <Button fullWidth onClick={() => handleStore("post_pickup")}>
+            <Button
+              fullWidth
+              onClick={() => storePosition.call({ condition: "post_pickup" })}
+            >
               Store Post Pickup
             </Button>
           </Grid.Col>
@@ -201,12 +219,12 @@ export const LassoControl = () => {
               ))}
               <Table.Th key="current">Current</Table.Th>
               <Table.Th>
-                <Button fullWidth onClick={handleHomeAll}>
+                <Button fullWidth onClick={() => homeAllAxes.call()}>
                   Home All Axes
                 </Button>
               </Table.Th>
               <Table.Th>
-                <Button fullWidth onClick={handleStopAll}>
+                <Button fullWidth onClick={() => stopAllAxes.call()}>
                   Stop All Axes
                 </Button>
               </Table.Th>
@@ -225,12 +243,18 @@ export const LassoControl = () => {
                   {lassoData?.axes[axis].position.toFixed(3)}
                 </Table.Td>
                 <Table.Td>
-                  <Button fullWidth onClick={() => handleHome(axis)}>
+                  <Button
+                    fullWidth
+                    onClick={() => homeAxis.call({ axis: axis })}
+                  >
                     Home
                   </Button>
                 </Table.Td>
                 <Table.Td>
-                  <Button fullWidth onClick={() => handleStop(axis)}>
+                  <Button
+                    fullWidth
+                    onClick={() => stopAxis.call({ axis: axis })}
+                  >
                     Stop
                   </Button>
                 </Table.Td>
@@ -246,7 +270,9 @@ export const LassoControl = () => {
           <Slider
             defaultValue={lassoData?.axes.X.speed || 10}
             className="flex-1"
-            onChange={(value) => handleStageSpeed("X", value)}
+            onChange={(value) =>
+              guiUpdateSpeed.call({ axis: "X", speed: value })
+            }
           />
           <Text>10.000 mm/s</Text>
         </Group>
@@ -255,7 +281,9 @@ export const LassoControl = () => {
           <Slider
             defaultValue={lassoData?.axes.Y.speed}
             className="flex-1"
-            onChange={(value) => handleStageSpeed("Y", value)}
+            onChange={(value) =>
+              guiUpdateSpeed.call({ axis: "Y", speed: value })
+            }
           />
           <Text>10.000 mm/s</Text>
         </Group>
@@ -264,7 +292,9 @@ export const LassoControl = () => {
           <Slider
             defaultValue={lassoData?.axes.Z.speed}
             className="flex-1"
-            onChange={(value) => handleStageSpeed("Z", value)}
+            onChange={(value) =>
+              guiUpdateSpeed.call({ axis: "Z", speed: value })
+            }
           />
           <Text>10.000 mm/s</Text>
         </Group>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   RangeSlider,
   Slider,
@@ -10,288 +10,282 @@ import {
   NumberInput,
   Stack,
 } from "@mantine/core";
-import type { StageControlProps } from "../types/stageTypes.tsx";
 import { getAxisColor } from "../utils/colorGrabber.tsx";
 import { useStagePositionStore } from "@/stores/stagePositionStore.tsx";
-import { stageApi } from "../api/stageApi.tsx";
+import { useRPCAction, useRPCData } from "@/lib/one-liner-router/call-rpc.ts";
+
+type AxisControlCardProps = {
+  axis: string;
+  position: number;
+  unit: string;
+};
+
+const AxisControlCard = ({ axis, position, unit }: AxisControlCardProps) => {
+  // Local state
+  // -------------------------------
+  const [velocityOverride, setVelocityOverride] = useState<number | null>(null);
+  const [posInput, setPosInput] = useState<number | undefined>();
+  const [stepSizeInput, setStepSizeInput] = useState<number | undefined>();
+
+  // Hook - RPC Data
+  // -------------------------------
+  const { result: velocities } = useRPCData<Record<string, number>>(
+    "get_axis_velocities",
+    {},
+  );
+  const { result: maxVelocity } = useRPCData<number>("get_axis_max_velocity", {
+    logical_axis: axis,
+  });
+  const { result: ranges } = useRPCData<Record<string, number[]>>("get_axis_travel_ranges", {});
+
+  // Hook - RPC Action
+  // -------------------------------
+  const setAxisPosition = useRPCAction<
+    void,
+    { logical_axis: string; position: number }
+  >("set_axis_position");
+  const setAxisMaxVelocity = useRPCAction<
+    void,
+    { logical_axis: string; speed: number }
+  >("set_axis_max_velocity");
+  const homeAxis = useRPCAction<void, { logical_axis: string }>("home_axis");
+  const stopAxis = useRPCAction<void, { logical_axis: string }>("stop_axis");
+
+  // Wait until reads are populated
+  if (!ranges || velocities === undefined || maxVelocity === undefined)
+    return <></>;
+
+  // Derived state
+  // -------------------------------
+  const [min, max] = ranges[axis] ?? [0, 100];
+  const displayVelocity = velocityOverride ?? velocities[axis] ?? 0;
+
+  // Handlers
+  // -------------------------------
+  const moveTo = (value: number) =>
+    setAxisPosition.call({ logical_axis: axis, position: value });
+
+  const onMoveLowerClick = () => moveTo(min);
+  const onMoveUpperClick = () => moveTo(max);
+  const onMoveMiddleClick = () => moveTo(Math.round((min + max) / 2));
+
+  return (
+    <Card
+      shadow="xs"
+      padding="xs"
+      radius="md"
+      withBorder
+      className="bg-gray-50"
+    >
+      <Group mb="xs">
+        <Badge
+          size="lg"
+          color={getAxisColor(axis)}
+          variant="filled"
+          className="w-16 text-center"
+        >
+          {axis.toUpperCase()}
+        </Badge>
+      </Group>
+
+      {/* Position display */}
+      <Group mb="xs">
+        <Text size="sm">Position </Text>
+        <Text size="sm" c="dimmed">
+          {position?.toFixed(2) || 0} {unit}
+        </Text>
+      </Group>
+      <Slider
+        min={Math.min(0, min)}
+        max={Math.max(100, max)}
+        color={getAxisColor(axis)}
+        value={parseFloat(position.toFixed(3))}
+        labelAlwaysOn
+        marks={[
+          { value: min ?? 0, label: "" },
+          { value: max ?? 100, label: "" },
+        ]}
+        style={{ marginTop: "30px" }}
+        styles={{
+          bar: { backgroundColor: "transparent" },
+          mark: { backgroundColor: getAxisColor(axis) },
+        }}
+      />
+
+      {/* Bounds */}
+      <Group mb="xs" style={{ marginTop: "10px" }}>
+        <Text size="sm">Bounds</Text>
+        <Group>
+          <Text size="sm" c="dimmed">
+            Min: {min?.toFixed(2) || 0} {unit}
+          </Text>
+          <Text size="sm" c="dimmed">
+            Max: {max?.toFixed(2) || 100} {unit}
+          </Text>
+        </Group>
+      </Group>
+      <RangeSlider
+        color={getAxisColor(axis)}
+        value={[min ?? 0, max ?? 100]}
+        min={Math.min(0, min)}
+        max={Math.max(100, max)}
+      />
+
+      {/* Velocity */}
+      <Group mb="xs" style={{ marginTop: "10px" }}>
+        <Text size="sm">Velocity</Text>
+        <Text size="sm" c="dimmed">
+          {displayVelocity?.toFixed(2) || 0}
+        </Text>
+      </Group>
+      <Slider
+        color={getAxisColor(axis)}
+        step={0.01}
+        value={displayVelocity || 0}
+        onChange={(val) => {
+          setVelocityOverride(val);
+          setAxisMaxVelocity.call({ logical_axis: axis, speed: val });
+        }}
+        max={maxVelocity}
+      />
+
+      {/* Actions */}
+      <Group mt="md">
+        <Button
+          color={getAxisColor(axis)}
+          variant="light"
+          onClick={onMoveLowerClick}
+        >
+          Go to Lower
+        </Button>
+        <Button color={getAxisColor(axis)} onClick={onMoveMiddleClick}>
+          Go to Middle
+        </Button>
+        <Button
+          color={getAxisColor(axis)}
+          variant="light"
+          onClick={onMoveUpperClick}
+        >
+          Go to Upper
+        </Button>
+
+        <Stack>
+          <NumberInput
+            min={min}
+            max={max}
+            value={posInput}
+            placeholder="position"
+            hideControls
+            suffix={unit}
+            decimalScale={4}
+            onChange={(val) => {
+              if (typeof val === "number") setPosInput(val);
+            }}
+          />
+          <NumberInput
+            placeholder="step size"
+            hideControls
+            suffix={unit}
+            value={stepSizeInput}
+            onChange={(val) => {
+              if (typeof val === "number") setStepSizeInput(val);
+            }}
+          />
+        </Stack>
+
+        <Stack>
+          <Button
+            color={getAxisColor(axis)}
+            onClick={() => {
+              if (
+                typeof posInput === "number" &&
+                typeof stepSizeInput === "number"
+              ) {
+                const newPos = posInput + stepSizeInput;
+                setPosInput(newPos);
+                moveTo(newPos);
+              }
+            }}
+          >
+            ▲
+          </Button>
+          <Button
+            color={getAxisColor(axis)}
+            variant="light"
+            onClick={() => {
+              if (
+                typeof posInput === "number" &&
+                typeof stepSizeInput === "number"
+              ) {
+                const newPos = posInput - stepSizeInput;
+                setPosInput(newPos);
+                moveTo(newPos);
+              }
+            }}
+          >
+            ▼
+          </Button>
+        </Stack>
+
+        <Stack>
+          <Button
+            size="xs"
+            color={getAxisColor(axis)}
+            onClick={() => {
+              if (typeof posInput === "number") moveTo(posInput);
+            }}
+          >
+            Move
+          </Button>
+          <Button
+            size="xs"
+            color={getAxisColor(axis)}
+            variant="light"
+            onClick={() => homeAxis.call({ logical_axis: axis })}
+          >
+            Home
+          </Button>
+          <Button
+            size="xs"
+            color={getAxisColor(axis)}
+            onClick={() => stopAxis.call({ logical_axis: axis })}
+          >
+            Stop
+          </Button>
+        </Stack>
+      </Group>
+    </Card>
+  );
+};
+
+// StageControl: renders one AxisControlCard per axis.
+
+export type StageControlProps = {
+  axes: string[];
+  unit?: string;
+};
 
 export const StageControl = ({
-  stageId,
   axes,
   unit = "um",
 }: StageControlProps) => {
-  const [velocities, setVelocities] = useState<Record<string, number>>({});
-  const [maxVelocities, setMaxVelocities] = useState<Record<string, number>>(
-    {},
-  );
-  const [posInput, setPosInput] = useState<Record<string, number>>({});
-  const [stepSizeInput, setStepSizeInput] = useState<Record<string, number>>(
-    {},
-  );
-  const [ranges, setRanges] = useState<Record<string, number[]>>({});
+  // Store State
+  // -------------------------------
   const positions = useStagePositionStore((state) => state.positions);
 
-  // populate range and velocity
-  useEffect(() => {
-    async function fetchAxisSpecs() {
-      for (const axis of axes) {
-        const [vel, maxVel, range] = await Promise.all([
-          stageApi.getVelocity(stageId, axis),
-          stageApi.getMaxVelocity(stageId, axis),
-          stageApi.getRange(stageId, axis),
-        ]);
-        setVelocities((prev) => ({ ...prev, ...{ [axis]: vel } }));
-        setMaxVelocities((prev) => ({ ...prev, ...{ [axis]: maxVel } }));
-        setRanges((prev) => ({ ...prev, ...{ [axis]: range } }));
-      }
-    }
-    fetchAxisSpecs();
-  }, []);
+  if (!axes.every((axis) => axis in positions)) return null;
 
-  // Stub out functionality for now
-  // const onPosRangeChange = (range: [number, number], axis: string) => {
-  //   const position = positions[axis];
-
-  //   // Clamp range so it must contain current position
-  //   const clampedMin = Math.min(range[0], position);
-  //   const clampedMax = Math.max(range[1], position);
-
-  //   if (
-  //     (clampedMin !== ranges[axis][0] || clampedMax !== ranges[axis][1])
-  //   ) {
-  //     const newRange = [clampedMin, clampedMax];
-  //     setRanges((prev) => ({ ...prev, [axis]: newRange }));
-  //     stageApi.postRange(stageId, axis, newRange)
-
-  //   }
-  // };
-
-  const onMoveLowerClick = (axis: string) => {
-    stageApi.postPosition(stageId, axis, ranges[axis][0]);
-  };
-
-  const onMoveUpperClick = (axis: string) => {
-    stageApi.postPosition(stageId, axis, ranges[axis][1]);
-  };
-
-  const onMoveMiddleClick = (axis: string) => {
-    stageApi.postPosition(
-      stageId,
-      axis,
-      Math.round((ranges[axis][0] + ranges[axis][1]) / 2),
-    );
-  };
-  const onMoveClick = (val: number, axis: string) => {
-    stageApi.postPosition(stageId, axis, val);
-  };
-
-  const stagePositions = positions ?? {};
-  if (!axes.every((axis) => axis in stagePositions)) return;
-
-  const stageRanges = ranges ?? {};
-  if (!axes.every((axis) => axis in stageRanges)) return;
-
-  const stageVelocities = velocities ?? {};
-  if (!axes.every((axis) => axis in stageVelocities)) return;
+  // TODO: Do we still need stageId
 
   return (
     <div>
       {axes.map((axis) => (
-        <Card
+        <AxisControlCard
           key={axis}
-          shadow="xs"
-          padding="xs"
-          radius="md"
-          withBorder
-          className="bg-gray-50"
-        >
-          <Group mb="xs">
-            <Badge
-              size="lg"
-              color={getAxisColor(axis)}
-              variant="filled"
-              className="w-16 text-center"
-            >
-              {axis.toUpperCase()}
-            </Badge>
-          </Group>
-          <Group mb="xs">
-            <Text size="sm">Position </Text>
-            <Text size="sm" c="dimmed">
-              {positions[axis]?.toFixed(2) || 0} {unit}
-            </Text>
-          </Group>
-          <Slider
-            min={Math.min(0, ranges[axis][0])}
-            max={Math.max(100, ranges[axis][1])}
-            color={getAxisColor(axis)}
-            value={parseFloat(positions[axis].toFixed(3))}
-            labelAlwaysOn
-            marks={[
-              {
-                value: ranges[axis][0] ?? 0,
-                label: "",
-              },
-              {
-                value: ranges[axis][1] ?? 100,
-                label: "",
-              },
-            ]}
-            style={{ marginTop: "30px" }}
-            styles={{
-              bar: { backgroundColor: "transparent" },
-              mark: {
-                backgroundColor: getAxisColor(axis),
-              },
-            }}
-          />
-          <Group mb="xs" style={{ marginTop: "10px" }}>
-            <Text size="sm">Bounds</Text>
-            <Group>
-              <Text size="sm" c="dimmed">
-                Min: {ranges[axis][0]?.toFixed(2) || 0} {unit}
-              </Text>
-              <Text size="sm" c="dimmed">
-                Max: {ranges[axis][1]?.toFixed(2) || 100} {unit}
-              </Text>
-            </Group>
-          </Group>
-          <RangeSlider
-            color={getAxisColor(axis)}
-            value={[ranges[axis][0] ?? 0, ranges[axis][1] ?? 100]}
-            min={Math.min(0, ranges[axis][0])}
-            max={Math.max(100, ranges[axis][1])}
-          />
-          <Group mb="xs" style={{ marginTop: "10px" }}>
-            <Text size="sm">Velocity</Text>
-            <Text size="sm" c="dimmed">
-              {velocities[axis]?.toFixed(2) || 0}
-            </Text>
-          </Group>
-          <Slider
-            color={getAxisColor(axis)}
-            step={.01}
-            value={velocities[axis] || 0}
-            onChange={(val) => {
-              setVelocities((prev) => ({ ...prev, ...{ [axis]: val } }));
-              stageApi.postVelocity(stageId, axis, val);
-            }}
-            max={maxVelocities[axis]}
-          />
-          <Group mt="md">
-            <Button
-              color={getAxisColor(axis)}
-              variant="light"
-              onClick={() => onMoveLowerClick(axis)}
-            >
-              Go to Lower
-            </Button>
-            <Button
-              color={getAxisColor(axis)}
-              onClick={() => onMoveMiddleClick(axis)}
-            >
-              Go to Middle
-            </Button>
-            <Button
-              color={getAxisColor(axis)}
-              variant="light"
-              onClick={() => onMoveUpperClick(axis)}
-            >
-              Go to Upper
-            </Button>
-            <Stack>
-              <NumberInput
-                min={ranges[axis][0]}
-                max={ranges[axis][1]}
-                value={posInput[axis]}
-                placeholder="position"
-                hideControls
-                suffix={unit}
-                decimalScale={4}
-                onChange={(val) => {
-                  if (typeof val === "number") {
-                    setPosInput((prev) => ({ ...prev, [axis]: val }));
-                  }
-                }}
-              />
-              <NumberInput
-                placeholder="step size"
-                hideControls
-                suffix={unit}
-                onChange={(val) => {
-                  if (typeof val === "number") {
-                    setStepSizeInput((prev) => ({ ...prev, [axis]: val }));
-                  }
-                }}
-              />
-            </Stack>
-            <Stack>
-              <Button
-                color={getAxisColor(axis)}
-                onClick={() => {
-                  if (
-                    typeof posInput[axis] === "number" &&
-                    typeof stepSizeInput[axis] === "number"
-                  ) {
-                    const newPos = posInput[axis] + stepSizeInput[axis];
-                    setPosInput((prev) => ({ ...prev, [axis]: newPos }));
-                    onMoveClick(newPos, axis);
-                  }
-                }}
-              >
-                ▲
-              </Button>
-              <Button
-                color={getAxisColor(axis)}
-                variant="light"
-                onClick={() => {
-                  if (
-                    typeof posInput[axis] === "number" &&
-                    typeof stepSizeInput[axis] === "number"
-                  ) {
-                    const newPos = posInput[axis] - stepSizeInput[axis];
-                    setPosInput((prev) => ({ ...prev, [axis]: newPos }));
-                    onMoveClick(newPos, axis);
-                  }
-                }}
-              >
-                ▼
-              </Button>
-            </Stack>
-            <Stack>
-              <Button
-                size="xs"
-                color={getAxisColor(axis)}
-                onClick={() => {
-                  if (typeof posInput[axis] === "number") {
-                    onMoveClick(posInput[axis], axis);
-                  }
-                }}
-              >
-                Move
-              </Button>
-              <Button
-                size="xs"
-                color={getAxisColor(axis)}
-                variant="light"
-                onClick={() => {
-                  stageApi.postHomeAxis(stageId, axis);
-                }}
-              >
-                Home
-              </Button>
-              <Button
-                size="xs"
-                color={getAxisColor(axis)}
-                onClick={() => {
-                  stageApi.postStopAxis(stageId, axis);
-                }}
-              >
-                Stop
-              </Button>
-            </Stack>
-          </Group>
-        </Card>
+          axis={axis}
+          position={positions[axis]}
+          unit={unit}
+        />
       ))}
     </div>
   );

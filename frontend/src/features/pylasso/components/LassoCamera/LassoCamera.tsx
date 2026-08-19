@@ -1,25 +1,18 @@
-import { cameraApi } from "@/features/camera/api/cameraApi";
-import { lassoCameraApi } from "@/features/pylasso/api/lassoCameraApi";
 import { useVideoStreamStore } from "@/stores/dataChannelStore";
 import { Button, Group, Select, Slider, Stack, Text } from "@mantine/core";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { DrawableCamera } from "@/components/ui/DrawableCamera/DrawableCamera";
 import { useRoiStore } from "@/stores/roiStore";
+import { useRPCAction, useRPCData } from "@/lib/one-liner-router/call-rpc";
 
-interface LassoCameraProps {
-  cameraId: string;
-}
-
-export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
-  /***************************************
-   *
-   *    STATES
-   *
-   ***************************************/
-
+// TODO: do we need to pass in cameraId?
+ 
+export const LassoCamera = () => {
+  // Local state
+  // -------------------------------
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const videoStream = useVideoStreamStore((state) => state.streams["lasso"]);
+  const [exposureOverride, setExposureOverride] = useState<number | null>(null);
+  const [gainOverride, setGainOverride] = useState<number | null>(null);
   const [colorSettings] = useState({
     "saturation derivative": 0,
     red: 0,
@@ -30,51 +23,50 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
     lightness: 0,
   });
 
-  /***************************************
-   *
-   *    FETCH DATA
-   *
-   ***************************************/
+  // Store state
+  // -------------------------------
+  const videoStream = useVideoStreamStore((state) => state.streams["camera_lasso"]);
+  const { rois, selectedRoi, updateRoi } = useRoiStore();
 
+  // Hook - RPC Action
+  // -------------------------------
+  const start_livestream = useRPCAction("camera_lasso_start_livestream");
+  const stop_livestream = useRPCAction("camera_lasso_stop_livestream");
+  const webcamera_set_auto_wb = useRPCAction<void, { key: string; value: number }>(
+    "camera_lasso_set_auto_wb",
+  );
+
+  const { result: exposure } = useRPCData<number>("camera_lasso_get_exposure", {});
+  const { result: gain } = useRPCData<number>("camera_lasso_get_gain", {});
+  const setExposure = useRPCAction<void, { value: number }>("camera_lasso_set_exposure");
+  const setGain = useRPCAction<void, { value: number }>("camera_lasso_set_gain");
+
+  // Derived values
+  // -------------------------------
+  const exposureValue = exposureOverride ?? exposure ?? 0;
+  const gainValue = gainOverride ?? gain ?? 0;
+
+  // Effects
+  // -------------------------------
   // set up livestream
   useEffect(() => {
     if (!videoRef.current || !videoStream) return;
     videoRef.current.srcObject = videoStream;
   }, [videoStream]);
 
-  const { data: exposure } = useQuery({
-    queryKey: ["lasso_camera_exposure"],
-    queryFn: () => cameraApi.getExposure(cameraId),
-  });
-
-  const { data: gain } = useQuery({
-    queryKey: ["lasso_camera_gain"],
-    queryFn: () => cameraApi.getGain(cameraId),
-  });
-
-  /***************************************
-   *
-   *    HANDLERS
-   *
-   ***************************************/
-
+  // Handlers
+  // -------------------------------
   async function handleGainChange(value: number) {
     console.log("Gain change", value);
-    cameraApi.postGain(cameraId, value);
+    setGainOverride(value);
+    setGain.call({ value: value });
   }
 
   async function handleExposureChange(value: number) {
     console.log("Exposure change", value);
-    cameraApi.postExposure(cameraId, value);
+    setExposureOverride(value);
+    setExposure.call({ value: value });
   }
-
-  /***************************************
-   *
-   *    ROI STATES/HANDLERS
-   *
-   ***************************************/
-
-  const { rois, selectedRoi, updateRoi } = useRoiStore();
 
   return (
     <Stack className="space-y-10">
@@ -103,12 +95,8 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
           rois={rois}
         />
         <Group>
-          <Button onClick={() => cameraApi.startLivestream(cameraId)}>
-            Start Camera
-          </Button>
-          <Button onClick={() => cameraApi.stopLivestream(cameraId)}>
-            Stop Camera
-          </Button>
+          <Button onClick={() => start_livestream.call()}>Start Camera</Button>
+          <Button onClick={() => stop_livestream.call()}>Stop Camera</Button>
         </Group>
       </Stack>
 
@@ -134,7 +122,7 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
           <Group gap="xl">
             <Text className="min-w-50 text-right"> Exposure Time (μs)</Text>
             <Slider
-              defaultValue={exposure}
+              value={exposureValue}
               min={10}
               max={1000000}
               marks={[
@@ -149,7 +137,7 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
           <Group gap="xl">
             <Text className="min-w-50 text-right"> Gain </Text>
             <Slider
-              defaultValue={gain}
+              value={gainValue}
               min={0}
               max={24}
               marks={[
@@ -165,7 +153,9 @@ export const LassoCamera = ({ cameraId }: LassoCameraProps) => {
 
       <Group grow>
         <Button
-          onClick={() => lassoCameraApi.postAutoWhiteBalance(cameraId, 1)}
+          onClick={() =>
+            webcamera_set_auto_wb.call({ key: "enable_auto_white_balance", value: 1 })
+          }
         >
           Enable Auto White Balance
         </Button>

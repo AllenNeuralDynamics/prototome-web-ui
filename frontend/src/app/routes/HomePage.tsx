@@ -59,7 +59,6 @@ export const HomePage = () => {
         <Stack align="stretch">
           <CameraWidget cameraId={camera.id} />
           <StagePosVis
-            stageId={stage.id}
             axes={stage.axes}
             config={visConfig}
             unit={stage.unit}

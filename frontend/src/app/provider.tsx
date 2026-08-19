@@ -13,6 +13,7 @@ import { queryConfig } from "@/lib/react-query";
 import { useThemeStore } from "@/stores/themeStore";
 import { api } from "../lib/client.tsx";
 import { negotiate } from "@/utils/webRtcConnection.tsx";
+import { fetchStreamMetadata } from "@/lib/one-liner-router/metadata.ts";
 
 type AppProviderProps = {
   children: React.ReactNode;
@@ -39,6 +40,13 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     async function fetchConfig() {
       try {
         const uiConfig = await api.get("/ui_config");
+        const streams = await fetchStreamMetadata("api/streams");
+        Object.keys(streams).forEach((streamName) => {
+          uiConfig.data.data_channels = uiConfig.data.data_channels || [];
+          if (!uiConfig.data.video_streams.includes(streamName)) {
+            uiConfig.data.data_channels.push(streamName);
+          }
+        });
         setConfig(uiConfig.data);
       } catch (error) {
         console.error("Error fetching config:", error);
@@ -51,7 +59,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   useEffect(() => {
     async function fetchConfig() {
       try {
-        const prototomeConfig = await api.get("/get_prototome_config");
+        const prototomeConfig = await api.post("/get_prototome_config");
         setPrototomeConfig(prototomeConfig.data);
       } catch (error) {
         console.error("Error fetching config:", error);

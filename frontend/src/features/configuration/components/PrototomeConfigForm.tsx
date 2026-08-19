@@ -9,17 +9,20 @@ import Form from "@rjsf/mantine";
 import { Button, FileButton, Title } from "@mantine/core";
 import "../assets/rjsf-spacing.css";
 import { Card } from "@mantine/core";
-import { prototomeConfigApi } from "../api/prototomeConfigApi.ts";
+import { useRPCAction } from "@/lib/one-liner-router/call-rpc.ts";
 
 export const PrototomeConfigForm = () => {
+  // Store state
+  // -------------------------------
   const setConfig = usePrototomeConfigStore((state) => state.setConfig);
   const config = usePrototomeConfigStore((state) => state.config);
 
-  // post new config when config is updated by user
-  useEffect(() => {
-    if (!config) return;
-    prototomeConfigApi.postConfig(config);
-  }, [config]);
+  // Hook - RPC Action
+  // -------------------------------
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const setPrototomeConfig = useRPCAction<void, { value: Record<string, any> }>(
+    "set_prototome_config",
+  );
 
   // revert blue edited fields when user presses enter on form
   useEffect(() => {
@@ -85,6 +88,7 @@ export const PrototomeConfigForm = () => {
           formData={config}
           onChange={handleChange}
           onSubmit={(form) => {
+            setPrototomeConfig.call({ value: form.formData });
             setConfig(form.formData);
             const edited = document.querySelectorAll(".edited-field");
             edited.forEach((el) => el.classList.remove("edited-field"));
