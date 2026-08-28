@@ -87,11 +87,12 @@ export const WaferCalibrationControl = () => {
   if (wafer === undefined) return;
 
   return (
-    <Stack>
-      <Group>
+    <Stack gap="xs">
+      <Group gap="xs">
         {/** TODO: investigate, what does crosshair look like, would need to overlay over camera */}
-        <Button>Toggle Camera Crosshair</Button>
+        <Button size="compact-xs">Toggle Camera Crosshair</Button>
         <Button
+          size="compact-xs"
           onClick={async () => {
             await calibrateWafer.callAsync();
           }}
@@ -100,20 +101,22 @@ export const WaferCalibrationControl = () => {
           Calibrate Wafer
         </Button>
       </Group>
-      <Group>
-        <Text>Reference: </Text>
+      <Group gap="xs">
+        <Text size="xs">Reference: </Text>
         <Select
+          size="xs"
           data={["origin", "end", "ref"]}
           defaultValue={reference}
           onChange={handleReferenceChange}
           allowDeselect={false}
         />
-        <Text>
+        <Text size="xs">
           at ({navigatorData?.current_position.X},{" "}
           {navigatorData?.current_position.Y},{" "}
           {navigatorData?.current_position.Z})
         </Text>
         <Button
+          size="compact-xs"
           onClick={async () => {
             await setWorldRefpoint.callAsync({ key: reference });
           }}
@@ -123,11 +126,11 @@ export const WaferCalibrationControl = () => {
           Set{" "}
         </Button>
       </Group>
-      <Group>
-        <Text>Wafer Status: </Text>
-        <Text>{wafer.status}</Text>
-        <Text>Wafer Calibration Status: </Text>
-        <Text>{wafer.calibration_status}</Text>
+      <Group gap="xs">
+        <Text size="xs">Wafer Status: </Text>
+        <Text size="xs">{wafer.status}</Text>
+        <Text size="xs">Wafer Calibration Status: </Text>
+        <Text size="xs">{wafer.calibration_status}</Text>
       </Group>
       <WaferMap
         wafer={wafer}

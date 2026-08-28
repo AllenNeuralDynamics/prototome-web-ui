@@ -97,26 +97,27 @@ export const LassoControl = () => {
   }
 
   return (
-    <Stack className="space-y-10">
+    <Stack gap="xs">
       <Group>
-        <Grid columns={4}>
+        <Grid columns={4} gap="xs">
           <Grid.Col span={1}>
-            <Text>Current State</Text>
-          </Grid.Col>
-          <Grid.Col span={3}>
-            <Text>{lassoData?.state}</Text>
+            <Text size="xs">Current State</Text>
           </Grid.Col>
           <Grid.Col span={1}>
-            <Text>Cycle Count: </Text>
-          </Grid.Col>
-          <Grid.Col span={3}>
-            <Text>{lassoData?.cycle_count}</Text>
+            <Text size="xs">{lassoData?.state}</Text>
           </Grid.Col>
           <Grid.Col span={1}>
-            <Text>Select ROI: </Text>
+            <Text size="xs">Cycle Count: </Text>
+          </Grid.Col>
+          <Grid.Col span={1}>
+            <Text size="xs">{lassoData?.cycle_count}</Text>
+          </Grid.Col>
+          <Grid.Col span={1}>
+            <Text size="xs">Select ROI: </Text>
           </Grid.Col>
           <Grid.Col span={1}>
             <Select
+              size="xs"
               defaultValue={listOfRois[0].id}
               data={listOfRois.map((roi) => ({
                 value: roi.id,
@@ -130,11 +131,12 @@ export const LassoControl = () => {
             />
           </Grid.Col>
           <Grid.Col span={2}>
-            <Button onClick={handleToggleColor}>Toggle Color</Button>
+            <Button size="compact-xs" onClick={handleToggleColor}>Toggle Color</Button>
           </Grid.Col>
 
           <Grid.Col span={1}>
             <Button
+              size="compact-xs"
               fullWidth
               onClick={() =>
                 moveToStatePosition.call({ state_name: "dropoff" })
@@ -145,6 +147,7 @@ export const LassoControl = () => {
           </Grid.Col>
           <Grid.Col span={1}>
             <Button
+              size="compact-xs"
               fullWidth
               onClick={() =>
                 moveToStatePosition.call({ state_name: "midpoint" })
@@ -155,6 +158,7 @@ export const LassoControl = () => {
           </Grid.Col>
           <Grid.Col span={1}>
             <Button
+              size="compact-xs"
               fullWidth
               onClick={() => moveToStatePosition.call({ state_name: "pickup" })}
             >
@@ -163,6 +167,7 @@ export const LassoControl = () => {
           </Grid.Col>
           <Grid.Col span={1}>
             <Button
+              size="compact-xs"
               fullWidth
               onClick={() =>
                 moveToStatePosition.call({ state_name: "post_pickup" })
@@ -174,6 +179,7 @@ export const LassoControl = () => {
 
           <Grid.Col span={1}>
             <Button
+              size="compact-xs"
               fullWidth
               onClick={() => storePosition.call({ condition: "dropoff" })}
             >
@@ -182,6 +188,7 @@ export const LassoControl = () => {
           </Grid.Col>
           <Grid.Col span={1}>
             <Button
+              size="compact-xs"
               fullWidth
               onClick={() => storePosition.call({ condition: "midpoint" })}
             >
@@ -190,6 +197,7 @@ export const LassoControl = () => {
           </Grid.Col>
           <Grid.Col span={1}>
             <Button
+              size="compact-xs"
               fullWidth
               onClick={() => storePosition.call({ condition: "pickup" })}
             >
@@ -198,6 +206,7 @@ export const LassoControl = () => {
           </Grid.Col>
           <Grid.Col span={1}>
             <Button
+              size="compact-xs"
               fullWidth
               onClick={() => storePosition.call({ condition: "post_pickup" })}
             >
@@ -208,9 +217,7 @@ export const LassoControl = () => {
       </Group>
 
       <Stack gap="xs">
-        <Group></Group>
-
-        <Table>
+        <Table fz="xs" verticalSpacing={2} horizontalSpacing="xs">
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Axis</Table.Th>
@@ -219,12 +226,12 @@ export const LassoControl = () => {
               ))}
               <Table.Th key="current">Current</Table.Th>
               <Table.Th>
-                <Button fullWidth onClick={() => homeAllAxes.call()}>
+                <Button size="compact-xs" fullWidth onClick={() => homeAllAxes.call()}>
                   Home All Axes
                 </Button>
               </Table.Th>
               <Table.Th>
-                <Button fullWidth onClick={() => stopAllAxes.call()}>
+                <Button size="compact-xs" fullWidth onClick={() => stopAllAxes.call()}>
                   Stop All Axes
                 </Button>
               </Table.Th>
@@ -244,6 +251,7 @@ export const LassoControl = () => {
                 </Table.Td>
                 <Table.Td>
                   <Button
+                    size="compact-xs"
                     fullWidth
                     onClick={() => homeAxis.call({ axis: axis })}
                   >
@@ -252,6 +260,7 @@ export const LassoControl = () => {
                 </Table.Td>
                 <Table.Td>
                   <Button
+                    size="compact-xs"
                     fullWidth
                     onClick={() => stopAxis.call({ axis: axis })}
                   >
@@ -264,39 +273,42 @@ export const LassoControl = () => {
         </Table>
       </Stack>
 
-      <Stack>
-        <Group>
-          <Text>X Speed (%)</Text>
+      <Stack gap="xs">
+        <Group gap="xs">
+          <Text size="xs">X Speed (%)</Text>
           <Slider
+            size="xs"
             defaultValue={lassoData?.axes.X.speed || 10}
             className="flex-1"
             onChange={(value) =>
               guiUpdateSpeed.call({ axis: "X", speed: value })
             }
           />
-          <Text>10.000 mm/s</Text>
+          <Text size="xs">10.000 mm/s</Text>
         </Group>
-        <Group>
-          <Text>Y Speed (%)</Text>
+        <Group gap="xs">
+          <Text size="xs">Y Speed (%)</Text>
           <Slider
+            size="xs"
             defaultValue={lassoData?.axes.Y.speed}
             className="flex-1"
             onChange={(value) =>
               guiUpdateSpeed.call({ axis: "Y", speed: value })
             }
           />
-          <Text>10.000 mm/s</Text>
+          <Text size="xs">10.000 mm/s</Text>
         </Group>
-        <Group>
-          <Text>Z Speed (%)</Text>
+        <Group gap="xs">
+          <Text size="xs">Z Speed (%)</Text>
           <Slider
+            size="xs"
             defaultValue={lassoData?.axes.Z.speed}
             className="flex-1"
             onChange={(value) =>
               guiUpdateSpeed.call({ axis: "Z", speed: value })
             }
           />
-          <Text>10.000 mm/s</Text>
+          <Text size="xs">10.000 mm/s</Text>
         </Group>
       </Stack>
     </Stack>

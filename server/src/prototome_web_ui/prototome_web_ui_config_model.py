@@ -22,12 +22,15 @@ class RouterClientKwargs(BaseModel):
 
 
 class PrototomeWebUiConfig(BaseModel):
+    FASTAPI_BASE_URL: str = Field(default="http://localhost:8000")
+    RPC_METADATA_ENDPOINT: str = Field(default="/api/rpcs")
+    STREAM_METADATA_ENDPOINT: str = Field(default="/api/streams")
     router_client_kwargs: RouterClientKwargs = Field(default_factory=RouterClientKwargs)
     port: int = Field(default=8000)
-    data_channels: list[str] = Field(default_factory=list)
+    # data_channels: list[str] = Field(default_factory=list)
     video_streams: list[str] = Field(default_factory=list)
-    gets: dict[str, str] = Field(default_factory=dict)
-    posts: dict[str, str] = Field(default_factory=dict)
+    # gets: dict[str, str] = Field(default_factory=dict)
+    # posts: dict[str, str] = Field(default_factory=dict)
     stage: Stage = Field()
     camera: Camera = Field()
     axis_variable_mapping: dict
