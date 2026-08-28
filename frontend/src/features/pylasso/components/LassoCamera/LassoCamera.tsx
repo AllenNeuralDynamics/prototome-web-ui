@@ -69,13 +69,13 @@ export const LassoCamera = () => {
   }
 
   return (
-    <Stack className="space-y-10">
-      <Group grow>
+    <Stack gap="xs">
+      {/* <Group grow>
         <Button>Start Automated Dropoff</Button>
         <Button>Minimize XY Distance</Button>
-      </Group>
+      </Group> */}
 
-      <Stack>
+      <Stack gap="xs">
         <DrawableCamera
           video={
             <video
@@ -83,9 +83,14 @@ export const LassoCamera = () => {
               muted
               autoPlay
               playsInline
-              height={400}
-              width={600}
               className="border"
+              style={{
+                display: "block",
+                width: "100%",
+                maxHeight: "35vh",
+                objectFit: "contain",
+                aspectRatio: "3 / 2",
+              }}
             />
           }
           selectedRoi={selectedRoi}
@@ -94,49 +99,36 @@ export const LassoCamera = () => {
           }}
           rois={rois}
         />
-        <Group>
-          <Button onClick={() => start_livestream.call()}>Start Camera</Button>
-          <Button onClick={() => stop_livestream.call()}>Stop Camera</Button>
+        <Group gap="xs">
+          <Button size="compact-xs" onClick={() => start_livestream.call()}>Start Camera</Button>
+          <Button size="compact-xs" onClick={() => stop_livestream.call()}>Stop Camera</Button>
         </Group>
       </Stack>
 
       <Group gap="xl" grow>
         <Stack gap="xl">
-          <Group gap="xl">
-            <Select
-              data={Object.keys(colorSettings)}
-              defaultValue={Object.keys(colorSettings)[0]}
-              allowDeselect={false}
-              className="w-50"
-            />
+          <Group gap="l">
+            <Text size="xs" className="min-w-40 text-right"> Exposure Time (μs)</Text>
             <Slider
-              defaultValue={40}
-              marks={[
-                { value: 25, label: "25%" },
-                { value: 50, label: "50%" },
-                { value: 75, label: "75%" },
-              ]}
-              className="flex-1"
-            />
-          </Group>
-          <Group gap="xl">
-            <Text className="min-w-50 text-right"> Exposure Time (μs)</Text>
-            <Slider
+              size="xs"
+              mb="sm"
               value={exposureValue}
               min={10}
               max={1000000}
               marks={[
                 { value: 10, label: "10" },
-                { value: 500000, label: "500000" },
-                { value: 1000000, label: "1000000" },
+                { value: 500000, label: "500k" },
+                { value: 1000000, label: "1M" },
               ]}
               className="flex-1"
               onChange={handleExposureChange}
             />
           </Group>
           <Group gap="xl">
-            <Text className="min-w-50 text-right"> Gain </Text>
+            <Text size="xs" className="min-w-40 text-right"> Gain </Text>
             <Slider
+              size="xs"
+              mb="sm"
               value={gainValue}
               min={0}
               max={24}
@@ -151,15 +143,16 @@ export const LassoCamera = () => {
         </Stack>
       </Group>
 
-      <Group grow>
+      <Group gap="xs" grow>
         <Button
+          size="compact-xs"
           onClick={() =>
             webcamera_set_auto_wb.call({ key: "enable_auto_white_balance", value: 1 })
           }
         >
           Enable Auto White Balance
         </Button>
-        <Button>Save Camera Settings</Button>
+        <Button size="compact-xs">Save Camera Settings</Button>
       </Group>
     </Stack>
   );

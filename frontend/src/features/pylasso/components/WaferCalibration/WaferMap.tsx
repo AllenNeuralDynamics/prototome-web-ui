@@ -37,11 +37,11 @@ export const WaferMap = ({
 
   return (
     <>
-      <div>Wafer Map ID: {wafer["media_id"]}</div>
-      <div style={{ border: "1px solid black" }}>
+      <div style={{ fontSize: 12 }}>Wafer Map ID: {wafer["media_id"]}</div>
+      <div style={{ border: "1px solid black", maxHeight: "55vh", overflow: "hidden" }}>
         <svg
           viewBox={`${viewMinX} ${viewMinY} ${viewWidth} ${viewHeight}`}
-          style={{ width: "100%", height: "auto" }}
+          style={{ width: "100%", height: "auto", maxHeight: "55vh", display: "block" }}
           preserveAspectRatio="xMidYMid meet"
         >
           <g
