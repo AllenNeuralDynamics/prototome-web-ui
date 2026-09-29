@@ -15,7 +15,7 @@ from one_liner.client import RouterClient
 
 from prototome_web_ui.api.routes import make_router
 from prototome_web_ui.api.webrtc import cancel_tasks, stop_event
-from prototome_web_ui.prototome_web_ui_config_model import PrototomeWebUiConfig
+from prototome_web_ui.config import Config 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI) -> Any:
     cancel_tasks()
 
 
-def create_app(config: PrototomeWebUiConfig) -> FastAPI:
+def create_app(config: Config) -> FastAPI:
     """Create FastAPI app with config"""
 
     app = FastAPI(lifespan=lifespan)
@@ -42,7 +42,7 @@ def create_app(config: PrototomeWebUiConfig) -> FastAPI:
         allow_headers=["*"],
     )
 
-    router_client: RouterClient = RouterClient(**config.router_client_kwargs.model_dump())
+    router_client: RouterClient = RouterClient(**config.server.router_client.model_dump())
     app.include_router(make_router(config, router_client))
 
     return app
@@ -60,7 +60,7 @@ def main():
     logging.getLogger().setLevel(args.log_level.upper())
 
     with open(args.config) as f:
-        config: PrototomeWebUiConfig = PrototomeWebUiConfig(**json.load(f))
+        config: Config = Config(**json.load(f))
 
     app = create_app(config)
 
@@ -73,7 +73,7 @@ def main():
         async def serve_frontend(full_path: str) -> FileResponse:
             return FileResponse(ui_dir / "index.html")
 
-    uvicorn.run(app, host="0.0.0.0", port=config.port, log_level=args.log_level.lower())
+    uvicorn.run(app, host="0.0.0.0", port=config.server.port, log_level=args.log_level.lower())
 
 
 if __name__ == "__main__":

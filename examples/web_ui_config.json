@@ -1,16 +1,9 @@
 {
-  "FASTAPI_BASE_URL": "http://localhost:8000",
-  "RPC_METADATA_ENDPOINT": "/api/rpcs",
-  "STREAM_METADATA_ENDPOINT": "/api/streams",
-  "camera": {
-    "id": "window1_ximea_camera"
-  },
   "stage": {
     "axes": ["Y", "Z", "Piezo"],
     "unit": "mm", 
     "id": "prototome_stage"
   },
-  "video_streams": ["camera_prototome", "camera_lasso"],
   "axis_variable_mapping":{
     "pt_stage_fine": {
       "axis1": ["retract_piezo_distance"]
