@@ -14,7 +14,9 @@ from fastapi.staticfiles import StaticFiles
 from one_liner.client import RouterClient
 
 from prototome_web_ui.api.routes import make_router
+from prototome_web_ui.api.session import ensure_session_cookie
 from prototome_web_ui.api.webrtc import cancel_tasks, stop_event
+from prototome_web_ui.api.write_lock import EXAMPLE_WRITE_TOKEN, WriteLock
 from prototome_web_ui.config import Config 
 
 logger = logging.getLogger(__name__)
@@ -41,8 +43,12 @@ def create_app(config: Config) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.middleware("http")(ensure_session_cookie)
 
     router_client: RouterClient = RouterClient(**config.server.router_client.model_dump())
+    # TODO: get write_token from RouterServer and pass it in through here
+    # TODO: allow users to define TTL and idle timeout in the config
+    app.state.write_lock = WriteLock(token=EXAMPLE_WRITE_TOKEN)
     app.include_router(make_router(config, router_client))
 
     return app
