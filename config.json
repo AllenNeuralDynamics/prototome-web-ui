@@ -1,0 +1,110 @@
+{
+  "title": "prototome",
+  "server": {
+    "url": "http://127.0.0.1",
+    "port": 8000,
+    "rpcs_endpoint": "/api/rpcs",
+    "streams_endpoint": "/api/streams",
+    "offer_endpoint": "/api/offer"
+  },
+  "widgets": {
+    "lassoCamera1": {
+      "type": "LassoCameraWidget",
+      "bindings": {
+        "cameraLasso": "camera_lasso",
+        "startLivestream": "camera_lasso_start_livestream",
+        "stopLivestream": "camera_lasso_stop_livestream",
+        "setAutoWb": "camera_lasso_set_auto_wb",
+        "getExposure": "camera_lasso_get_exposure",
+        "getGain": "camera_lasso_get_gain",
+        "setExposure": "camera_lasso_set_exposure",
+        "setGain": "camera_lasso_set_gain"
+      }
+    },
+    "lassoControl1": {
+      "type": "LassoControlWidget",
+      "bindings": {
+        "pylassoData": "pylasso_data",
+        "moveToStatePosition": "move_to_state_position",
+        "storePosition": "store_position",
+        "homeAllAxes": "lasso_home_all_axes",
+        "stopAllAxes": "lasso_stop_all_axes",
+        "homeAxis": "lasso_home_axis",
+        "stopAxis": "lasso_stop_axis",
+        "guiUpdateSpeed": "gui_update_speed"
+      }
+    },
+    "waferCalibration1": {
+      "type": "WaferCalibrationWidget",
+      "bindings": {
+        "waferData": "pylasso_wafer_data",
+        "navigatorData": "pylasso_navigator_data",
+        "calibrate": "calibrate",
+        "setWorldRefpoint": "set_word_refpoint",
+        "updateApertureStatus": "update_aperture_status",
+        "removeAperture": "remove_aperture"
+      }
+    },
+    "stageControl1": {
+      "type": "StageControlWidget",
+      "bindings": {
+        "stagePositions": "prototome_stage_positions",
+        "getAxisVelocities": "get_axis_velocities",
+        "getAxisTravelRanges": "get_axis_travel_ranges",
+        "getAxisMaxVelocity": "get_axis_max_velocity",
+        "setAxisPosition": "set_axis_position",
+        "setAxisMaxVelocity": "set_axis_max_velocity",
+        "homeAxis": "home_axis",
+        "stopAxis": "stop_axis"
+      }
+    },
+    "microtomeControl1": {
+      "type": "MicrotomeControlWidget",
+      "bindings": {
+        "getPrototomeConfig": "get_prototome_config",
+        "setPrototomeConfig": "set_prototome_config",
+        "prototomeState": "prototome_state",
+        "startCutting": "start_cutting",
+        "cutOne": "cut_one",
+        "stopCuttingSafely": "stop_cutting_safely",
+        "stopCuttingNow": "stop_cutting_now",
+        "cameraPrototome": "camera_prototome",
+        "startLivestream": "camera_prototome_start_livestream",
+        "stopLivestream": "camera_prototome_stop_livestream",
+        "getExposure": "camera_prototome_get_exposure",
+        "getExposureMax": "camera_prototome_get_exposure_max",
+        "getExposureMin": "camera_prototome_get_exposure_min",
+        "getExposureStep": "camera_prototome_get_exposure_step",
+        "getGain": "camera_prototome_get_gain",
+        "getGainMax": "camera_prototome_get_gain_max",
+        "getGainMin": "camera_prototome_get_gain_min",
+        "getGainStep": "camera_prototome_get_gain_step",
+        "setExposure": "camera_prototome_set_exposure",
+        "setGain": "camera_prototome_set_gain",
+        "stagePositions": "prototome_stage_positions",
+        "getAxisTravelRanges": "get_axis_travel_ranges"
+      }
+    }
+  },
+  "ui": {
+    "stage": {
+      "axes": ["Y", "Z", "Piezo"],
+      "unit": "mm",
+      "id": "prototome_stage"
+    },
+    "axis_variable_mapping": {
+      "pt_stage_fine": {
+        "axis1": ["retract_piezo_distance"]
+      },
+      "pt_stage_coarse": {
+        "axis2": [
+          "bottom_position_mm",
+          "ep_cut_bottom",
+          "ep_cut_top",
+          "top_position_mm"
+        ],
+        "axis1": ["retract_distance"]
+      }
+    }
+  }
+}

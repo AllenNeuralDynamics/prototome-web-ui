@@ -4,7 +4,7 @@ type NumericConfigKeys<T> = {
   [K in keyof T]: T[K] extends number ? K : never;
 }[keyof T];
 
-type PrototomeNumericKey = NumericConfigKeys<PrototomeConfig>;
+export type PrototomeNumericKey = NumericConfigKeys<PrototomeConfig>;
 
 type AxisVariablesMapping = Record<
   string, // device name (pt_stage_fine, pt_stage_coarse, etc.)

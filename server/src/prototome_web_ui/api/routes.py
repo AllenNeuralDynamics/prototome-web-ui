@@ -5,12 +5,12 @@ import jsonref
 from fastapi import APIRouter, HTTPException, Request
 from one_liner.client import RouterClient
 
-from prototome_web_ui.prototome_web_ui_config_model import PrototomeWebUiConfig
+from prototome_web_ui.config import Config 
 from prototome_web_ui.route_metadata_model import RPCModel, StreamModel
 from .webrtc import handle_offer
 
 
-def make_router(config: PrototomeWebUiConfig, client: RouterClient) -> APIRouter:
+def make_router(config: Config, client: RouterClient) -> APIRouter:
     """
     Construct endpoints for RPCs, streams, webRTC offer, and metadata endpoints.
     """
@@ -122,9 +122,9 @@ def make_router(config: PrototomeWebUiConfig, client: RouterClient) -> APIRouter
     async def offer(request: Request) -> dict[str, str]:
         return await handle_offer(client, request)
 
-    @router.get("/ui_config")
-    async def ui_config() -> dict[str, Any]:
-        """Return the UI configuration"""
+    @router.get("/config", tags=["Config"])
+    def get_config() -> dict[str, Any]:
+        """Get UI config."""
         return config.model_dump()
 
     @router.get("/streams")

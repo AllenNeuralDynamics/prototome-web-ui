@@ -1,21 +1,20 @@
-import { StageControl } from "@/features/stage/index.js";
 import { Stack, Group, Button } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { api } from "../../lib/client.tsx";
-import { useConfigStore } from "@/stores/configStore.ts";
-import { usePrototomeConfigStore } from "@/stores/prototomeConfigStore.tsx";
+import { StageControlWidget } from "@/widgets/index.ts";
+import { useConfig } from "@/hooks/use-config.ts";
 
 export const StagesPage = () => {
-  const config = useConfigStore((state) => state.config);
-  const prototomeConfig = usePrototomeConfigStore((state) => state.config);
+  const config = useConfig()
 
-  if (!config || !prototomeConfig) return;
+  if (!config) return;
 
   return (
     <Stack align="center">
-      <StageControl
-        axes={config.stage.axes}
-        unit={config.stage.unit}
+      <StageControlWidget
+        instanceId="stageControl1"
+        axes={config.ui.stage.axes}
+        unit={config.ui.stage.unit}
       />
       <Group
         style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}
