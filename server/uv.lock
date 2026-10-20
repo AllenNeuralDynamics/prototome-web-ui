@@ -542,12 +542,13 @@ wheels = [
 
 [[package]]
 name = "one-liner"
-version = "0.1.1.dev9"
-source = { git = "https://github.com/AllenNeuralDynamics/one-liner.git?tag=v0.1.1.dev9#30dd61245cef1b14a2fe9396f0d62b84a6f2c5e6" }
+version = "0.1.1.dev12"
+source = { git = "https://github.com/AllenNeuralDynamics/one-liner.git?tag=v0.1.1.dev12#915fa10175421cd43d33d467b0551db54389fabd" }
 dependencies = [
     { name = "orjson" },
     { name = "pydantic" },
     { name = "pyzmq" },
+    { name = "tenacity" },
 ]
 
 [[package]]
@@ -632,7 +633,7 @@ wheels = [
 
 [[package]]
 name = "prototome-web-ui"
-version = "0.2.2.dev3"
+version = "0.2.2.dev4"
 source = { editable = "." }
 dependencies = [
     { name = "aiortc" },
@@ -657,7 +658,7 @@ requires-dist = [
     { name = "aiortc", specifier = ">=1.13.0" },
     { name = "fastapi", specifier = ">=0.128.0" },
     { name = "jsonref", specifier = ">=1.1.0" },
-    { name = "one-liner", git = "https://github.com/AllenNeuralDynamics/one-liner.git?tag=v0.1.1.dev9" },
+    { name = "one-liner", git = "https://github.com/AllenNeuralDynamics/one-liner.git?tag=v0.1.1.dev12" },
     { name = "opencv-python", specifier = ">=4.13.0.92" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "tornado", specifier = ">=6.5.4" },
@@ -896,6 +897,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c5/bf/616a066c2760f6c2b1ae3437cc28149734d069fbb46511712beae118a68c/starlette-1.2.0.tar.gz", hash = "sha256:3c5a6b23fff42492914e93890bb80cbfea72dbf37de268eec06185d62a4ca553", size = 2668923, upload-time = "2026-05-28T11:42:50.568Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9f/85/492183764d5d01d4514be3730fdb8e228a80605783099551c51627578b5d/starlette-1.2.0-py3-none-any.whl", hash = "sha256:36e0c76ac59157e75dc4b3bdeafba97fb04eaf1878045f15dbef666a6f092ed7", size = 73213, upload-time = "2026-05-28T11:42:48.801Z" },
+]
+
+[[package]]
+name = "tenacity"
+version = "9.2.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/82/9e/497c1c8ebe5a5b5d1d4a7511aea22c0bb1a97e3170d98abdef0e1b34265a/tenacity-9.2.1.tar.gz", hash = "sha256:a606b5c808d0cded4a359d5b9932d867ff2a6a6b64d37350260fd01bbdf83839", size = 58261, upload-time = "2026-10-07T12:13:01.633Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d6/26/1ff2b0721ac66a3ec5b1402b333110b352ab0a8724052ac279a7b82d40c4/tenacity-9.2.1-py3-none-any.whl", hash = "sha256:9e56f17539296baab7beabb08b92f6ee3d7be92d8be72d763360677c2ad6580e", size = 32310, upload-time = "2026-10-07T12:13:00.102Z" },
 ]
 
 [[package]]

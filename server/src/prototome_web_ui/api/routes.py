@@ -73,11 +73,8 @@ def make_router(config: Config, client: RouterClient) -> APIRouter:
             methods=["POST"],
             description=description,
             openapi_extra=openapi_extra,
-            # TODO: fix this logic
-            # right now this is blocking all RPC calls if the browser doesn't have write access
-            # implement the new one-liner and use access_type to determine whether its a GET or POST endpoint
-            # afterwards, all POST endpoints should depend on require_write
-            dependencies=[Depends(require_write)] + ([Depends(record_activity)] if access_type != "get" else []),
+            # Unannotated RPCs (access_type None) are treated as writes to fail closed
+            dependencies=[] if access_type == "get" else [Depends(require_write), Depends(record_activity)],
         )
 
     stream_models = {}
@@ -155,15 +152,17 @@ def make_router(config: Config, client: RouterClient) -> APIRouter:
     async def read_write_token_status(
         session_id: str = Depends(get_session_id), write_lock: WriteLock = Depends(get_write_lock)
     ) -> dict[str, bool]:
-        if write_lock.is_holder(session_id):
+        """Check if current session has the write token"""
+        if write_lock.has_lease(session_id):
             return {"has_token": True}
         return {"has_token": False}
 
     @router.post("/get_write_token")
     async def get_write_token(
-        session_id: str = Depends(get_session_id), write_lock: WriteLock = Depends(get_write_lock)
+        session_id: str = Depends(get_session_id), write_lock: WriteLock = Depends(get_write_lock), force: bool = False
     ) -> dict[str, bool]:
-        if write_lock.acquire(session_id):
+        """Attempt to acquire the write token for the current session"""
+        if write_lock.get_lease(session_id, force):
             return {"has_token": True}
         return {"has_token": False}
 
@@ -171,6 +170,14 @@ def make_router(config: Config, client: RouterClient) -> APIRouter:
     async def renew_write_token(
         session_id: str = Depends(get_session_id), write_lock: WriteLock = Depends(get_write_lock)
     ) -> dict[str, bool]:
-        return {"has_token": write_lock.renew(session_id)}
+        """Attempt to renew the write lock for the current session"""
+        return {"has_token": write_lock.renew_lease_ttl(session_id)}
+
+    @router.post("/release_write_token")
+    async def release_write_token(
+        session_id: str = Depends(get_session_id), write_lock: WriteLock = Depends(get_write_lock)
+    ) -> dict[str, bool]:
+        """Release the write lock if held by the current session (sent via beacon on tab close)"""
+        return {"released": write_lock.release_lease(session_id)}
 
     return router

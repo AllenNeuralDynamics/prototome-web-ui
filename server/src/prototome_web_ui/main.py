@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import json
 import logging
 from contextlib import asynccontextmanager
@@ -15,20 +16,35 @@ from one_liner.client import RouterClient
 
 from prototome_web_ui.api.routes import make_router
 from prototome_web_ui.api.session import ensure_session_cookie
-from prototome_web_ui.api.webrtc import cancel_tasks, stop_event
-from prototome_web_ui.api.write_lock import EXAMPLE_WRITE_TOKEN, WriteLock
+from prototome_web_ui.api.webrtc import cancel_tasks, close_peer_connections, stop_event
+from prototome_web_ui.api.write_lock import WriteLock
 from prototome_web_ui.config import Config 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
+async def _expire_lease_and_token(write_lock: WriteLock, interval_s: float = 5.0) -> None:
+    """Periodically check to see if lease and token should be expired.""" 
+    while True:
+        try:
+            expired = write_lock.check_and_expire_lease_and_token()
+            if expired:
+                logger.info("Expired write lease and token")
+        except Exception:
+            logger.exception("Failed to release expired write lease")
+        await asyncio.sleep(interval_s)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     """Lifespan context: clean up tasks on shutdown"""
+    sweeper = asyncio.create_task(_expire_lease_and_token(app.state.write_lock))
     yield
+    sweeper.cancel()
     stop_event.set()
     cancel_tasks()
+    await close_peer_connections()
 
 
 def create_app(config: Config) -> FastAPI:
@@ -46,9 +62,9 @@ def create_app(config: Config) -> FastAPI:
     app.middleware("http")(ensure_session_cookie)
 
     router_client: RouterClient = RouterClient(**config.server.router_client.model_dump())
-    # TODO: get write_token from RouterServer and pass it in through here
+    
     # TODO: allow users to define TTL and idle timeout in the config
-    app.state.write_lock = WriteLock(token=EXAMPLE_WRITE_TOKEN)
+    app.state.write_lock = WriteLock(client=router_client)
     app.include_router(make_router(config, router_client))
 
     return app

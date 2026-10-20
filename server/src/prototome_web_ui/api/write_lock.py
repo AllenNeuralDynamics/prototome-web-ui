@@ -2,10 +2,9 @@ import time
 from dataclasses import dataclass
 
 from fastapi import Depends, HTTPException, Request, status
+from one_liner.client import RouterClient
 
 from .session import get_session_id
-
-EXAMPLE_WRITE_TOKEN = "example-write-token"
 
 """
 LOCK NOTES: 
@@ -32,71 +31,142 @@ class _Lease:
 
 
 class WriteLock:
-    def __init__(self, token: str, ttl_s: float = 120.0, idle_timeout_s: float = 600.0):
-        self.token = token
+    def __init__(self, client: RouterClient, ttl_s: float = 120.0, idle_timeout_s: float = 600.0):
+        self.client = client
         self.ttl_s = ttl_s
         self.idle_timeout_s = idle_timeout_s
         self._lease: _Lease | None = None
 
-    def _active(self) -> _Lease | None:
-        """Return the active lease if it exists and has not expired, otherwise None."""
+    def get_lease(self, session_id: str, force: bool = False) -> bool:
+        """
+        Get the lease for the given session, optionally forcing acquisition.
 
-        now = time.monotonic()
+        Parameters:
+            session_id: The ID of the session attempting to acquire the lease.
+            force: Whether to force acquisition of the lease, even if it is held by another session.
 
-        # Expire the lease if it has passed its TTL or idle timeout.
-        #   TTL expires when browser stops sending heartbeats (renew calls)
-        #   Idle timeout expires when the holder has not performed any activity (touch calls)
-        if self._lease is not None and (
-            self._lease.expires_at <= now or now - self._lease.last_activity > self.idle_timeout_s
-        ):
-            self._lease = None
-        return self._lease
+        Returns:
+            True if the lease was successfully acquired for the session, False otherwise.
+        """
+        # Check token status - attempt to grab write token if missing or invalid
+        if not self.client.has_write_token() or not self.client.has_write_access():
+            try:
+                # timeout_s=None would retry forever in a tight loop, blocking the event loop
+                self.client.get_write_token(force=force, timeout_s=0)
+            except PermissionError:
+                return False
 
-    def is_locked(self) -> bool:
-        """Check if the write lock is currently held by any session."""
-        return self._active() is not None
-
-    def is_holder(self, session_id: str) -> bool:
-        """Check if the current session holds the lease."""
-        lease = self._active()
-        return lease is not None and lease.session_id == session_id
-
-    def held_by_other(self, session_id: str) -> bool:
-        """Check if the lease is held by another session."""
-        lease = self._active()
-        return lease is not None and lease.session_id != session_id
-
-    def acquire(self, session_id: str, force: bool = False) -> bool:
-        """Claim the lease (counts as activity). `force` takes it from another holder."""
-        if self.held_by_other(session_id) and not force:
+        # Lease taken by another session - don't want to force grab
+        if self._is_lease_taken(session_id) and not force:
             return False
+
+        # Create new lease for this session
         now = time.monotonic()
         self._lease = _Lease(session_id, now + self.ttl_s, now)
         return True
 
-    def renew(self, session_id: str) -> bool:
-        """Extend the lease WITHOUT counting as activity (effects TTL)."""
-        lease = self._active()
-        if lease is None or lease.session_id != session_id:
+    def has_lease(self, session_id: str) -> bool:
+        """
+        Check whether the given session currently holds the lease.
+
+        Parameters:
+            session_id: The ID of the session to check for lease ownership.
+
+        Returns:
+            True if the session currently holds the lease, False otherwise.
+        """
+        # Get current lease - check if it is held by the given session
+        return self._lease is not None and self._lease.session_id == session_id
+
+    def renew_lease_ttl(self, session_id: str) -> bool:
+        """
+        Renew the TTL of the lease for the given session, without counting as activity.
+
+        Parameters:
+            session_id: The ID of the session attempting to renew the lease.
+
+        Returns:
+            True if the lease was successfully renewed for the session, False otherwise.
+        """
+        # Check if current lease is held by this session
+        if self._lease is None or self._lease.session_id != session_id:
             return False
-        lease.expires_at = time.monotonic() + self.ttl_s
+
+        # Extend the lease TTL for this session
+        self._lease.expires_at = time.monotonic() + self.ttl_s
         return True
 
-    def touch(self, session_id: str) -> None:
-        """Record activity for the current session (effects idle timeout)."""
-        lease = self._active()
-        if lease is not None and lease.session_id == session_id:
-            lease.last_activity = time.monotonic()
+    def renew_lease_activity(self, session_id: str) -> None:
+        """
+        Record activity for the given session, updating the last activity timestamp of the lease.
 
-    def release(self, session_id: str) -> None:
-        """Release the lease if the current session holds it."""
-        if self.is_holder(session_id):
+        Parameters:
+            session_id: The ID of the session performing activity.
+        """
+        # Update last activity timestamp if the lease is held by this session
+        if self._lease is not None and self._lease.session_id == session_id:
+            self._lease.last_activity = time.monotonic()
+
+    def release_lease(self, session_id: str) -> bool:
+        """
+        Release the lease and write token if held by the given session.
+
+        Parameters:
+            session_id: The ID of the session releasing the lease.
+
+        Returns:
+            True if the lease was released, False if the session did not hold it.
+        """
+        if self._lease is None or self._lease.session_id != session_id:
+            return False
+
+        self._lease = None
+        if self.client.has_write_token():
+            self.client.release_write_token()
+        return True
+
+    def check_and_expire_lease_and_token(self) -> bool:
+        """
+        Check and expire and release lease and write token based on:
+        - Whether the write token is held
+        - Whether write access is available
+        - Whether the lease TTL has expired
+        - Whether the lease idle timeout has been exceeded
+
+        Returns:
+            True if the lease or token was expired and released, False otherwise.
+        """
+        now = time.monotonic()
+
+        # If no write token - release lease
+        if not self.client.has_write_token():
             self._lease = None
+            return True
+        # If write token, but no write access - release lease AND write token
+        elif not self.client.has_write_access():
+            # Release lease and give up write token, no longer has write access
+            self._lease = None
+            self.client.release_write_token()
+            return True
+
+        # If TTL expired or idle timeout exceeded, release lease and write token
+        if self._lease is not None and (
+            self._lease.expires_at <= now  # Lease TTL expired
+            or now - self._lease.last_activity > self.idle_timeout_s  # Idle timeout expired
+        ):
+            self._lease = None
+            self.client.release_write_token()
+            return True
+
+        return False
+
+    def _is_lease_taken(self, session_id: str):
+        return self._lease is not None and self._lease.session_id != session_id
 
 
 ################################################################################
 #
-#   Write Lock API
+#   Write Lock API for FastAPI
 #
 ################################################################################
 
@@ -110,14 +180,14 @@ async def record_activity(
     session_id: str = Depends(get_session_id),
     write_lock: WriteLock = Depends(get_write_lock),
 ) -> None:
-    """Record activity for the current session by touching the write lock."""
-    write_lock.touch(session_id)
+    """Record activity for the current session by touching the lease (extends session activity time)."""
+    write_lock.renew_lease_activity(session_id)
 
 
 async def require_write(
     session_id: str = Depends(get_session_id),
     write_lock: WriteLock = Depends(get_write_lock),
 ) -> None:
-    """Require the caller to hold the write lock."""
-    if not write_lock.is_holder(session_id):
+    """Require the caller to hold the lease (write lock)."""
+    if not write_lock.has_lease(session_id):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Write token required")

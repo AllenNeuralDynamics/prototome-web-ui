@@ -4,6 +4,7 @@ import { z } from "zod";
 // TODO: set these endpoints in the config
 const ACQUIRE_URL = "/api/get_write_token";
 const RENEW_URL = "/api/renew_write_token";
+export const RELEASE_URL = "/api/release_write_token";
 
 // TODO: set in config. Server lease TTL is 120s; renew well before it lapses.
 const RENEW_INTERVAL_MS = 30_000;
