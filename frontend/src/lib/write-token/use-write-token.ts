@@ -1,4 +1,8 @@
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { z } from "zod";
 
 // TODO: set these endpoints in the config
@@ -44,3 +48,12 @@ export const useWriteToken = () => {
   const { data } = useSuspenseQuery(writeTokenQueryOptions);
   return { hasToken: data.has_token };
 };
+
+// Take the write token even if another session holds it, then reload into the write layout
+export const useForceWriteToken = () =>
+  useMutation({
+    mutationFn: () => postWriteToken(`${ACQUIRE_URL}?force=true`),
+    onSuccess: (data) => {
+      if (data.has_token) window.location.reload();
+    },
+  });

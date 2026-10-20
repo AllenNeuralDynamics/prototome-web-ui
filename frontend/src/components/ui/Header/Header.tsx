@@ -1,9 +1,18 @@
-import { Button, Container, Group } from "@mantine/core";
+import { Badge, Button, Container, Group, Modal, Text } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { ColorSchemeToggle } from "../ColorSchemeToggle";
 import { Link, useLocation } from "react-router-dom";
+import {
+  useForceWriteToken,
+  useWriteToken,
+} from "@/lib/write-token/use-write-token";
 
 export const Header = () => {
   const location = useLocation();
+  const { hasToken } = useWriteToken();
+  const forceToken = useForceWriteToken();
+  const [confirmOpen, { open: openConfirm, close: closeConfirm }] =
+    useDisclosure(false);
 
   return (
     <Container fluid className="flex justify-between shadow-xs p-2 mb-[1rem]">
@@ -33,7 +42,49 @@ export const Header = () => {
           PyLasso
         </Button>
       </Group>
-      <ColorSchemeToggle />
+      <Group>
+        {hasToken ? (
+          <Badge color="green">Write access</Badge>
+        ) : (
+          <>
+            <Badge color="gray">Read-only</Badge>
+            <Button
+              color="red"
+              variant="light"
+              loading={forceToken.isPending}
+              onClick={openConfirm}
+            >
+              Take control
+            </Button>
+          </>
+        )}
+        <ColorSchemeToggle />
+      </Group>
+      <Modal
+        opened={confirmOpen}
+        onClose={closeConfirm}
+        title="Take control?"
+        centered
+      >
+        <Text size="sm">
+          Another session currently has write access. Taking control will
+          revoke it and they will be switched to read-only.
+        </Text>
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={closeConfirm}>
+            Cancel
+          </Button>
+          <Button
+            color="red"
+            onClick={() => {
+              closeConfirm();
+              forceToken.mutate();
+            }}
+          >
+            Take control
+          </Button>
+        </Group>
+      </Modal>
     </Container>
   );
 };
