@@ -2,6 +2,7 @@ import {
   queryOptions,
   useMutation,
   useSuspenseQuery,
+  type QueryClient,
 } from "@tanstack/react-query";
 import { z } from "zod";
 
@@ -48,6 +49,18 @@ export const useWriteToken = () => {
   const { data } = useSuspenseQuery(writeTokenQueryOptions);
   return { hasToken: data.has_token };
 };
+
+// Renew immediately on a 403; holders only, since a viewer's refetch would try to acquire
+export function recheckWriteToken(queryClient: QueryClient) {
+  const status = queryClient.getQueryData<WriteTokenStatus>(
+    writeTokenQueryOptions.queryKey,
+  );
+  if (status?.has_token) {
+    void queryClient.invalidateQueries({
+      queryKey: writeTokenQueryOptions.queryKey,
+    });
+  }
+}
 
 // Take the write token even if another session holds it, then reload into the write layout
 export const useForceWriteToken = () =>

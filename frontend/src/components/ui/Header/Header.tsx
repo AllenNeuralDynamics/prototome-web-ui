@@ -2,14 +2,12 @@ import { Badge, Button, Container, Group, Modal, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { ColorSchemeToggle } from "../ColorSchemeToggle";
 import { Link, useLocation } from "react-router-dom";
-import {
-  useForceWriteToken,
-  useWriteToken,
-} from "@/lib/write-token/use-write-token";
+import { useForceWriteToken } from "@/lib/write-token/use-write-token";
+import { useIsReadOnly } from "@/lib/write-token/use-page-mode";
 
 export const Header = () => {
   const location = useLocation();
-  const { hasToken } = useWriteToken();
+  const readOnly = useIsReadOnly();
   const forceToken = useForceWriteToken();
   const [confirmOpen, { open: openConfirm, close: closeConfirm }] =
     useDisclosure(false);
@@ -43,7 +41,7 @@ export const Header = () => {
         </Button>
       </Group>
       <Group>
-        {hasToken ? (
+        {!readOnly ? (
           <Badge color="green">Write access</Badge>
         ) : (
           <>
@@ -67,8 +65,8 @@ export const Header = () => {
         centered
       >
         <Text size="sm">
-          Another session currently has write access. Taking control will
-          revoke it and they will be switched to read-only.
+          Another session currently has write access. Taking control will revoke
+          it and they will be switched to read-only.
         </Text>
         <Group justify="flex-end" mt="md">
           <Button variant="default" onClick={closeConfirm}>
