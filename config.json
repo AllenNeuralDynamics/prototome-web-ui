@@ -12,7 +12,8 @@
       "lease_renewal_interval": 30,
       "acquire_url": "/api/get_write_token",
       "renew_url": "/api/renew_write_token",
-      "release_url": "/api/release_write_token"
+      "release_url": "/api/release_write_token",
+      "owner_url": "/api/get_write_token_owner"
     }
   },
   "widgets": {

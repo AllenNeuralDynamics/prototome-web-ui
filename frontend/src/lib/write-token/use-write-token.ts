@@ -1,6 +1,7 @@
 import {
   queryOptions,
   useMutation,
+  useQuery,
   useSuspenseQuery,
   type QueryClient,
 } from "@tanstack/react-query";
@@ -51,6 +52,32 @@ export const useTokenSettings = (): TokenSettings =>
 export const useWriteToken = () => {
   const { data } = useSuspenseQuery(writeTokenQueryOptions(useTokenSettings()));
   return { hasToken: data.has_token };
+};
+
+const WriteTokenOwnerSchema = z.object({
+  // Session fingerprint when held via this server, external client id otherwise
+  token_owner: z.string().nullable(),
+  // True when this web server (not necessarily this browser) holds the token
+  owned_by_this_client: z.boolean(),
+});
+export type WriteTokenOwner = z.infer<typeof WriteTokenOwnerSchema>;
+
+async function getWriteTokenOwner(url: string): Promise<WriteTokenOwner> {
+  const res = await fetch(url);
+  if (!res.ok)
+    throw new Error(
+      `Write token owner request failed: ${res.status} ${await res.text()}`,
+    );
+  return WriteTokenOwnerSchema.parse(await res.json());
+}
+
+export const useWriteTokenOwner = () => {
+  const { owner_url, lease_renewal_interval } = useTokenSettings();
+  return useQuery({
+    queryKey: ["write-token-owner"],
+    queryFn: () => getWriteTokenOwner(owner_url),
+    refetchInterval: lease_renewal_interval * 1000,
+  });
 };
 
 // Renew immediately on a 403; holders only, since a viewer's refetch would try to acquire

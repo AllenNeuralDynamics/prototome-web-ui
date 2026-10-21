@@ -17,6 +17,7 @@ const TokenSettingsSchema = z.object({
   acquire_url: z.string(),
   renew_url: z.string(),
   release_url: z.string(),
+  owner_url: z.string(),
 });
 
 const ServerSchema = z.object({

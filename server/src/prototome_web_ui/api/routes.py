@@ -74,7 +74,7 @@ def make_router(config: Config, client: RouterClient) -> APIRouter:
             description=description,
             openapi_extra=openapi_extra,
             # Unannotated RPCs (access_type None) are treated as writes to fail closed
-            dependencies=[] if access_type == "get" else [Depends(require_write), Depends(record_activity)],
+            dependencies=[Depends(require_write), Depends(record_activity)] if access_type != "get" else [],
         )
 
     stream_models = {}
@@ -156,6 +156,12 @@ def make_router(config: Config, client: RouterClient) -> APIRouter:
         if write_lock.has_lease(session_id):
             return {"has_token": True}
         return {"has_token": False}
+
+    @router.get("/get_write_token_owner")
+    async def get_write_token_owner(write_lock: WriteLock = Depends(get_write_lock)) -> dict[str, Any]:
+        """Get the owner of the write token"""
+        owner = write_lock.get_owner()
+        return {"token_owner": owner.owner_id, "owned_by_this_client": owner.owned_by_this_client}
 
     @router.post("/get_write_token")
     async def get_write_token(

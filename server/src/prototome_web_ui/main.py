@@ -61,7 +61,7 @@ def create_app(config: Config) -> FastAPI:
     )
     app.middleware("http")(ensure_session_cookie)
 
-    router_client: RouterClient = RouterClient(**config.server.router_client.model_dump())
+    router_client: RouterClient = RouterClient(**config.server.router_client.model_dump(), name="prototome_web_ui")
 
     app.state.write_lock = WriteLock(
         client=router_client,

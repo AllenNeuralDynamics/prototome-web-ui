@@ -1,3 +1,4 @@
+import hashlib
 import time
 from dataclasses import dataclass
 
@@ -28,6 +29,12 @@ class _Lease:
     session_id: str
     expires_at: float
     last_activity: float
+
+
+@dataclass
+class _TokenOwner:
+    owner_id: str | None
+    owned_by_this_client: bool
 
 
 class WriteLock:
@@ -63,6 +70,7 @@ class WriteLock:
         # Create new lease for this session
         now = time.monotonic()
         self._lease = _Lease(session_id, now + self.ttl_s, now)
+
         return True
 
     def has_lease(self, session_id: str) -> bool:
@@ -77,6 +85,15 @@ class WriteLock:
         """
         # Get current lease - check if it is held by the given session
         return self._lease is not None and self._lease.session_id == session_id
+    
+    def has_token(self) -> bool:
+        """
+        Check whether the client currently has a write token.
+
+        Returns:
+            True if the client has a write token, False otherwise.
+        """
+        return self.client.has_write_token() and self.client.has_write_access()
 
     def renew_lease_ttl(self, session_id: str) -> bool:
         """
@@ -124,6 +141,15 @@ class WriteLock:
         if self.client.has_write_token():
             self.client.release_write_token()
         return True
+
+    def get_owner(self) -> _TokenOwner:
+        if not self.client.has_write_token() or not self.client.has_write_access():
+            return _TokenOwner(owner_id=self.client.get_write_token_owner(), owned_by_this_client=False)
+        if self._lease is None:
+            return _TokenOwner(owner_id="", owned_by_this_client=True)
+        # Session ids are auth cookies; expose only a one-way fingerprint.
+        fingerprint = hashlib.sha256(self._lease.session_id.encode()).hexdigest()[:8]
+        return _TokenOwner(owner_id=fingerprint, owned_by_this_client=True)
 
     def check_and_expire_lease_and_token(self) -> bool:
         """
@@ -189,5 +215,5 @@ async def require_write(
     write_lock: WriteLock = Depends(get_write_lock),
 ) -> None:
     """Require the caller to hold the lease (write lock)."""
-    if not write_lock.has_lease(session_id):
+    if not write_lock.has_token() or not write_lock.has_lease(session_id):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Write token required")

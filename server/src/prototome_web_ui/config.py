@@ -30,6 +30,7 @@ class TokenSettings(BaseModel):
     acquire_url: str = Field(default="/api/get_write_token")
     renew_url: str = Field(default="/api/renew_write_token")
     release_url: str = Field(default="/api/release_write_token")
+    owner_url: str = Field(default="/api/get_write_token_owner")
 
 
 class ServerConfig(BaseModel):
