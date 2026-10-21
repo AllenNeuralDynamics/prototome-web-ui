@@ -12,12 +12,20 @@ const CONFIG_URL = '/api/config';
 //  Schemas
 // --------------------------------------------------------------------------------
 
+const TokenSettingsSchema = z.object({
+  lease_renewal_interval: z.number().positive(),
+  acquire_url: z.string(),
+  renew_url: z.string(),
+  release_url: z.string(),
+});
+
 const ServerSchema = z.object({
   url: z.string(),
   port: z.number(),
   rpcs_endpoint: z.string(),
   streams_endpoint: z.string(),
   offer_endpoint: z.string(),
+  token_settings: TokenSettingsSchema,
 });
 
 const StageSchema = z.object({

@@ -21,6 +21,16 @@ class RouterClientSettings(BaseModel):
     rpc_port: int = Field(default=5555)
     broadcast_port: int = Field(default=5556)
 
+class TokenSettings(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    lease_time_to_live: int = Field(default=120)
+    lease_activity_timeout: int = Field(default=600)
+    lease_renewal_interval: int = Field(default=30)
+    acquire_url: str = Field(default="/api/get_write_token")
+    renew_url: str = Field(default="/api/renew_write_token")
+    release_url: str = Field(default="/api/release_write_token")
+
 
 class ServerConfig(BaseModel):
     model_config = ConfigDict(extra="allow")
@@ -31,6 +41,7 @@ class ServerConfig(BaseModel):
     rpcs_endpoint: str = Field(default="/api/rpc")
     streams_endpoint: str = Field(default="/api/streams")
     offer_endpoint: str = Field(default="/api/offer")
+    token_settings: TokenSettings = Field(default_factory=TokenSettings)
 
 
 class Widget(BaseModel):
