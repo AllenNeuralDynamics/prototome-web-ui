@@ -8,11 +8,11 @@ const App = () => {
   return (
     <AppProvider>
       <GlobalApiError>
-      <BrowserRouter>
-        <MainLayout>
-          <AppRouter />
-        </MainLayout>
-      </BrowserRouter>
+        <BrowserRouter>
+          <MainLayout>
+            <AppRouter />
+          </MainLayout>
+        </BrowserRouter>
       </GlobalApiError>
     </AppProvider>
   );

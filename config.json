@@ -5,7 +5,16 @@
     "port": 8000,
     "rpcs_endpoint": "/api/rpcs",
     "streams_endpoint": "/api/streams",
-    "offer_endpoint": "/api/offer"
+    "offer_endpoint": "/api/offer",
+    "token_settings": {
+      "lease_time_to_live": 120,
+      "lease_activity_timeout": 600,
+      "lease_renewal_interval": 30,
+      "acquire_url": "/api/get_write_token",
+      "renew_url": "/api/renew_write_token",
+      "release_url": "/api/release_write_token",
+      "owner_url": "/api/get_write_token_owner"
+    }
   },
   "widgets": {
     "lassoCamera1": {
