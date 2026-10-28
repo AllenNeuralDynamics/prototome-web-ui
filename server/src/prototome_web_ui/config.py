@@ -21,6 +21,7 @@ class RouterClientSettings(BaseModel):
     rpc_port: int = Field(default=5555)
     broadcast_port: int = Field(default=5556)
 
+
 class TokenSettings(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -47,7 +48,6 @@ class ServerConfig(BaseModel):
 
 class Widget(BaseModel):
     model_config = ConfigDict(extra="allow")
-
     type: str = Field(default="action")
     bindings: dict[str, str] = Field(default_factory=dict)
 
@@ -59,8 +59,8 @@ class Stage(BaseModel):
 
 class UIConfig(BaseModel):
     model_config = ConfigDict(extra="allow")
-    stage: Stage = Field(default_factory=Stage)
-    axis_variable_mapping: dict[str, dict[str, list[str]]] = Field(default_factory=dict)
+    unit: str = Field(default="mm")
+    axis_variable_mapping: dict[str, list[str]] = Field(default_factory=dict)
 
 
 class Config(BaseModel):
@@ -69,7 +69,7 @@ class Config(BaseModel):
     title: str = Field(default="Prototome")
     server: ServerConfig = Field(default_factory=ServerConfig)
     widgets: dict[str, Widget] = Field(default_factory=dict)
-    ui: dict[str, dict] = Field(default_factory=dict)
+    ui: UIConfig = Field(default_factory=dict)
 
 
 def load_config(path: Path | None = None) -> Config:

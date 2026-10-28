@@ -15,6 +15,9 @@ class RouterClientKwargs(BaseModel):
     rpc_port: str = Field(default="5555")
     broadcast_port: str = Field(default="5556")
 
+class UIConfig(BaseModel):
+    unit: str = Field(default="mm")
+    axis_variable_mapping: dict = Field(default_factory=dict)
 
 class PrototomeWebUiConfig(BaseModel):
     FASTAPI_BASE_URL: str = Field(default="http://localhost:8000")
@@ -23,5 +26,4 @@ class PrototomeWebUiConfig(BaseModel):
     router_client_kwargs: RouterClientKwargs = Field(default_factory=RouterClientKwargs)
     port: int = Field(default=8000)
     video_streams: list[str] = Field(default_factory=list)
-    unit: str
-    axis_variable_mapping: dict
+    ui: UIConfig = Field(default_factory=UIConfig)
