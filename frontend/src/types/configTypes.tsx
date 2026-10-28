@@ -6,13 +6,6 @@ type NumericConfigKeys<T> = {
 
 export type PrototomeNumericKey = NumericConfigKeys<PrototomeConfig>;
 
-type AxisVariablesMapping = Record<
-  string, // device name (pt_stage_fine, pt_stage_coarse, etc.)
-  Record<
-    string, // axis name (axis1, axis2, etc.)
-    PrototomeNumericKey[]
-  >
->;
 export interface CameraConfig {
   id: string;
 }

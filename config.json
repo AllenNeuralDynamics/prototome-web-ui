@@ -1,7 +1,7 @@
 {
   "title": "prototome",
   "server": {
-    "url": "http://127.0.0.1",
+    "url": "http://0.0.0.0",
     "port": 8000,
     "rpcs_endpoint": "/api/rpcs",
     "streams_endpoint": "/api/streams",
@@ -96,24 +96,16 @@
     }
   },
   "ui": {
-    "stage": {
-      "axes": ["Y", "Z", "Piezo"],
-      "unit": "mm",
-      "id": "prototome_stage"
-    },
+    "unit": "mm",
     "axis_variable_mapping": {
-      "pt_stage_fine": {
-        "axis1": ["retract_piezo_distance"]
-      },
-      "pt_stage_coarse": {
-        "axis2": [
-          "bottom_position_mm",
-          "ep_cut_bottom",
-          "ep_cut_top",
-          "top_position_mm"
-        ],
-        "axis1": ["retract_distance"]
-      }
+      "Piezo": ["retract_piezo_distance"],
+      "Y": [
+        "bottom_position_mm",
+        "ep_cut_bottom",
+        "ep_cut_top",
+        "top_position_mm"
+      ],
+      "Z": ["retract_distance"]
     }
   }
 }

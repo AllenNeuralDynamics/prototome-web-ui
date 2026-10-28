@@ -6,7 +6,6 @@ import {
   uiPrototomeSchema,
 } from "@/widgets/MicrotomeControlWidget/PrototomeConfigTypes";
 import { getAxisColor } from "@/utils/colorGrabber";
-import type { AppConfig } from "@/types/configTypes";
 import type { PrototomeConfig } from "@/types/prototomeConfig";
 import {
   Badge,
@@ -27,12 +26,11 @@ import { useEffect, useState } from "react";
 import { MicrotomeControlWidgetContract } from "./contract";
 
 type Resources = ResourcesForContract<typeof MicrotomeControlWidgetContract>;
-type AxisVariableMapping = AppConfig["axis_variable_mapping"];
+type AxisVariableMapping = Record<string, string[]>;
 type VisConfig = Record<string, Record<string, unknown>>;
 
 export type MicrotomeControlWidgetProps = Resources & {
   instanceId: string;
-  axes: string[];
   unit?: string;
   // Maps each prototome stage axis to the config keys shown as markers on its slider.
   axisVariableMapping: AxisVariableMapping;
@@ -49,17 +47,19 @@ const buildVisConfig = (
 ): VisConfig =>
   Object.fromEntries(
     axes.map((axis) => {
-      const [ptStage, ...rest] = prototomeConfig.axis_map[axis].split(".");
-      const cfgKeys = axisVariableMapping[ptStage][rest.join(".")];
       return [
         axis,
-        Object.fromEntries(cfgKeys.map((key) => [key, prototomeConfig[key]])),
+        Object.fromEntries(
+          axisVariableMapping[axis].map((key) => [
+            key,
+            prototomeConfig[key as keyof PrototomeConfig],
+          ]),
+        ),
       ];
     }),
   );
 
 export const MicrotomeControlWidgetView = ({
-  axes,
   unit = "mm",
   axisVariableMapping,
   getPrototomeConfig,
@@ -100,6 +100,7 @@ export const MicrotomeControlWidgetView = ({
   // -------------------------------
   const prototomeConfig =
     localConfig ?? (getPrototomeConfig.data as PrototomeConfig | undefined);
+  const axes = Object.keys(prototomeConfig?.axis_map ?? {});
   const visConfig = prototomeConfig
     ? buildVisConfig(axes, prototomeConfig, axisVariableMapping)
     : null;
@@ -311,7 +312,8 @@ const PrototomeConfigCard = ({
         if (typeof result !== "string") return;
         const parsedData = JSON.parse(result);
         const loaded = parsedData?.prototome_config || parsedData;
-        const validate = validator.ajv.compile<PrototomeConfig>(prototomeSchema);
+        const validate =
+          validator.ajv.compile<PrototomeConfig>(prototomeSchema);
         if (!validate(loaded)) throw new Error("Loaded json is not valid");
         onConfigChange(loaded);
       } catch (error) {
