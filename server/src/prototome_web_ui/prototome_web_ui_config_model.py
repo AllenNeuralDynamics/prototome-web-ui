@@ -5,11 +5,6 @@ from pydantic import BaseModel, Field
 Protocol = Literal["tcp", "inproc", "ipc", "ws", "wss"]
 
 
-class Stage(BaseModel):
-    axes: list[str]
-    unit: str
-
-
 class Camera(BaseModel):
     id: str
 
@@ -27,10 +22,6 @@ class PrototomeWebUiConfig(BaseModel):
     STREAM_METADATA_ENDPOINT: str = Field(default="/api/streams")
     router_client_kwargs: RouterClientKwargs = Field(default_factory=RouterClientKwargs)
     port: int = Field(default=8000)
-    # data_channels: list[str] = Field(default_factory=list)
     video_streams: list[str] = Field(default_factory=list)
-    # gets: dict[str, str] = Field(default_factory=dict)
-    # posts: dict[str, str] = Field(default_factory=dict)
-    stage: Stage = Field()
-    camera: Camera = Field()
+    unit: str
     axis_variable_mapping: dict
