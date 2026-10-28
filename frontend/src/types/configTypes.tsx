@@ -10,6 +10,8 @@ export interface CameraConfig {
   id: string;
 }
 
+export type AxisVariableMapping = Record<string, string[]>;
+
 export interface StageConfig {
   axes: string[];
   unit: string;
@@ -24,7 +26,7 @@ export interface AppConfig {
   video_streams: string[];
   gets: Record<string, string>;
   posts: Record<string, string>;
-  axis_variable_mapping: AxisVariablesMapping;
+  axis_variable_mapping: AxisVariableMapping;
   stage: StageConfig;
   camera: CameraConfig;
 }

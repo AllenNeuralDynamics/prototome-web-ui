@@ -7,6 +7,7 @@ import {
 } from "@/widgets/MicrotomeControlWidget/PrototomeConfigTypes";
 import { getAxisColor } from "@/utils/colorGrabber";
 import type { PrototomeConfig } from "@/types/prototomeConfig";
+import type { AxisVariableMapping } from "@/types/configTypes";
 import {
   Badge,
   Box,
@@ -26,7 +27,6 @@ import { useEffect, useState } from "react";
 import { MicrotomeControlWidgetContract } from "./contract";
 
 type Resources = ResourcesForContract<typeof MicrotomeControlWidgetContract>;
-type AxisVariableMapping = Record<string, string[]>;
 type VisConfig = Record<string, Record<string, unknown>>;
 
 export type MicrotomeControlWidgetProps = Resources & {
