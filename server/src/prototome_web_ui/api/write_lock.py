@@ -56,7 +56,7 @@ class WriteLock:
             True if the lease was successfully acquired for the session, False otherwise.
         """
         # Check token status - attempt to grab write token if missing or invalid
-        if not self.client.has_write_token() or not self.client.has_write_access():
+        if force or not self.client.has_write_token() or not self.client.has_write_access():
             try:
                 # timeout_s=None would retry forever in a tight loop, blocking the event loop
                 self.client.get_write_token(force=force, timeout_s=0)
@@ -85,7 +85,7 @@ class WriteLock:
         """
         # Get current lease - check if it is held by the given session
         return self._lease is not None and self._lease.session_id == session_id
-    
+
     def has_token(self) -> bool:
         """
         Check whether the client currently has a write token.
@@ -143,7 +143,11 @@ class WriteLock:
         return True
 
     def get_owner(self) -> _TokenOwner:
-        if not self.client.has_write_token() or not self.client.has_write_access():
+        if (
+            not self.client.has_write_token()
+            or not self.client.has_write_access()
+            or self.client.get_write_token_owner() != self.client.name
+        ):
             return _TokenOwner(owner_id=self.client.get_write_token_owner(), owned_by_this_client=False)
         if self._lease is None:
             return _TokenOwner(owner_id="", owned_by_this_client=True)
@@ -173,6 +177,11 @@ class WriteLock:
             # Release lease and give up write token, no longer has write access
             self._lease = None
             self.client.release_write_token()
+            return True
+        # Token owner doesn't match the current client (someone else holds the token)
+        elif self.client.get_write_token_owner() != self.client.name:
+            # Release the lease since the token owner doesn't match the current client
+            self._lease = None
             return True
 
         # If TTL expired or idle timeout exceeded, release lease and write token

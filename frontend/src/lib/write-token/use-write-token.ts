@@ -11,6 +11,7 @@ import { useConfig, type Config } from "@/hooks/use-config";
 type TokenSettings = Config["server"]["token_settings"];
 
 const WRITE_TOKEN_KEY = ["write-token"] as const;
+const WRITE_TOKEN_OWNER_KEY = ["write-token-owner"] as const;
 
 const WriteTokenStatusSchema = z.object({ has_token: z.boolean() });
 export type WriteTokenStatus = z.infer<typeof WriteTokenStatusSchema>;
@@ -28,12 +29,21 @@ export const writeTokenQueryOptions = (settings: TokenSettings) =>
   queryOptions({
     queryKey: WRITE_TOKEN_KEY,
     // First fetch claims; later fetches only renew so an idle-expired lease isn't silently reclaimed.
-    queryFn: ({ client, queryKey }) =>
-      postWriteToken(
-        client.getQueryData<WriteTokenStatus>(queryKey)?.has_token
-          ? settings.renew_url
-          : settings.acquire_url,
-      ),
+    queryFn: async ({ client, queryKey }) => {
+      if (!client.getQueryData<WriteTokenStatus>(queryKey)?.has_token) {
+        return postWriteToken(settings.acquire_url);
+      }
+
+      // A browser lease can outlive the server's ownership of the router token.
+      const [status, owner] = await Promise.all([
+        postWriteToken(settings.renew_url),
+        client.fetchQuery({
+          ...writeTokenOwnerQueryOptions(settings),
+          staleTime: 0,
+        }),
+      ]);
+      return { has_token: status.has_token && owner.owned_by_this_client };
+    },
     // Only the renewal interval should trigger refetches.
     staleTime: Infinity,
     // Holder renews its lease; viewers don't retry until the page is reloaded.
@@ -63,7 +73,7 @@ const WriteTokenOwnerSchema = z.object({
 export type WriteTokenOwner = z.infer<typeof WriteTokenOwnerSchema>;
 
 async function getWriteTokenOwner(url: string): Promise<WriteTokenOwner> {
-  const res = await fetch(url);
+  const res = await fetch(url, { cache: "no-store" });
   if (!res.ok)
     throw new Error(
       `Write token owner request failed: ${res.status} ${await res.text()}`,
@@ -71,17 +81,19 @@ async function getWriteTokenOwner(url: string): Promise<WriteTokenOwner> {
   return WriteTokenOwnerSchema.parse(await res.json());
 }
 
-export const useWriteTokenOwner = () => {
-  const { owner_url, lease_renewal_interval } = useTokenSettings();
-  return useQuery({
-    queryKey: ["write-token-owner"],
-    queryFn: () => getWriteTokenOwner(owner_url),
-    refetchInterval: lease_renewal_interval * 1000,
+const writeTokenOwnerQueryOptions = (settings: TokenSettings) =>
+  queryOptions({
+    queryKey: WRITE_TOKEN_OWNER_KEY,
+    queryFn: () => getWriteTokenOwner(settings.owner_url),
+    refetchInterval: settings.lease_renewal_interval * 1000,
   });
-};
 
-// Renew immediately on a 403; holders only, since a viewer's refetch would try to acquire
+export const useWriteTokenOwner = () =>
+  useQuery(writeTokenOwnerQueryOptions(useTokenSettings()));
+
+// Refresh ownership on a 403; only holders renew, so viewers never try to acquire.
 export function recheckWriteToken(queryClient: QueryClient) {
+  void queryClient.invalidateQueries({ queryKey: WRITE_TOKEN_OWNER_KEY });
   const status = queryClient.getQueryData<WriteTokenStatus>(WRITE_TOKEN_KEY);
   if (status?.has_token) {
     void queryClient.invalidateQueries({ queryKey: WRITE_TOKEN_KEY });
