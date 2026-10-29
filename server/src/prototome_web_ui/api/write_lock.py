@@ -178,11 +178,12 @@ class WriteLock:
             self._lease = None
             self.client.release_write_token()
             return True
+        # TODO: potentially remove - 14 has correct owner check from server
         # Token owner doesn't match the current client (someone else holds the token)
-        elif self.client.get_write_token_owner() != self.client.name:
-            # Release the lease since the token owner doesn't match the current client
-            self._lease = None
-            return True
+        # elif self.client.get_write_token_owner() != self.client.name:
+        #     # Release the lease since the token owner doesn't match the current client
+        #     self._lease = None
+        #     return True
 
         # If TTL expired or idle timeout exceeded, release lease and write token
         if self._lease is not None and (
