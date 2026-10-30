@@ -74,7 +74,7 @@ def make_router(config: Config, client: RouterClient) -> APIRouter:
             description=description,
             openapi_extra=openapi_extra,
             # Unannotated RPCs (access_type None) are treated as writes to fail closed
-            dependencies=[Depends(require_write), Depends(record_activity)] if access_type != "get" else [],
+            dependencies=[Depends(require_write), Depends(record_activity)] if access_type == "set" else [],
         )
 
     stream_models = {}
