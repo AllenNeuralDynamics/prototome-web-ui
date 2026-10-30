@@ -39,7 +39,6 @@ export const WidgetGate = ({ registry, children }: WidgetGateProps) => {
           params: slotSpec.params,
           results: slotSpec.results,
         });
-        // TODO: need to handle video too
       } else if (slotSpec.kind === 'channel') {
         expectedStreams.push({
           name: widget.bindings[slot],
