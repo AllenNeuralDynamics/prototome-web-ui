@@ -4,6 +4,7 @@ import { ColorSchemeToggle } from "../ColorSchemeToggle";
 import { Link, useLocation } from "react-router-dom";
 import {
   useForceWriteToken,
+  useReleaseWriteToken,
   useWriteTokenOwner,
   type WriteTokenOwner,
 } from "@/lib/write-token/use-write-token";
@@ -20,6 +21,7 @@ export const Header = () => {
   const location = useLocation();
   const readOnly = useIsReadOnly();
   const forceToken = useForceWriteToken();
+  const releaseToken = useReleaseWriteToken();
   const owner = useWriteTokenOwner();
   const [confirmOpen, { open: openConfirm, close: closeConfirm }] =
     useDisclosure(false);
@@ -59,7 +61,16 @@ export const Header = () => {
           </Text>
         )}
         {!readOnly ? (
-          <Badge color="green">Write access</Badge>
+          <>
+            <Badge color="green">Write access</Badge>
+            <Button
+              variant="light"
+              loading={releaseToken.isPending}
+              onClick={() => releaseToken.mutate()}
+            >
+              Release
+            </Button>
+          </>
         ) : (
           <>
             <Badge color="gray">Read-only</Badge>

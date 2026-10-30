@@ -2,6 +2,7 @@ import {
   queryOptions,
   useMutation,
   useQuery,
+  useQueryClient,
   useSuspenseQuery,
   type QueryClient,
 } from "@tanstack/react-query";
@@ -99,6 +100,30 @@ export function recheckWriteToken(queryClient: QueryClient) {
     void queryClient.invalidateQueries({ queryKey: WRITE_TOKEN_KEY });
   }
 }
+
+const ReleaseTokenSchema = z.object({ released: z.boolean() });
+
+// Release the write token; updates cached state in place (no reload, which would re-acquire)
+export const useReleaseWriteToken = () => {
+  const { release_url } = useTokenSettings();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch(release_url, { method: "POST" });
+      if (!res.ok)
+        throw new Error(
+          `Write token release failed: ${res.status} ${await res.text()}`,
+        );
+      return ReleaseTokenSchema.parse(await res.json());
+    },
+    onSuccess: () => {
+      queryClient.setQueryData<WriteTokenStatus>(WRITE_TOKEN_KEY, {
+        has_token: false,
+      });
+      void queryClient.invalidateQueries({ queryKey: WRITE_TOKEN_OWNER_KEY });
+    },
+  });
+};
 
 // Take the write token even if another session holds it, then reload into the write layout
 export const useForceWriteToken = () => {
