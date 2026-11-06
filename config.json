@@ -94,6 +94,12 @@
         "stagePositions": "prototome_stage_positions",
         "getAxisTravelRanges": "get_axis_travel_ranges"
       }
+    },
+    "eStopButton1": {
+      "type": "EStopButton",
+      "bindings": {
+        "stopCuttingNow": "stop_cutting_now"
+      }
     }
   },
   "ui": {

@@ -9,8 +9,12 @@ import {
   type WriteTokenOwner,
 } from "@/lib/write-token/use-write-token";
 import { useIsReadOnly } from "@/lib/write-token/use-page-mode";
+import { EStopButton } from "@/widgets";
 
-const describeOwner = ({ token_owner, owned_by_this_client }: WriteTokenOwner) => {
+const describeOwner = ({
+  token_owner,
+  owned_by_this_client,
+}: WriteTokenOwner) => {
   if (!token_owner) return owned_by_this_client ? "No session" : "Nobody";
   return owned_by_this_client
     ? `Session ${token_owner}`
@@ -84,6 +88,7 @@ export const Header = () => {
             </Button>
           </>
         )}
+        <EStopButton instanceId="eStopButton1" />
         <ColorSchemeToggle />
       </Group>
       <Modal

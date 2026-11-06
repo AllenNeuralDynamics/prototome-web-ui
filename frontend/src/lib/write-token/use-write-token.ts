@@ -126,12 +126,12 @@ export const useReleaseWriteToken = () => {
 };
 
 // Take the write token even if another session holds it, then reload into the write layout
-export const useForceWriteToken = () => {
+export const useForceWriteToken = ({ reload = true } = {}) => {
   const { acquire_url } = useTokenSettings();
   return useMutation({
     mutationFn: () => postWriteToken(`${acquire_url}?force=true`),
     onSuccess: (data) => {
-      if (data.has_token) window.location.reload();
+      if (reload && data.has_token) window.location.reload();
     },
   });
 };
