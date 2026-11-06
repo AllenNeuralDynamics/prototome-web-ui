@@ -26,6 +26,7 @@
         "setAutoWb": "camera_lasso_set_auto_wb",
         "getExposure": "camera_lasso_get_exposure",
         "getGain": "camera_lasso_get_gain",
+        "getRois": "left_lasso_get_roi",
         "setExposure": "camera_lasso_set_exposure",
         "setGain": "camera_lasso_set_gain"
       }
