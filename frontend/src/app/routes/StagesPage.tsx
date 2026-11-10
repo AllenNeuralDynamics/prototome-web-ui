@@ -13,8 +13,7 @@ export const StagesPage = () => {
     <Stack align="center">
       <StageControlWidget
         instanceId="stageControl1"
-        axes={config.ui.stage.axes}
-        unit={config.ui.stage.unit}
+        unit={config.ui.unit}
       />
       <Group
         style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}

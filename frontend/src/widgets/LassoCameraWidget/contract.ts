@@ -33,6 +33,11 @@ export const LassoCameraWidgetContract = {
       results: z.unknown(),
       kind: "data",
     },
+    getRois: {
+      params: z.object({ window: z.string().nullable().optional() }),
+      results: z.record(z.string(), z.record(z.string(), z.unknown())),
+      kind: "data",
+    },
     setExposure: {
       params: z.object({ key: z.unknown().optional(), value: z.unknown() }),
       results: z.unknown(),

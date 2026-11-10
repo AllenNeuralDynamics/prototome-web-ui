@@ -18,13 +18,11 @@ type Resources = ResourcesForContract<typeof StageControlWidgetContract>;
 
 export type StageControlWidgetProps = Resources & {
   instanceId: string;
-  axes: string[];
   unit?: string;
 };
 
 export const StageControlWidgetView = ({
-  axes,
-  unit = "um",
+  unit = "mm",
   stagePositions,
   getAxisVelocities,
   getAxisTravelRanges,
@@ -51,6 +49,7 @@ export const StageControlWidgetView = ({
 
   // Effects
   // -------------------------------
+  const axes = Object.keys(positions ?? []);
   const axesKey = axes.join(",");
   useEffect(() => {
     let cancelled = false;

@@ -5,10 +5,6 @@ import { Button, Group, Select, Slider, Stack, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { LassoCameraWidgetContract } from "./contract";
 
-const listOfRois = [
-  { id: "Consumer_dropoffimager", name: "Dropoff Imager" },
-  { id: "Consumer_lassorecorder", name: "Lasso Recorder" },
-];
 
 export type LassoCameraWidgetProps = ResourcesForContract<
   typeof LassoCameraWidgetContract
@@ -23,14 +19,24 @@ export const LassoCameraWidgetView = ({
   setAutoWb,
   getExposure,
   getGain,
+  getRois,
   setExposure,
   setGain,
 }: LassoCameraWidgetProps) => {
   // Local state
   // -------------------------------
+  const roiData =
+    typeof getRois.data === "object" && getRois.data !== null
+      ? (getRois.data as Record<string, unknown>)
+      : {};
+  const listOfRois = Object.keys(roiData).map((id) => ({
+    id,
+    name: id,
+  }));
+
   const [exposureOverride, setExposureOverride] = useState<number | null>(null);
   const [gainOverride, setGainOverride] = useState<number | null>(null);
-  const [roiId, setRoiId] = useState<string>(listOfRois[0].id);
+  const [roiId, setRoiId] = useState<string>(listOfRois[0]?.id ?? "");
 
   // Store state
   // -------------------------------
@@ -49,14 +55,15 @@ export const LassoCameraWidgetView = ({
   // Effects
   // -------------------------------
   useEffect(() => {
-    // Initialize ROIs if none exist
-    if (rois.length > 0) return;
+    // Initialize ROIs once the backend data arrives, if none exist yet
+    if (rois.length > 0 || listOfRois.length === 0) return;
     for (const r of listOfRois) {
       addRoi({ id: r.id, name: r.name, colorIndex: 0, positions: null });
     }
-    setSelectedRoi(roiId);
+    setRoiId(listOfRois[0].id);
+    setSelectedRoi(listOfRois[0].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // run once on mount
+  }, [listOfRois.length]); // run when ROI data first loads
 
   // Handlers
   // -------------------------------

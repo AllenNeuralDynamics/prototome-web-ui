@@ -2,11 +2,18 @@ import logging
 from typing import Any
 
 import jsonref
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from one_liner.client import RouterClient
 
-from prototome_web_ui.config import Config 
+from prototome_web_ui.api.write_lock import (
+    WriteLock,
+    get_write_lock,
+    record_activity,
+    require_write,
+)
+from prototome_web_ui.config import Config
 from prototome_web_ui.route_metadata_model import RPCModel, StreamModel
+from .session import get_session_id
 from .webrtc import handle_offer
 
 
@@ -26,6 +33,7 @@ def make_router(config: Config, client: RouterClient) -> APIRouter:
         call_name: str,
         description: str | None = None,
         params_schema: dict[str, Any] | None = None,
+        access_type: str | None = None,
     ) -> Any:
         def make_post(call_name: str = call_name) -> Any:
             async def endpoint(kwargs: dict[str, Any] | None = None) -> Any:
@@ -65,6 +73,8 @@ def make_router(config: Config, client: RouterClient) -> APIRouter:
             methods=["POST"],
             description=description,
             openapi_extra=openapi_extra,
+            # Unannotated RPCs (access_type None) are treated as writes to fail closed
+            dependencies=[Depends(require_write), Depends(record_activity)] if access_type == "set" else [],
         )
 
     stream_models = {}
@@ -83,6 +93,7 @@ def make_router(config: Config, client: RouterClient) -> APIRouter:
             call_name,
             description=rpcs[call_name].get("description"),
             params_schema=rpcs[call_name].get("params_schema"),
+            access_type=rpcs[call_name].get("access_type"),
         )
         logging.info(f"Added RPC endpoint: /api/{call_name}")
 
@@ -136,5 +147,43 @@ def make_router(config: Config, client: RouterClient) -> APIRouter:
     async def rpcs_endpoint() -> dict[str, Any]:
         """Return the RPC model with metadata and route info"""
         return rpc_models
+
+    @router.get("/get_write_token")
+    async def read_write_token_status(
+        session_id: str = Depends(get_session_id), write_lock: WriteLock = Depends(get_write_lock)
+    ) -> dict[str, bool]:
+        """Check if current session has the write token"""
+        if write_lock.has_lease(session_id):
+            return {"has_token": True}
+        return {"has_token": False}
+
+    @router.get("/get_write_token_owner")
+    async def get_write_token_owner(write_lock: WriteLock = Depends(get_write_lock)) -> dict[str, Any]:
+        """Get the owner of the write token"""
+        owner = write_lock.get_owner()
+        return {"token_owner": owner.owner_id, "owned_by_this_client": owner.owned_by_this_client}
+
+    @router.post("/get_write_token")
+    async def get_write_token(
+        session_id: str = Depends(get_session_id), write_lock: WriteLock = Depends(get_write_lock), force: bool = False
+    ) -> dict[str, bool]:
+        """Attempt to acquire the write token for the current session"""
+        if write_lock.get_lease(session_id, force):
+            return {"has_token": True}
+        return {"has_token": False}
+
+    @router.post("/renew_write_token")
+    async def renew_write_token(
+        session_id: str = Depends(get_session_id), write_lock: WriteLock = Depends(get_write_lock)
+    ) -> dict[str, bool]:
+        """Attempt to renew the write lock for the current session"""
+        return {"has_token": write_lock.renew_lease_ttl(session_id)}
+
+    @router.post("/release_write_token")
+    async def release_write_token(
+        session_id: str = Depends(get_session_id), write_lock: WriteLock = Depends(get_write_lock)
+    ) -> dict[str, bool]:
+        """Release the write lock if held by the current session (sent via beacon on tab close)"""
+        return {"released": write_lock.release_lease(session_id)}
 
     return router

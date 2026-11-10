@@ -1,8 +1,10 @@
+export { EStopButton } from "./EStopButton";
 export { LassoCameraWidget } from "./LassoCameraWidget";
 export { LassoControlWidget } from "./LassoControlWidget";
 export { MicrotomeControlWidget } from "./MicrotomeControlWidget";
 export { StageControlWidget } from "./StageControlWidget";
 export { WaferCalibrationWidget } from "./WaferCalibrationWidget";
+import { EStopButton } from "./EStopButton";
 import { LassoCameraWidget } from "./LassoCameraWidget";
 import { LassoControlWidget } from "./LassoControlWidget";
 import { MicrotomeControlWidget } from "./MicrotomeControlWidget";
@@ -12,6 +14,7 @@ import type { WidgetContract } from "./framework";
 
 // NOTE: this is where you register a widget, everything else is derived from this
 export const defaultWidgetRegistry = {
+  EStopButton,
   LassoCameraWidget,
   LassoControlWidget,
   MicrotomeControlWidget,
