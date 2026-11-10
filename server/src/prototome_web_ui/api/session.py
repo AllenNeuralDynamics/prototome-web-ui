@@ -6,9 +6,7 @@ from fastapi import Request, Response
 SESSION_COOKIE = "prototome_session"
 
 
-async def ensure_session_cookie(
-    request: Request, call_next: Callable[[Request], Awaitable[Response]]
-) -> Response:
+async def ensure_session_cookie(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     """Assign each browser a random session id cookie on its first request."""
     sid = request.cookies.get(SESSION_COOKIE)
     is_new = sid is None
