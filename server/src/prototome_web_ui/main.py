@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import json
 import logging
 from contextlib import asynccontextmanager
@@ -14,22 +15,39 @@ from fastapi.staticfiles import StaticFiles
 from one_liner.client import RouterClient
 
 from prototome_web_ui.api.routes import make_router
-from prototome_web_ui.api.webrtc import cancel_tasks, stop_event
-from prototome_web_ui.prototome_web_ui_config_model import PrototomeWebUiConfig
+from prototome_web_ui.api.session import ensure_session_cookie
+from prototome_web_ui.api.webrtc import cancel_tasks, close_peer_connections, stop_event
+from prototome_web_ui.api.write_lock import WriteLock
+from prototome_web_ui.config import Config
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
+async def _expire_lease_and_token(write_lock: WriteLock, interval_s: float = 5.0) -> None:
+    """Periodically check to see if lease and token should be expired."""
+    while True:
+        try:
+            expired = write_lock.check_and_expire_lease_and_token()
+            if expired:
+                logger.info("Expired write lease and token")
+        except Exception:
+            logger.exception("Failed to release expired write lease")
+        await asyncio.sleep(interval_s)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     """Lifespan context: clean up tasks on shutdown"""
+    sweeper = asyncio.create_task(_expire_lease_and_token(app.state.write_lock))
     yield
+    sweeper.cancel()
     stop_event.set()
     cancel_tasks()
+    await close_peer_connections()
 
 
-def create_app(config: PrototomeWebUiConfig) -> FastAPI:
+def create_app(config: Config) -> FastAPI:
     """Create FastAPI app with config"""
 
     app = FastAPI(lifespan=lifespan)
@@ -41,8 +59,15 @@ def create_app(config: PrototomeWebUiConfig) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.middleware("http")(ensure_session_cookie)
 
-    router_client: RouterClient = RouterClient(**config.router_client_kwargs.model_dump())
+    router_client: RouterClient = RouterClient(**config.server.router_client.model_dump(), name="prototome_web_ui")
+
+    app.state.write_lock = WriteLock(
+        client=router_client,
+        ttl_s=config.server.token_settings.lease_time_to_live,
+        idle_timeout_s=config.server.token_settings.lease_activity_timeout,
+    )
     app.include_router(make_router(config, router_client))
 
     return app
@@ -60,7 +85,7 @@ def main():
     logging.getLogger().setLevel(args.log_level.upper())
 
     with open(args.config) as f:
-        config: PrototomeWebUiConfig = PrototomeWebUiConfig(**json.load(f))
+        config: Config = Config(**json.load(f))
 
     app = create_app(config)
 
@@ -73,7 +98,7 @@ def main():
         async def serve_frontend(full_path: str) -> FileResponse:
             return FileResponse(ui_dir / "index.html")
 
-    uvicorn.run(app, host="0.0.0.0", port=config.port, log_level=args.log_level.lower())
+    uvicorn.run(app, host="0.0.0.0", port=config.server.port, log_level=args.log_level.lower())
 
 
 if __name__ == "__main__":

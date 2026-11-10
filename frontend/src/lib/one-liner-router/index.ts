@@ -1,16 +1,16 @@
 // Public API for the one-liner-router hooks.
-// Consumers should import from '@/hooks/one-liner-router'
+// Consumers should import from '@/lib/one-liner-router'
 
-export { useRPCAction as useDynamicRPCAction, useRPCData as useDynamicRPCData } from './call-rpc';
-
-// Errors (still from call-rpc; just don't re-export the raw hooks)
-export { RPCFetchError, RPCHttpError, RPCNetworkError, RPCNotFoundError } from './call-rpc';
-
-// Registry hooks + parameter validation error
-export { useRPCsMetadata, useStreamsMetadata } from './metadata';
-export { RPCParamsError } from './validation';
-
-// Metadata types
+// Metadata Types
 export type { RPCMetadata, RPCsMetadata, StreamMetadata, StreamsMetadata } from './metadata';
 
-// Generated endpoint types (handy if a consumer wants to name a param/result type)
+// Metadata Hooks
+export { useRPCsMetadata, useStreamsMetadata } from './metadata';
+
+// RPC Hooks (facade) — these are what consumers use.
+export { useRPCAction, useRPCData } from './call-rpc';
+
+// Errors (still from call-rpc; just don't re-export the raw hooks)
+export { RPCHttpError, RPCNetworkError, RPCNotFoundError, RPCParamsError } from './errors';
+export { BindingValidationError, formatBindingIssues } from './errors';
+export type { BindingIssue } from './errors';

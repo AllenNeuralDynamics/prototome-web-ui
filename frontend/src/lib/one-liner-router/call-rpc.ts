@@ -1,49 +1,8 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import type { RPCMetadata } from "./metadata.ts";
-import { useRPCsMetadata } from "./metadata.ts";
-import { assertParamsValid, RPCParamsError } from "./validation.ts";
-
-// --------------------------------------------------------------------------------
-//  Errors
-// --------------------------------------------------------------------------------
-
-// Thrown when the requested RPC name is not present in the registry metadata.
-export class RPCNotFoundError extends Error {
-  constructor(rpcName: string) {
-    super(`RPC function "${rpcName}" not found`);
-    this.name = "RPCNotFoundError";
-  }
-}
-
-// Base class for any generic fetching failure when calling an RPC endpoint. Not thrown directly
-export class RPCFetchError extends Error {
-  constructor(rpcName: string, message: string, cause?: unknown) {
-    super(`RPC "${rpcName}" failed: ${message}`);
-    this.name = "RPCFetchError";
-    if (cause !== undefined)
-      (this as Error & { cause?: unknown }).cause = cause;
-  }
-}
-
-// Thrown when the request cannot reach the backend at all (network error)
-export class RPCNetworkError extends RPCFetchError {
-  constructor(rpcName: string, cause: unknown) {
-    super(rpcName, "could not reach backend", cause);
-    this.name = "RPCNetworkError";
-  }
-}
-
-// Thrown when the backend responded with a non-2xx status.
-export class RPCHttpError extends RPCFetchError {
-  readonly status: number;
-  readonly body: string;
-  constructor(rpcName: string, status: number, body: string) {
-    super(rpcName, `HTTP ${status}: ${body}`);
-    this.name = "RPCHttpError";
-    this.status = status;
-    this.body = body;
-  }
-}
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { RPCHttpError, RPCNetworkError, RPCNotFoundError, RPCParamsError } from './errors.ts';
+import type { RPCMetadata } from './metadata.ts';
+import { useRPCsMetadata } from './metadata.ts';
+import { assertParamsValid } from './validate-params.ts';
 
 // --------------------------------------------------------------------------------
 //  API
@@ -56,24 +15,25 @@ export class RPCHttpError extends RPCFetchError {
  * @param params - The parameters to pass to the RPC function.
  * @returns The result of the RPC call.
  */
-async function callRPC(
-  name: string,
-  route: string,
-  params: unknown,
-): Promise<unknown> {
+async function callRPC(name: string, route: string, params: unknown): Promise<unknown> {
   let res: Response;
   try {
     res = await fetch(route, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
     });
   } catch (cause) {
     // Network Error
     throw new RPCNetworkError(name, cause);
   }
-  // HTTP Error
-  if (!res.ok) throw new RPCHttpError(name, res.status, await res.text());
+  if (!res.ok) {
+    const body = await res.text();
+    if (res.status === 404) throw new RPCNotFoundError(name);
+    // 422: server-side Pydantic rejection. Rare if client-side Ajv is in sync.
+    if (res.status === 422) throw new RPCParamsError(name, body);
+    throw new RPCHttpError(name, res.status, body);
+  }
   return res.json();
 }
 
@@ -95,52 +55,34 @@ function buildRPCCallback(metadata: RPCMetadata | undefined, name: string) {
     // Check if zmq function exists
     if (!metadata) throw new RPCNotFoundError(name);
 
+    const p = params ?? {};
+
     // Assert params data is valid against param schema
-    assertParamsValid(name, params ?? {}, metadata.params_schema);
+    assertParamsValid(name, p, metadata.params_schema);
 
     // Function to fetch data from the RPC endpoint
-    return callRPC(name, metadata.route, params);
+    return callRPC(name, metadata.route, p);
   };
 }
 
-type ParamsArg<T> = unknown extends T
-  ? [params?: T]
-  : object extends T
-    ? [params?: T]
-    : [params: T];
-
 // --------------------------------------------------------------------------------
-//  Hook
+//  Hooks
 // --------------------------------------------------------------------------------
 
 // ACTION hook: Wraps a mutation for user-triggered calls (forms, buttons)
-export const useRPCAction = <TResult = unknown, TParams = unknown>(
-  name: string,
-) => {
-  const rpcsMetadata = useRPCsMetadata();
-  const rpcMetadata = rpcsMetadata.data?.[name];
+export const useRPCAction = <TResult, TParams = void>(name: string) => {
+  const rpcMetadata = useRPCsMetadata().data?.[name];
   const runRPC = buildRPCCallback(rpcMetadata, name);
-
-  // Fail fast on unknown RPC names once the registry has loaded, so typos
-  // surface on render instead of only when the button is clicked.
-  if (rpcsMetadata.isSuccess && !rpcMetadata) {
-    throw new RPCNotFoundError(name);
-  }
 
   const mutation = useMutation<TResult, Error, TParams>({
     mutationFn: (params) => runRPC(params) as Promise<TResult>,
-    // Bugs (bad params, unknown RPC) escape to an error boundary; runtime
-    // failures (network/HTTP) stay on mutation.error for inline handling.
-    throwOnError: (err) =>
-      err instanceof RPCParamsError || err instanceof RPCNotFoundError,
   });
 
   return {
     metadata: rpcMetadata,
     // triggers
-    call: (...rest: ParamsArg<TParams>) => mutation.mutate(rest[0] as TParams),
-    callAsync: (...rest: ParamsArg<TParams>) =>
-      mutation.mutateAsync(rest[0] as TParams),
+    call: mutation.mutate,
+    callAsync: mutation.mutateAsync,
     // output fields
     result: mutation.data,
     error: mutation.error,
@@ -150,28 +92,14 @@ export const useRPCAction = <TResult = unknown, TParams = unknown>(
 };
 
 // DATA hook: loads on mount for display (charts, panels). Wraps a query.
-export const useRPCData = <TResult = unknown, TParams = unknown>(
-  name: string,
-  params: TParams,
-) => {
-  const rpcsMetadata = useRPCsMetadata();
-  const rpcMetadata = rpcsMetadata.data?.[name];
+export const useRPCData = <TResult, TParams = void>(name: string, params?: TParams) => {
+  const rpcMetadata = useRPCsMetadata().data?.[name];
   const runRPC = buildRPCCallback(rpcMetadata, name);
-  
-  // This runs on mount and could be called before the registry is loaded, so we don't want to throw a false positive.
-  // Only treat as "not found" once the registry has actually loaded.
-  if (rpcsMetadata.isSuccess && !rpcMetadata) {
-    throw new RPCNotFoundError(name);
-  }
 
   const query = useQuery<TResult>({
-    queryKey: ["rpc-call", name, params],
+    queryKey: ['rpc-call', name, params],
     queryFn: () => runRPC(params) as Promise<TResult>,
     enabled: !!rpcMetadata, // wait for registry; guards missing route
-    // Bugs (bad params, unknown RPC) escape to an error boundary; runtime
-    // failures (network/HTTP) stay on query.error for inline handling.
-    throwOnError: (err) =>
-      err instanceof RPCParamsError || err instanceof RPCNotFoundError,
   });
 
   return {

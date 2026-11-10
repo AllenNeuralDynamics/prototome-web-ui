@@ -105,7 +105,8 @@ export const DrawableCamera = ({
         onMouseUp={handleMouseUp}
         style={{
           position: "relative",
-          display: "inline-block", // Shrinks container to fit the video size
+          display: "block",
+          width: "100%",
           cursor: "crosshair",
           userSelect: "none",
         }}

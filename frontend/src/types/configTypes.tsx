@@ -4,18 +4,13 @@ type NumericConfigKeys<T> = {
   [K in keyof T]: T[K] extends number ? K : never;
 }[keyof T];
 
-type PrototomeNumericKey = NumericConfigKeys<PrototomeConfig>;
+export type PrototomeNumericKey = NumericConfigKeys<PrototomeConfig>;
 
-type AxisVariablesMapping = Record<
-  string, // device name (pt_stage_fine, pt_stage_coarse, etc.)
-  Record<
-    string, // axis name (axis1, axis2, etc.)
-    PrototomeNumericKey[]
-  >
->;
 export interface CameraConfig {
   id: string;
 }
+
+export type AxisVariableMapping = Record<string, string[]>;
 
 export interface StageConfig {
   axes: string[];
@@ -31,7 +26,7 @@ export interface AppConfig {
   video_streams: string[];
   gets: Record<string, string>;
   posts: Record<string, string>;
-  axis_variable_mapping: AxisVariablesMapping;
+  axis_variable_mapping: AxisVariableMapping;
   stage: StageConfig;
   camera: CameraConfig;
 }

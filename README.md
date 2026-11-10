@@ -1,56 +1,76 @@
 # Prototome Control Application
 
-React Web app built to control the prototome instrument. 
+Web application for controlling the prototome instrument. A Python **FastAPI** server connects to the instrument over ZMQ using [one-liner](https://github.com/AllenNeuralDynamics/one-liner). It exposes the instrument to a **React** client over HTTP and streams camera feeds over WebRTC.
 
----
+**Backend (`server/`)**
+- Python 3.12+, managed with [uv](https://docs.astral.sh/uv/)
+- [FastAPI](https://fastapi.tiangolo.com/) + [Uvicorn](https://www.uvicorn.org/) for the HTTP API
+- [Pydantic](https://docs.pydantic.dev/) for config and request/response models
+- [one-liner](https://github.com/AllenNeuralDynamics/one-liner) / ZMQ for RPC with the instrument
+- [aiortc](https://github.com/aiortc/aiortc) + OpenCV for WebRTC camera streaming
+
+**Frontend (`frontend/`)**
+- [Widgets](https://github.com/AllenNeuralDynamics/micetosis/blob/feat-widget/widget.md) a custom widget pattern developed to integrate with `one-liner`. 
+- [React 19](https://react.dev/) + TypeScript, built with [Vite](https://vite.dev/)
+- [Mantine](https://mantine.dev/) and [Tailwind CSS](https://tailwindcss.com/) for UI and styling
+- [TanStack Query](https://tanstack.com/query) + Axios for server state, [Zustand](https://zustand.docs.pmnd.rs/) for client state
+- [React Router](https://reactrouter.com/) for routing
+- [Zod](https://zod.dev/) and [RJSF](https://rjsf-team.github.io/react-jsonschema-form/) (AJV) for validation and schema-driven forms
 
 ## Project Structure
 
+The frontend of the project adheres to [bulletproof react](https://github.com/alan2207/bulletproof-react).
+
 ```plaintext
+config.json
 server/
-└── src/
-    ├── prototome-web/
-        ├── api/
-        ├── main.py
-        ├── prototome_web_ui_config_model.py                  
+├── pyproject.toml
+└── src/prototome_web_ui/
+    ├── main.py                      # CLI entry point (prototome_web_ui)
+    ├── config.py                    # Config loading
+    ├── route_metadata_model.py      # Pydantic models for route metadata
+    └── api/
+        ├── routes.py                # HTTP routes proxied to the instrument
+        ├── session.py               # Client session handling
+        ├── webrtc.py                # WebRTC camera stream relay
+        └── write_lock.py            # Single-writer token for instrument control
 frontend/
+├── package.json
+├── vite.config.ts
 └── src/
-    ├── app/            # prototome app
-    ├── features/
-    │   ├── camera/                  # Camera feature (controls, UI)
-    │   └── stage/                   # Stage feature (movement, UI)
-    │   └── acquisitionControl/      # Start/stop acquisition
-    │   └── configuration/           # form to configure acquisition    
-    ├── types/
+    ├── app/                         # App shell, providers, router
+    │   └── routes/                  # Pages (Home, Pylasso, Stages)
+    ├── components/
+    │   ├── errors/                  # Error boundary fallback
+    │   ├── globalApiError/          # Global API error display
+    │   ├── layouts/                 # MainLayout
+    │   └── ui/                      # Shared UI (Header, ColorSchemeToggle, DrawableCamera)
+    ├── hooks/                       # Shared hooks (use-config)
+    ├── lib/
+    │   ├── one-liner-router/        # RPC + metadata hooks for one-liner routes
+    │   ├── webrtc/                  # WebRTC client and stream provider
+    │   ├── write-token/             # Write token / page mode context and hooks
+    │   ├── client.tsx               # Axios client
+    │   ├── react-query.ts           # TanStack Query setup
+    │   └── mantine-theme.ts         # Mantine theme
+    ├── stores/                      # Zustand stores (ROI, theme)
+    ├── types/                       # Shared types
+    ├── utils/
+    └── widgets/
+        ├── framework/               # Widget contracts, bindings, slot validation
+        ├── EStopButton/
+        ├── LassoCameraWidget/
+        ├── LassoControlWidget/
+        ├── MicrotomeControlWidget/
+        ├── StageControlWidget/
+        └── WaferCalibrationWidget/
 ```
 
----
+## Running Prototome Production
 
-## Backend
+Go to the [ prototome-instrument ](https://github.com/AllenNeuralDynamics/prototome-instrument) repository and use that to launch the entire prototome instrument + UI. 
 
-- The backend is expected to be the [prototome instrument](https://github.com/AllenInstitute/prototome/blob/feat-zmq-server/main.py).
-- Communication with the prototome is done via one-liner [RouterServer](https://github.com/AllenInstitute/prototome/blob/feat-zmq-server/pylasso/zmq_server.py). 
-
-## Backend -> Frontend link
-
-Communication from the backend to frontend is expected to be done through the one-liner package. On the instrument side, this will be facilitated by the server found in [prototome/main.py](https://github.com/AllenInstitute/prototome/blob/feat-zmq-server/pylasso/zmq_server.py). On the ui side, there is a fastApi layer found in [prototome-web-ui/server/main.py](https://github.com/AllenNeuralDynamics/prototome-web-ui/blob/main/server/main.py). This also sets up a one-liner client and propogates messages to and from the instrument. The communication pattern is outlined below. 
-
-```bash
- __________________________python_______________________                           ____typescript_____
-|                                                       |                         |                   |
-|prototome <---> router_server <---zmq---> router_client| <---http and webrtc---> | prototome-web-ui  |
-|_______________________________________________________|                         |___________________|
-
-```
-
-## Frontend
-
-- The frontend is built with React and adheres to the **Bulletproof React** project structure.
-- The **camera**, **stage** , **acquisition control**, and **configuration** are implemented as separate features under `/features`
-
----
-
-## Getting Started
+## Local development
 
 ### Prerequisites
 
@@ -58,7 +78,7 @@ Communication from the backend to frontend is expected to be done through the on
 - npm or yarn
 - Python 3.12
 
-### Setup
+### Install
 
 1. **Install backend dependencies:**
 ```bash
@@ -74,22 +94,26 @@ npm install
 yarn install
 ```
 
-### Launch
+#### Dev mode
 
-1. Start instrument in separate process. 
+Run the **Launch DEV** compound configuration if you're using vscode. It starts:
 
-```bash
-uv run main.py
-```
+| Configuration | What it does                                                              |
+| ------------- | ------------------------------------------------------------------------- |
+| `API`         | FastAPI server with `--config config.json --dev` (no static files served) |
+| `VITE`        | Vite dev server (`npm run dev` in `frontend/`)                            |
+| `Browser`     | Chrome debugging session at http://localhost:5173                         |
 
-2. Launch FastAPI server. Pass `--dev` to enable development mode which requires running the Vite dev server separately. Without `--dev` the app will serve the static frontend files found in release versions. To build static files at src/brainslosher_web_ui/dist, run `npm run build` in frontend folder.
+Equivalent commands, each in its own terminal:
+
 ```bash
 cd server
-uv run prototome_web_ui --config path_to_config [--dev] [--log_level INFO|DEBUG]
+uv run prototome_web_ui --config ../config.json --dev [--log-level INFO|DEBUG]
 ```
 
-3. **Dev mode only** — start the Vite dev server in a separate terminal:
 ```bash
 cd frontend
 npm run dev
 ```
+
+Then open http://localhost:5173. Vite proxies `/api` to `http://localhost:8000`, so `server.port` in the config should be `8000`.

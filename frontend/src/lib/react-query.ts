@@ -19,8 +19,8 @@ export type QueryConfig<T extends (...args: any[]) => any> = Omit<
   "queryKey" | "queryFn"
 >;
 
- 
 export type MutationConfig<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   MutationFnType extends (...args: any) => Promise<any>,
 > = UseMutationOptions<
   ApiFnReturnType<MutationFnType>,
