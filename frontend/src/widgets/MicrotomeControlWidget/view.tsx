@@ -23,7 +23,7 @@ import {
 } from "@mantine/core";
 import Form from "@rjsf/mantine";
 import validator from "@rjsf/validator-ajv8";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MicrotomeControlWidgetContract } from "./contract";
 
 type Resources = ResourcesForContract<typeof MicrotomeControlWidgetContract>;
@@ -64,6 +64,7 @@ export const MicrotomeControlWidgetView = ({
   axisVariableMapping,
   getPrototomeConfig,
   setPrototomeConfig,
+  prototomeConfigUpdates,
   prototomeState,
   startCutting,
   cutOne,
@@ -93,13 +94,27 @@ export const MicrotomeControlWidgetView = ({
     number | null
   >(null);
   const [gainStepOverride, setGainStepOverride] = useState<number | null>(null);
-  // Set by file load or submit; otherwise the backend config is used.
-  const [localConfig, setLocalConfig] = useState<PrototomeConfig | null>(null);
+  // Set by file load or submit; otherwise the backend config is used. `basis` is the
+  // pushed config that was current at the time, so a changed push supersedes it.
+  const [localConfig, setLocalConfig] = useState<{
+    config: PrototomeConfig;
+    basis: PrototomeConfig | null;
+  } | null>(null);
 
   // Derived values
   // -------------------------------
+  // The instrument sends the whole reported config about once a second. Keep the
+  // same object while its content is unchanged, so the form is not reset every tick.
+  const pushedJson = JSON.stringify(prototomeConfigUpdates.data ?? null);
+  const pushedConfig = useMemo(
+    () => JSON.parse(pushedJson) as PrototomeConfig | null,
+    [pushedJson],
+  );
   const prototomeConfig =
-    localConfig ?? (getPrototomeConfig.data as PrototomeConfig | undefined);
+    localConfig && localConfig.basis === pushedConfig
+      ? localConfig.config
+      : (pushedConfig ??
+        (getPrototomeConfig.data as PrototomeConfig | undefined));
   const axes = Object.keys(prototomeConfig?.axis_map ?? {});
   const visConfig = prototomeConfig
     ? buildVisConfig(axes, prototomeConfig, axisVariableMapping)
@@ -153,7 +168,9 @@ export const MicrotomeControlWidgetView = ({
         <Stack align="stretch">
           <PrototomeConfigCard
             config={prototomeConfig}
-            onConfigChange={setLocalConfig}
+            onConfigChange={(config) =>
+              setLocalConfig({ config, basis: pushedConfig })
+            }
             setPrototomeConfig={setPrototomeConfig}
           />
           <Card

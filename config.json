@@ -73,6 +73,7 @@
       "bindings": {
         "getPrototomeConfig": "get_prototome_config",
         "setPrototomeConfig": "set_prototome_config",
+        "prototomeConfigUpdates": "prototome_config",
         "prototomeState": "prototome_state",
         "startCutting": "start_cutting",
         "cutOne": "cut_one",

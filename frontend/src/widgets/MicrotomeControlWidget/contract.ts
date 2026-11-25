@@ -21,6 +21,8 @@ export const MicrotomeControlWidgetContract = {
       results: z.unknown(),
       kind: "action",
     },
+    // Sent periodically by the instrument, so edits in its local GUI show up here.
+    prototomeConfigUpdates: { results: z.unknown(), kind: "channel" },
 
     // State control
     prototomeState: { results: z.unknown(), kind: "channel" },
