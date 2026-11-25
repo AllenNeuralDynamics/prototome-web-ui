@@ -74,6 +74,7 @@
         "getPrototomeConfig": "get_prototome_config",
         "setPrototomeConfig": "set_prototome_config",
         "prototomeConfigUpdates": "prototome_config",
+        "setPrototomeMode": "set_prototome_mode",
         "prototomeState": "prototome_state",
         "startCutting": "start_cutting",
         "cutOne": "cut_one",

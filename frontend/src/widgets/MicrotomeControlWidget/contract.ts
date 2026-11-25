@@ -23,6 +23,12 @@ export const MicrotomeControlWidgetContract = {
     },
     // Sent periodically by the instrument, so edits in its local GUI show up here.
     prototomeConfigUpdates: { results: z.unknown(), kind: "channel" },
+    // Switches between cutting and facing; value is the mode to switch to.
+    setPrototomeMode: {
+      params: z.object({ key: z.unknown().optional(), value: z.unknown() }),
+      results: z.unknown(),
+      kind: "action",
+    },
 
     // State control
     prototomeState: { results: z.unknown(), kind: "channel" },

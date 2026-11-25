@@ -40,6 +40,27 @@ export type MicrotomeControlWidgetProps = Resources & {
 const asNumber = (value: unknown) =>
   typeof value === "number" ? value : undefined;
 
+type PrototomeMode = "cutting" | "facing";
+
+// The instrument reports its mode (approach_mode) alongside the config. Split it
+// off, because the config form rejects keys that are not in its schema.
+const splitReported = (
+  reported: unknown,
+): { config: PrototomeConfig | null; mode: PrototomeMode | undefined } => {
+  if (!reported || typeof reported !== "object")
+    return { config: null, mode: undefined };
+  const { approach_mode: mode, ...config } = reported as Record<
+    string,
+    unknown
+  >;
+  return {
+    config: config as unknown as PrototomeConfig,
+    mode: mode === "cutting" || mode === "facing" ? mode : undefined,
+  };
+};
+
+const capitalize = (text: string) => text[0].toUpperCase() + text.slice(1);
+
 const buildVisConfig = (
   axes: string[],
   prototomeConfig: PrototomeConfig,
@@ -65,6 +86,7 @@ export const MicrotomeControlWidgetView = ({
   getPrototomeConfig,
   setPrototomeConfig,
   prototomeConfigUpdates,
+  setPrototomeMode,
   prototomeState,
   startCutting,
   cutOne,
@@ -105,7 +127,9 @@ export const MicrotomeControlWidgetView = ({
   // -------------------------------
   // The instrument sends the whole reported config about once a second. Keep the
   // same object while its content is unchanged, so the form is not reset every tick.
-  const pushedJson = JSON.stringify(prototomeConfigUpdates.data ?? null);
+  const pushed = splitReported(prototomeConfigUpdates.data);
+  const initial = splitReported(getPrototomeConfig.data);
+  const pushedJson = JSON.stringify(pushed.config);
   const pushedConfig = useMemo(
     () => JSON.parse(pushedJson) as PrototomeConfig | null,
     [pushedJson],
@@ -113,8 +137,10 @@ export const MicrotomeControlWidgetView = ({
   const prototomeConfig =
     localConfig && localConfig.basis === pushedConfig
       ? localConfig.config
-      : (pushedConfig ??
-        (getPrototomeConfig.data as PrototomeConfig | undefined));
+      : (pushedConfig ?? initial.config ?? undefined);
+  // Mode as reported by the instrument, so a switch made in its local GUI shows here.
+  const mode: PrototomeMode = pushed.mode ?? initial.mode ?? "cutting";
+  const otherMode: PrototomeMode = mode === "cutting" ? "facing" : "cutting";
   const axes = Object.keys(prototomeConfig?.axis_map ?? {});
   const visConfig = prototomeConfig
     ? buildVisConfig(axes, prototomeConfig, axisVariableMapping)
@@ -188,10 +214,25 @@ export const MicrotomeControlWidgetView = ({
                   {currentState}
                 </Badge>
               </Group>
+              <Group>
+                <Text size="sm">Current Mode:</Text>
+                <Badge
+                  color={mode === "cutting" ? "blue" : "red"}
+                  variant="light"
+                >
+                  {mode}
+                </Badge>
+              </Group>
               <Stack>
-                <Button>Switch to Facing</Button>
+                <Button
+                  variant={mode === "cutting" ? "filled" : "outline"}
+                  color={mode === "cutting" ? undefined : "red"}
+                  onClick={() => setPrototomeMode.call({ value: otherMode })}
+                >
+                  Switch to {capitalize(otherMode)}
+                </Button>
                 <Button color="green" onClick={() => startCutting.call({})}>
-                  Start Cutting
+                  Start {capitalize(mode)}
                 </Button>
                 <Button color="yellowgreen">Repeat Cut</Button>
                 <Button color="yellow" onClick={() => cutOne.call({})}>
@@ -201,10 +242,10 @@ export const MicrotomeControlWidgetView = ({
                   color="orange"
                   onClick={() => stopCuttingSafely.call({})}
                 >
-                  Stop Cutting Safely
+                  Stop {capitalize(mode)} Safely
                 </Button>
                 <Button color="red" onClick={() => stopCuttingNow.call({})}>
-                  Stop Cutting Now
+                  Stop {capitalize(mode)} Now
                 </Button>
               </Stack>
             </Stack>
