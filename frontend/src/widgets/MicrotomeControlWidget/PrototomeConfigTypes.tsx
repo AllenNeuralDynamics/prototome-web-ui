@@ -103,11 +103,11 @@ export const uiPrototomeSchema = {
   },
   ep_cut_bottom: {
     "ui:widget": "updown",
-    "ui:title": "Epoxy Cut Bottom",
+    "ui:title": "Cut Window Bottom (mm)",
   },
   ep_cut_top: {
     "ui:widget": "updown",
-    "ui:title": "Epoxy Cut Top",
+    "ui:title": "Cut Window Top (mm)",
   },
   retract_distance: {
     "ui:widget": "updown",
