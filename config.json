@@ -2,7 +2,7 @@
   "title": "prototome",
   "server": {
     "url": "http://0.0.0.0",
-    "port": 8000,
+    "port": 8080,
     "rpcs_endpoint": "/api/rpcs",
     "streams_endpoint": "/api/streams",
     "offer_endpoint": "/api/offer",
@@ -20,39 +20,39 @@
     "lassoCamera1": {
       "type": "LassoCameraWidget",
       "bindings": {
-        "cameraLasso": "camera_lasso",
-        "startLivestream": "camera_lasso_start_livestream",
-        "stopLivestream": "camera_lasso_stop_livestream",
-        "setAutoWb": "camera_lasso_set_auto_wb",
-        "getExposure": "camera_lasso_get_exposure",
-        "getGain": "camera_lasso_get_gain",
+        "cameraLasso": "left_camera_lasso",
+        "startLivestream": "left_camera_lasso_start_livestream",
+        "stopLivestream": "left_camera_lasso_stop_livestream",
+        "setAutoWb": "left_camera_lasso_set_auto_wb",
+        "getExposure": "left_camera_lasso_get_exposure",
+        "getGain": "left_camera_lasso_get_gain",
         "getRois": "left_lasso_get_roi",
-        "setExposure": "camera_lasso_set_exposure",
-        "setGain": "camera_lasso_set_gain"
+        "setExposure": "left_camera_lasso_set_exposure",
+        "setGain": "left_camera_lasso_set_gain"
       }
     },
     "lassoControl1": {
       "type": "LassoControlWidget",
       "bindings": {
-        "pylassoData": "pylasso_data",
-        "moveToStatePosition": "move_to_state_position",
-        "storePosition": "store_position",
-        "homeAllAxes": "lasso_home_all_axes",
-        "stopAllAxes": "lasso_stop_all_axes",
-        "homeAxis": "lasso_home_axis",
-        "stopAxis": "lasso_stop_axis",
-        "guiUpdateSpeed": "gui_update_speed"
+        "pylassoData": "left_pylasso_data",
+        "moveToStatePosition": "left_move_to_state_position",
+        "storePosition": "left_store_position",
+        "homeAllAxes": "left_lasso_home_all_axes",
+        "stopAllAxes": "left_lasso_stop_all_axes",
+        "homeAxis": "left_lasso_home_axis",
+        "stopAxis": "left_lasso_stop_axis",
+        "guiUpdateSpeed": "left_gui_update_speed"
       }
     },
     "waferCalibration1": {
       "type": "WaferCalibrationWidget",
       "bindings": {
-        "waferData": "pylasso_wafer_data",
-        "navigatorData": "pylasso_navigator_data",
-        "calibrate": "calibrate",
-        "setWorldRefpoint": "set_word_refpoint",
-        "updateApertureStatus": "update_aperture_status",
-        "removeAperture": "remove_aperture"
+        "waferData": "left_pylasso_wafer_data",
+        "navigatorData": "left_pylasso_navigator_data",
+        "calibrate": "left_calibrate",
+        "setWorldRefpoint": "left_set_word_refpoint",
+        "updateApertureStatus": "left_update_aperture_status",
+        "removeAperture": "left_remove_aperture"
       }
     },
     "stageControl1": {
@@ -95,6 +95,15 @@
         "setGain": "camera_prototome_set_gain",
         "stagePositions": "prototome_stage_positions",
         "getAxisTravelRanges": "get_axis_travel_ranges"
+      }
+    },
+    "stateMachines1": {
+      "type": "StateMachineWidget",
+      "bindings": {
+        "stateMachines": "state_machines",
+        "switchMasterState": "switch_master_state",
+        "advanceState": "advance_state",
+        "setGamepadFocus": "set_gamepad_focus"
       }
     },
     "eStopButton1": {

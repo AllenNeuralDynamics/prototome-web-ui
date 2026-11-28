@@ -3,12 +3,14 @@ export { LassoCameraWidget } from "./LassoCameraWidget";
 export { LassoControlWidget } from "./LassoControlWidget";
 export { MicrotomeControlWidget } from "./MicrotomeControlWidget";
 export { StageControlWidget } from "./StageControlWidget";
+export { StateMachineWidget } from "./StateMachineWidget";
 export { WaferCalibrationWidget } from "./WaferCalibrationWidget";
 import { EStopButton } from "./EStopButton";
 import { LassoCameraWidget } from "./LassoCameraWidget";
 import { LassoControlWidget } from "./LassoControlWidget";
 import { MicrotomeControlWidget } from "./MicrotomeControlWidget";
 import { StageControlWidget } from "./StageControlWidget";
+import { StateMachineWidget } from "./StateMachineWidget";
 import { WaferCalibrationWidget } from "./WaferCalibrationWidget";
 import type { WidgetContract } from "./framework";
 
@@ -19,6 +21,7 @@ export const defaultWidgetRegistry = {
   LassoControlWidget,
   MicrotomeControlWidget,
   StageControlWidget,
+  StateMachineWidget,
   WaferCalibrationWidget,
 } as const;
 

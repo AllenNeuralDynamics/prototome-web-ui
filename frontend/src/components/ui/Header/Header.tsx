@@ -57,6 +57,16 @@ export const Header = () => {
         >
           PyLasso
         </Button>
+        <Button
+          component={Link}
+          to="/state-machines"
+          variant={
+            location.pathname === "/state-machines" ? "filled" : "outline"
+          }
+          color="blue"
+        >
+          State Machines
+        </Button>
       </Group>
       <Group>
         {readOnly && owner.data && (
